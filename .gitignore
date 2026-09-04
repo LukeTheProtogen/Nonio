@@ -1,0 +1,24 @@
+# deps
+node_modules/
+.pnp.*
+# next
+.next/
+out/
+build/
+# env
+.env
+.env.local
+.env*.local
+# python
+.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+# dados gerados (o snapshot versionado vive em data/snapshot/)
+data/raw/
+data/tmp/
+*.parquet.tmp
+# sistema
+.DS_Store
+*.log
+.vercel
