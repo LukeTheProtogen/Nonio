@@ -259,6 +259,11 @@ def main() -> None:
         ("sgs_selic_mensal.parquet", lambda: sgs(4390, "selic_mensal")),
         ("sgs_selic_diaria.parquet", lambda: sgs_diario(432, "selic_meta")),
         ("sgs_cambio.parquet",       lambda: sgs_diario(1, "cambio_venda", inicio=2000)),
+        # 13522: IPCA acumulado em 12 meses — é o realizado anual, já pronto.
+        ("sgs_ipca_12m.parquet",     lambda: sgs(13522, "ipca_12m")),
+        # 13521: meta de inflação do CMN, por ano. O teto MUDA ao longo do
+        # tempo — cravar 4,5% faria o Brier mentir no histórico.
+        ("sgs_meta_inflacao.parquet", lambda: sgs(13521, "meta")),
     ):
         if not _pular(arq):
             _escrever(fn(), arq)

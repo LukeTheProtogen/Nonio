@@ -1,4 +1,4 @@
-.PHONY: dados consenso prever dev
+.PHONY: dados consenso backtest prever dev
 
 dados:
 	cd pipeline && uv run python -m nonio.ingest
@@ -6,6 +6,9 @@ dados:
 
 consenso:
 	cd pipeline && uv run python -m nonio.consenso
+
+backtest:
+	cd pipeline && uv run python -m nonio.backtest
 
 prever:
 	cd pipeline && uv run python -m nonio.prever
