@@ -43,6 +43,8 @@ escolher features.
 ## Comandos
 - `make consenso` — só a normalização, sem rebaixar nada
 - `make dados` — regenera Parquet/JSON a partir das fontes públicas
+- `make cron`  — brapi + SGS (CDI) → DuckDB stocks + parquet
+- `make api`   — sobe o FastAPI
 - `make dev`   — sobe o servidor de desenvolvimento
 
 ## Fontes
