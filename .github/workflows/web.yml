@@ -1,0 +1,53 @@
+name: web
+
+# Roda o MESMO build que a Vercel roda, dentro do GitHub.
+#
+# Motivo: no plano Hobby só o dono do projeto enxerga o painel da Vercel. Quando
+# um build quebra, o resto do time fica sem log e sem diagnóstico — e o dono vira
+# gargalo justamente nas horas em que ninguém tem tempo de esperar.
+#
+# Aqui o log fica no GitHub, onde todos os colaboradores já têm acesso. Como é o
+# mesmo `next build`, praticamente todo erro que derrubaria a Vercel aparece
+# aqui primeiro, de graça. Sobra para a Vercel só o que depende do ambiente dela
+# (variáveis, runtime), que é raro.
+on:
+  push:
+    paths: ["web/**", ".github/workflows/web.yml"]
+  pull_request:
+    paths: ["web/**"]
+  workflow_dispatch:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      - name: Fronteira linguistica
+        run: node scripts/conformidade.mjs
+
+      - name: Tipos
+        run: npx tsc --noEmit
+
+      - name: Build de producao
+        # Sem BRAPI_TOKEN de proposito: o build precisa passar sem chave, que e
+        # a garantia de que a degradacao para os 4 tickers gratuitos funciona.
+        run: npm run build
+
+      - name: A demo roda sem rede
+        # NONIO_DEMO=1 forca o snapshot congelado. Se isto passar, a
+        # apresentacao sobrevive ao Wi-Fi do evento.
+        env:
+          NONIO_DEMO: "1"
+        run: npm run build

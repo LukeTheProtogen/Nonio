@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buscarCotacoes, temToken } from "@/lib/brapi";
 import { calcularDelta, geradoEm, modeloVersao, toleranciaPp, todasPrevisoes } from "@/lib/previsoes";
 import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
+import { cotacoesCongeladas, ehDemo, snapshot } from "@/lib/demo";
 
 // A rota renderiza a cada requisição para que "consultadoEm" seja verdade.
 // O fetch da brapi continua com cache de 15 min (next.revalidate em lib/brapi),
@@ -14,11 +15,14 @@ export const dynamic = "force-dynamic";
  * As três coisas juntas, com a data de cada uma à vista:
  *   cotação ao vivo (15 min) · probabilidade (diária) · delta entre elas
  */
-export async function GET() {
+export async function GET(request: Request) {
   const previsoes = todasPrevisoes();
+  const demo = ehDemo(request.url);
 
   try {
-    const cotacoes = await buscarCotacoes(previsoes.map((p) => p.ticker));
+    const tickers = previsoes.map((p) => p.ticker);
+    // Em demo, nenhuma chamada externa acontece — nem para falhar.
+    const cotacoes = demo ? cotacoesCongeladas(tickers) : await buscarCotacoes(tickers);
     const porTicker = new Map(cotacoes.map((c) => [c.ticker, c]));
 
     const linhas = previsoes.map((p) => {
@@ -49,13 +53,15 @@ export async function GET() {
 
     return NextResponse.json({
       linhas,
+      modo: demo ? "demo" : "ao-vivo",
+      congeladoEm: demo ? snapshot.capturadoEm : null,
       previsoesGeradasEm: geradoEm,
       // O enquadramento viaja junto com o dado: quem consome a API — o
       // front, um parceiro, um script — recebe o mesmo aviso da tela.
       aviso: DISCLAIMER_MEDIO,
       modeloVersao,
       toleranciaPp,
-      limitadoSemToken: !temToken(),
+      limitadoSemToken: demo ? false : !temToken(),
       consultadoEm: new Date().toISOString(),
     });
   } catch (erro) {

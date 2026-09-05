@@ -1,0 +1,37 @@
+{
+  "capturadoEm": "2026-09-05T22:45:27.803Z",
+  "cotacoes": [
+    {
+      "ticker": "PETR4",
+      "nome": "PETR4",
+      "preco": 47.11,
+      "variacaoPct": -0.95,
+      "moeda": "BRL",
+      "atualizadoEm": "2026-09-05T19:12:29.000Z"
+    },
+    {
+      "ticker": "VALE3",
+      "nome": "VALE3",
+      "preco": 78.62,
+      "variacaoPct": 0.22,
+      "moeda": "BRL",
+      "atualizadoEm": "2026-09-05T19:12:29.000Z"
+    },
+    {
+      "ticker": "ITUB4",
+      "nome": "ITUB4",
+      "preco": 41.92,
+      "variacaoPct": 0,
+      "moeda": "BRL",
+      "atualizadoEm": "2026-09-05T19:12:29.000Z"
+    },
+    {
+      "ticker": "MGLU3",
+      "nome": "MGLU3",
+      "preco": 5.79,
+      "variacaoPct": 4.14,
+      "moeda": "BRL",
+      "atualizadoEm": "2026-09-05T19:12:29.000Z"
+    }
+  ]
+}

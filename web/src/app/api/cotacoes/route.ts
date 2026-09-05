@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buscarCotacoes, temToken, TICKERS_LIVRES } from "@/lib/brapi";
 import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
+import { cotacoesCongeladas, ehDemo, snapshot } from "@/lib/demo";
 
 export const revalidate = 900;
 
@@ -17,12 +18,17 @@ export async function GET(request: Request) {
     .map((t) => t.trim().toUpperCase())
     .filter(Boolean);
 
+  const demo = ehDemo(request.url);
+
   try {
-    const cotacoes = await buscarCotacoes(pedidos);
+    // Em demo, nenhuma chamada externa acontece — nem para falhar.
+    const cotacoes = demo ? cotacoesCongeladas(pedidos) : await buscarCotacoes(pedidos);
     return NextResponse.json({
       cotacoes,
-      limitado: !temToken(),
-      fonte: "brapi.dev",
+      modo: demo ? "demo" : "ao-vivo",
+      congeladoEm: demo ? snapshot.capturadoEm : null,
+      limitado: demo ? false : !temToken(),
+      fonte: demo ? "snapshot congelado" : "brapi.dev",
       // O enquadramento viaja junto com o dado: quem consome a API — o
       // front, um parceiro, um script — recebe o mesmo aviso da tela.
       aviso: DISCLAIMER_MEDIO,
