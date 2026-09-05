@@ -2,6 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { emailPlausivel, senhaValida } from "@/lib/senha";
 
 /**
  * Sessão — MOCK.
@@ -110,4 +111,82 @@ function nomeDoEmail(email: string): string {
   const primeiro = local.split(/[._-]/)[0] ?? "";
   if (!primeiro) return "Você";
   return primeiro.charAt(0).toUpperCase() + primeiro.slice(1);
+}
+
+/**
+ * Cria a conta e manda para a verificação por código.
+ *
+ * MOCK: não persiste nada. O que vale aqui é a validação, que roda com as
+ * MESMAS regras do formulário (lib/senha), para as duas pontas não divergirem.
+ */
+export async function criarConta(
+  _anterior: ResultadoEntrada,
+  form: FormData,
+): Promise<ResultadoEntrada> {
+  const nome = String(form.get("nome") ?? "").trim();
+  const email = String(form.get("email") ?? "").trim();
+  const senha = String(form.get("senha") ?? "");
+
+  if (!nome) return { erro: "Diga como quer ser chamado." };
+  if (!emailPlausivel(email)) return { erro: "Esse e-mail não parece válido." };
+  if (!senhaValida(senha)) return { erro: "A senha ainda não cumpre as três regras." };
+
+  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&novo=1`);
+}
+
+/**
+ * Pede o código de recuperação.
+ *
+ * A resposta é sempre a mesma, exista a conta ou não. É o que impede usar esta
+ * tela para descobrir quem é cliente — e por isso ela nunca retorna erro de
+ * "e-mail não encontrado", nem agora nem quando houver backend.
+ */
+export async function pedirRecuperacao(
+  _anterior: ResultadoEntrada,
+  form: FormData,
+): Promise<ResultadoEntrada> {
+  const email = String(form.get("email") ?? "").trim();
+  if (!emailPlausivel(email)) return { erro: "Esse e-mail não parece válido." };
+
+  redirect(`/redefinir-senha?email=${encodeURIComponent(email)}`);
+}
+
+/**
+ * Troca a senha e já entra.
+ *
+ * Trocar a senha encerra as outras sessões e avisa por e-mail — nada disso
+ * existe ainda, mas a tela já promete, então o backend precisa cumprir.
+ */
+export async function redefinirSenha(
+  _anterior: ResultadoEntrada,
+  form: FormData,
+): Promise<ResultadoEntrada> {
+  const email = String(form.get("email") ?? "").trim();
+  const codigo = String(form.get("codigo") ?? "").replace(/\D/g, "");
+  const senha = String(form.get("senha") ?? "");
+  const repetida = String(form.get("repetida") ?? "");
+
+  if (codigo !== CODIGO_MOCK) {
+    return { erro: "Esse código não confere. Confira o e-mail mais recente." };
+  }
+  if (!senhaValida(senha)) return { erro: "A senha ainda não cumpre as três regras." };
+  if (senha !== repetida) return { erro: "As duas senhas não são iguais." };
+
+  await abrirSessao(email);
+  redirect("/macro");
+}
+
+/** Grava o cookie de sessão. Único lugar que sabe o formato. */
+async function abrirSessao(email: string): Promise<void> {
+  const sessao: Sessao = {
+    nome: nomeDoEmail(email),
+    email: email || "voce@exemplo.com.br",
+    plano: "Assinatura",
+  };
+  (await cookies()).set(COOKIE, encodeURIComponent(JSON.stringify(sessao)), {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 7,
+  });
 }
