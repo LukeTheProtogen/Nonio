@@ -1,9 +1,9 @@
-"""Treino LightGBM — P(bater CDI em 12m).
+"""Treino — low-vol spine (precision) + residual LGBM opcional.
 
     uv run python -m nonio.train
 """
 
-MODELO_VERSAO = "lgbm-cdi-v4"
+MODELO_VERSAO = "lowvol-spine-v0"
 
 # README: 15–20 Ibovespa, incluindo os quatro da demo.
 DEFAULT_UNIVERSE = [

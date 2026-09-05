@@ -25,11 +25,11 @@ copom-llm:
 cron:
 	cd pipeline && uv run python -m nonio.cron
 
-# LightGBM P(bater CDI) — lê parquet, grava data/models + previews
+# LightGBM: treina excesso (IC); CDI Brier/quintis só na eval
 treino:
 	cd pipeline && uv run python -m nonio.train
 
-# Varredura horizonte × features × universo (~1–2 min)
+# Varredura horizonte × features × universo (métrica = IC no excesso)
 experimentos:
 	cd pipeline && uv run python -m nonio.train.experiments
 

@@ -141,38 +141,57 @@ def _add_labels(
             (pl.col("log_cdi_fwd_sum").exp() - 1).alias("ret_cdi"),
         )
         .with_columns(
-            (pl.col("ret_stock") > pl.col("ret_cdi")).cast(pl.Int8).alias("y_beat_cdi")
+            (pl.col("ret_stock") - pl.col("ret_cdi")).alias("y_excess"),
+            (pl.col("ret_stock") > pl.col("ret_cdi")).cast(pl.Int8).alias("y_beat_cdi"),
         )
     )
     return df
 
 
 def _add_price_features(df: pl.DataFrame) -> pl.DataFrame:
-    return df.with_columns(
-        (pl.col("close").log() - pl.col("close").log().shift(1).over("code")).alias(
-            "log_ret_1d"
+    return (
+        df.with_columns(
+            (pl.col("close").log() - pl.col("close").log().shift(1).over("code")).alias(
+                "log_ret_1d"
+            )
         )
-    ).with_columns(
-        (
-            pl.col("log_ret_1d").rolling_std(20).over("code") * (PREGOES_ANO**0.5)
-        ).alias("vol_20"),
-        (
-            pl.col("log_ret_1d").rolling_std(60).over("code") * (PREGOES_ANO**0.5)
-        ).alias("vol_60"),
-        (
-            pl.col("log_ret_1d").rolling_std(120).over("code") * (PREGOES_ANO**0.5)
-        ).alias("vol_120"),
-        (pl.col("close") / pl.col("close").shift(21).over("code") - 1).alias("mom_1m"),
-        (pl.col("close") / pl.col("close").shift(63).over("code") - 1).alias("mom_3m"),
-        (pl.col("close") / pl.col("close").shift(126).over("code") - 1).alias("mom_6m"),
-        (pl.col("close") / pl.col("close").shift(252).over("code") - 1).alias("mom_12m"),
-        (pl.col("close") / pl.col("close").rolling_max(252).over("code") - 1).alias(
-            "dd_52w"
-        ),
-        (
-            (pl.col("volume") - pl.col("volume").rolling_mean(20).over("code"))
-            / pl.col("volume").rolling_std(20).over("code")
-        ).alias("vol_z_20"),
+        .with_columns(
+            (
+                pl.col("log_ret_1d").rolling_std(20).over("code") * (PREGOES_ANO**0.5)
+            ).alias("vol_20"),
+            (
+                pl.col("log_ret_1d").rolling_std(60).over("code") * (PREGOES_ANO**0.5)
+            ).alias("vol_60"),
+            (
+                pl.col("log_ret_1d").rolling_std(120).over("code") * (PREGOES_ANO**0.5)
+            ).alias("vol_120"),
+            (pl.col("close") / pl.col("close").shift(21).over("code") - 1).alias(
+                "mom_1m"
+            ),
+            (pl.col("close") / pl.col("close").shift(63).over("code") - 1).alias(
+                "mom_3m"
+            ),
+            (pl.col("close") / pl.col("close").shift(126).over("code") - 1).alias(
+                "mom_6m"
+            ),
+            (pl.col("close") / pl.col("close").shift(252).over("code") - 1).alias(
+                "mom_12m"
+            ),
+            (pl.col("close") / pl.col("close").rolling_max(252).over("code") - 1).alias(
+                "dd_52w"
+            ),
+            (
+                (pl.col("volume") - pl.col("volume").rolling_mean(20).over("code"))
+                / pl.col("volume").rolling_std(20).over("code")
+            ).alias("vol_z_20"),
+        )
+        .with_columns(
+            # precision spine: higher = calmer (used as rank / excess proxy)
+            (-pl.col("vol_60")).alias("lowvol_score"),
+            # dampened momentum — climb per unit vol (less "optimistic" raw mom)
+            (pl.col("mom_3m") / pl.col("vol_60").clip(0.05, 2.0)).alias("mom3_damp"),
+            (pl.col("mom_12m") / pl.col("vol_60").clip(0.05, 2.0)).alias("mom12_damp"),
+        )
     )
 
 
@@ -187,6 +206,17 @@ PRICE_FEATURE_COLS = [
     "dd_52w",
     "vol_z_20",
     "p_baseline",
+]
+
+# residual learner on top of low-vol spine (dampened climb, not raw mom)
+DAMPED_FEATURE_COLS = [
+    "lowvol_score",
+    "mom3_damp",
+    "mom12_damp",
+    "dd_52w",
+    "vol_20",
+    "vol_120",
+    "vol_z_20",
 ]
 
 PRICE_MACRO_FEATURE_COLS = [
@@ -237,6 +267,7 @@ FEATURE_PACKS: dict[str, list[str]] = {
     "price_macro": PRICE_MACRO_FEATURE_COLS,
     "lean": LEAN_FEATURE_COLS,
     "full": FEATURE_COLS,
+    "damped": DAMPED_FEATURE_COLS,
 }
 
 
@@ -317,7 +348,20 @@ def labeled_rows(panel: pl.DataFrame) -> pl.DataFrame:
     ]
     present = [c for c in copom_fill if c in panel.columns]
     out = panel.with_columns([pl.col(c).fill_null(0) for c in present])
-    return out.drop_nulls(subset=["y_beat_cdi", "vol_60", "mom_3m", "mom_12m", "cdi_pct"])
+    # treino usa y_excess; y_beat_cdi fica p/ avaliação CDI separada
+    return out.drop_nulls(
+        subset=[
+            "y_excess",
+            "y_beat_cdi",
+            "vol_60",
+            "mom_3m",
+            "mom_12m",
+            "cdi_pct",
+            "lowvol_score",
+            "mom3_damp",
+            "mom12_damp",
+        ]
+    )
 
 
 def latest_feature_rows(panel: pl.DataFrame) -> pl.DataFrame:
