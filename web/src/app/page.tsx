@@ -205,8 +205,8 @@ export default async function Landing() {
               </h2>
               <p className="max-w-[34ch] font-heading text-[26px] font-medium leading-snug">
                 A doze meses do fechamento, a mediana do Focus erra o IPCA em{" "}
-                <span className="tabular">{num(h12.consenso.rmse)}</span> pontos percentuais.
-                A seis meses, <span className="tabular">{num(h6.consenso.rmse)}</span>.
+                <span className="tabular">{num(h12.consenso.mae)}</span> pontos percentuais, em
+                média. A seis meses, <span className="tabular">{num(h6.consenso.mae)}</span>.
               </p>
               <p className="max-w-[48ch] text-[17px] leading-relaxed text-ink-soft">
                 {h12.mincer_zarnowitz.leitura}. São{" "}
