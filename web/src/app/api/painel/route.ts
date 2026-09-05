@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buscarCotacoes, temToken } from "@/lib/brapi";
 import { calcularDelta, geradoEm, modeloVersao, toleranciaPp, todasPrevisoes } from "@/lib/previsoes";
+import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 // A rota renderiza a cada requisição para que "consultadoEm" seja verdade.
 // O fetch da brapi continua com cache de 15 min (next.revalidate em lib/brapi),
@@ -49,6 +50,9 @@ export async function GET() {
     return NextResponse.json({
       linhas,
       previsoesGeradasEm: geradoEm,
+      // O enquadramento viaja junto com o dado: quem consome a API — o
+      // front, um parceiro, um script — recebe o mesmo aviso da tela.
+      aviso: DISCLAIMER_MEDIO,
       modeloVersao,
       toleranciaPp,
       limitadoSemToken: !temToken(),

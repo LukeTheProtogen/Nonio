@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { buscarCotacoes, temToken, TICKERS_LIVRES } from "@/lib/brapi";
+import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 export const revalidate = 900;
 
@@ -22,6 +23,9 @@ export async function GET(request: Request) {
       cotacoes,
       limitado: !temToken(),
       fonte: "brapi.dev",
+      // O enquadramento viaja junto com o dado: quem consome a API — o
+      // front, um parceiro, um script — recebe o mesmo aviso da tela.
+      aviso: DISCLAIMER_MEDIO,
       buscadoEm: new Date().toISOString(),
     });
   } catch (erro) {

@@ -27,6 +27,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Verificar a fronteira linguística
+        # Falha o pipeline se aparecer vocabulário que sobe o produto para o
+        # degrau 2 da escada regulatória. É a única barreira automática entre
+        # "ferramenta de pesquisa" e "análise de valores mobiliários".
+        working-directory: web
+        run: node scripts/conformidade.mjs
+
       - name: Instalar uv
         uses: astral-sh/setup-uv@v7
         with:

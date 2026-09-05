@@ -1,4 +1,4 @@
-.PHONY: dados consenso backtest prever dev
+.PHONY: dados consenso backtest prever conformidade dev
 
 dados:
 	cd pipeline && uv run python -m nonio.ingest
@@ -12,6 +12,9 @@ backtest:
 
 prever:
 	cd pipeline && uv run python -m nonio.prever
+
+conformidade:
+	cd web && node scripts/conformidade.mjs
 
 dev:
 	cd web && npm run dev
