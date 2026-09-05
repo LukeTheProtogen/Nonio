@@ -17,6 +17,11 @@ __pycache__/
 # dados gerados (o snapshot versionado vive em data/snapshot/)
 data/raw/
 data/tmp/
+data/parquet/
+data/cache/
+data/models/
+data/*.duckdb
+data/*.duckdb.wal
 *.parquet.tmp
 # sistema
 .DS_Store

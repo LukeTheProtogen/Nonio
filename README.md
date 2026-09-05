@@ -107,6 +107,16 @@ make prever
 # fronteira linguística (roda também na CI)
 make conformidade
 
+# pipeline do backend: brapi + SGS (CDI) → DuckDB + parquet
+make cron
+
+# modelo: treino e varredura de experimentos
+make treino
+make experimentos
+
+# API de leitura dos modelos
+make api
+
 # interface
 make dev
 ```
