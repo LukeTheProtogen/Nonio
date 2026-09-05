@@ -35,8 +35,8 @@ export default async function Codigo({ searchParams }: PageProps<"/entrar/codigo
     >
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <h1 className="font-heading text-[34px] font-semibold leading-tight">Digite o código</h1>
-          <p className="text-[14.5px] leading-relaxed text-ink-soft">
+          <h1 className="font-heading text-[42px] font-semibold leading-[1.1]">Digite o código</h1>
+          <p className="text-[16px] leading-relaxed text-ink-soft">
             Mandamos seis dígitos para{" "}
             <span className="font-mono text-ink">{mascarar(endereco)}</span>.
           </p>

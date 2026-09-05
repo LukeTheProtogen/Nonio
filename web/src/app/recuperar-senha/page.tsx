@@ -30,8 +30,8 @@ export default function RecuperarSenha() {
     >
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <h1 className="font-heading text-[34px] font-semibold leading-tight">Recuperar senha</h1>
-          <p className="text-[14.5px] leading-relaxed text-ink-soft">
+          <h1 className="font-heading text-[42px] font-semibold leading-[1.1]">Recuperar senha</h1>
+          <p className="text-[16px] leading-relaxed text-ink-soft">
             Coloque o e-mail da conta e mandamos um código de seis dígitos para você criar uma nova.
           </p>
         </div>
