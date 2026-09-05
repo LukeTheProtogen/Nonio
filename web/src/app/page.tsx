@@ -8,6 +8,7 @@ import { Marca, LinkSeta, Canhoto } from "@/components/marketing/marca";
 import { porHorizonte, geradoEm as backtestGeradoEm } from "@/lib/backtest";
 import { INDICADORES, CITACOES, FOCUS_COLETADO_EM } from "@/mock/macro";
 import { dataLonga, num, probabilidade } from "@/lib/formato";
+import { sessaoAtual } from "@/lib/sessao";
 
 export const metadata: Metadata = {
   title: "A decisão é sua",
@@ -17,7 +18,8 @@ export const metadata: Metadata = {
 
 /* Uma ideia por rolagem. Onde couber uma frase no lugar de um parágrafo, fica a frase. */
 
-export default function Landing() {
+export default async function Landing() {
+  const sessao = await sessaoAtual();
   const ipca = INDICADORES[0];
   const h12 = porHorizonte(12);
   const h6 = porHorizonte(6);
@@ -28,7 +30,7 @@ export default function Landing() {
       {/* 01 · CABEÇALHO E DOBRA, sob os mesmos feixes */}
       <div className="relative isolate">
         <Feixes />
-        <Cabecalho />
+        <Cabecalho logado={Boolean(sessao)} />
         <section className="relative mx-auto max-w-[1440px] px-10 pb-28 pt-24 md:px-40">
         <p className="eyebrow">Pesquisa e probabilidade sobre dados públicos</p>
         <h1 className="mt-8 max-w-[14ch] font-heading text-6xl font-semibold leading-[1.03] tracking-[-0.024em] md:text-[78px]">
@@ -304,7 +306,7 @@ function Legenda({ cor, children }: { cor: "modelo" | "consenso"; children: Reac
   );
 }
 
-function Cabecalho() {
+function Cabecalho({ logado }: { logado: boolean }) {
   return (
     /*
      * Marca solta, links numa pílula, ação em outra. Ancora sem barra: a régua
@@ -336,19 +338,35 @@ function Cabecalho() {
           </nav>
         </div>
 
+        {/*
+          Com sessão aberta, oferecer "Entrar" mente sobre o estado de quem
+          está lendo: a pessoa clica, o guarda desvia para o painel, e parece
+          defeito. O cabeçalho tem que dizer a verdade sobre quem está logado.
+        */}
         <div className="flex items-center gap-2">
-          <Link
-            href="/entrar"
-            className="inline-flex h-11 items-center rounded-full px-5 text-[14.5px] text-ink-soft transition-colors hover:text-ink"
-          >
-            Entrar
-          </Link>
-          <Link
-            href="/criar-conta"
-            className="inline-flex h-11 items-center rounded-full bg-modelo px-6 text-[14.5px] font-semibold text-white transition-colors hover:bg-modelo-forte"
-          >
-            Criar conta
-          </Link>
+          {logado ? (
+            <Link
+              href="/macro"
+              className="inline-flex h-11 items-center rounded-full bg-modelo px-6 text-[14.5px] font-semibold text-white transition-colors hover:bg-modelo-forte"
+            >
+              Ir para o painel
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/entrar"
+                className="inline-flex h-11 items-center rounded-full px-5 text-[14.5px] text-ink-soft transition-colors hover:text-ink"
+              >
+                Entrar
+              </Link>
+              <Link
+                href="/criar-conta"
+                className="inline-flex h-11 items-center rounded-full bg-modelo px-6 text-[14.5px] font-semibold text-white transition-colors hover:bg-modelo-forte"
+              >
+                Criar conta
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>

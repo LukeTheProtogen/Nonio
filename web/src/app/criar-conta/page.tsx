@@ -15,8 +15,11 @@ const NAO_PEDIMOS = [
   "Acesso a nenhuma conta sua",
 ];
 
-export default async function CriarConta() {
-  if (await sessaoAtual()) redirect("/macro");
+export default async function CriarConta({ searchParams }: PageProps<"/criar-conta">) {
+  const { de } = await searchParams;
+  const destino = typeof de === "string" && de.startsWith("/") ? de : "/macro";
+
+  if (await sessaoAtual()) redirect(destino);
 
   return (
     <MolduraAcesso
@@ -59,7 +62,7 @@ export default async function CriarConta() {
           </p>
         </div>
 
-        <FormularioCriarConta />
+        <FormularioCriarConta de={destino} />
 
         <p className="text-[13.5px] text-ink-soft">
           Já tem conta?{" "}

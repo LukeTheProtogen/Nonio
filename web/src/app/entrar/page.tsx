@@ -8,9 +8,12 @@ import { sessaoAtual } from "@/lib/sessao";
 
 export const metadata: Metadata = { title: "Entrar" };
 
-export default async function Entrar() {
+export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
+  const { de } = await searchParams;
+  const destino = typeof de === "string" && de.startsWith("/") ? de : "/macro";
+
   // Quem já tem sessão não precisa ver esta tela.
-  if (await sessaoAtual()) redirect("/macro");
+  if (await sessaoAtual()) redirect(destino);
 
   return (
     <MolduraAcesso
@@ -58,7 +61,7 @@ export default async function Entrar() {
           <p className="text-[14.5px] leading-relaxed text-ink-soft">Bem-vindo de volta.</p>
         </div>
 
-        <FormularioEntrar />
+        <FormularioEntrar de={destino} />
 
         <div className="flex items-center gap-3.5 text-xs text-referencia">
           <span className="h-px flex-1 bg-rule" />

@@ -7,12 +7,13 @@ import { Campo, CampoTexto, CampoSenha } from "@/components/acesso/campos";
 
 const inicial: ResultadoEntrada = undefined;
 
-export function FormularioCriarConta() {
+export function FormularioCriarConta({ de }: { de: string }) {
   const [estado, acao, pendente] = useActionState(criarConta, inicial);
   const erro = Boolean(estado?.erro);
 
   return (
     <form action={acao} className="flex flex-col gap-5">
+      <input type="hidden" name="de" value={de} />
       <Campo rotulo="Como quer ser chamado">
         <CampoTexto nome="nome" autoComplete="given-name" placeholder="Guilherme" autoFocus />
       </Campo>
