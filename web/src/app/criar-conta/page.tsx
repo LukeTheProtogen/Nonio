@@ -56,8 +56,8 @@ export default async function CriarConta({ searchParams }: PageProps<"/criar-con
     >
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <h1 className="font-heading text-[34px] font-semibold leading-tight">Criar conta</h1>
-          <p className="text-[14.5px] leading-relaxed text-ink-soft">
+          <h1 className="font-heading text-[42px] font-semibold leading-[1.1]">Criar conta</h1>
+          <p className="text-[16px] leading-relaxed text-ink-soft">
             Leva um minuto. Sem cartão e sem CPF.
           </p>
         </div>

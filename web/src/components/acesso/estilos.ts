@@ -13,14 +13,14 @@
  */
 
 export const botaoPrimario =
-  "inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-md bg-modelo px-5 text-[14.5px] font-semibold text-white transition-colors hover:bg-modelo-forte disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo";
+  "inline-flex h-13 w-full items-center justify-center gap-2.5 rounded-md bg-modelo px-5 text-[15.5px] font-semibold text-white transition-colors hover:bg-modelo-forte disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo";
 
 export const botaoNeutro =
-  "inline-flex h-11 w-full items-center justify-center gap-2.5 rounded-md border border-rule bg-background px-5 text-[14.5px] font-semibold text-ink shadow-[0_1px_2px_rgba(14,22,22,.04)] transition-colors hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo";
+  "inline-flex h-13 w-full items-center justify-center gap-2.5 rounded-md border border-rule bg-background px-5 text-[15.5px] font-semibold text-ink shadow-[0_1px_2px_rgba(14,22,22,.04)] transition-colors hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo";
 
 export function entrada(erro?: boolean): string {
   return [
-    "h-11 w-full rounded-md border px-3.5 text-[14.5px] outline-none",
+    "h-13 w-full rounded-md border px-4 text-[15.5px] outline-none",
     "placeholder:text-referencia",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo",
     erro ? "border-negativo" : "border-rule focus-visible:border-modelo",
@@ -29,7 +29,7 @@ export function entrada(erro?: boolean): string {
 
 export function caixaCodigo(erro?: boolean): string {
   return [
-    "h-14 w-12 rounded-md border text-center font-mono text-[22px] outline-none",
+    "h-16 w-14 rounded-md border text-center font-mono text-[24px] outline-none",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo",
     erro ? "border-negativo text-negativo" : "border-rule focus-visible:border-modelo",
   ].join(" ");

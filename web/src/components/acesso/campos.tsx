@@ -21,7 +21,7 @@ export function Campo({
   return (
     <label className="flex flex-col gap-1.5">
       <span className="flex items-baseline justify-between gap-3">
-        <span className={`text-[13px] font-medium ${erro ? "text-negativo" : ""}`}>{rotulo}</span>
+        <span className={`text-[13.5px] font-medium ${erro ? "text-negativo" : ""}`}>{rotulo}</span>
         {aoLado}
       </span>
       {children}
@@ -95,13 +95,13 @@ export function CampoSenha({
             onChange={(e) => setValor(e.target.value)}
             autoComplete={autoComplete}
             required
-            className={`${entrada(erro)} pr-11`}
+            className={`${entrada(erro)} pr-13`}
           />
           <button
             type="button"
             onClick={() => setVisivel((v) => !v)}
             aria-label={visivel ? "Ocultar senha" : "Mostrar senha"}
-            className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+            className="absolute right-0 top-0 flex h-13 w-13 items-center justify-center text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
           >
             <Olho aberto={visivel} />
           </button>

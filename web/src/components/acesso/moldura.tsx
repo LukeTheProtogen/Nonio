@@ -3,8 +3,17 @@ import Link from "next/link";
 /**
  * Moldura das telas de acesso: formulário à esquerda, argumento à direita.
  *
- * A coluna da direita some abaixo de `lg` — num celular ela viraria rolagem
- * antes do campo de e-mail, que é o oposto do objetivo da tela.
+ * A pilha inteira — marca, formulário e nota de rodapé — vive numa coluna só,
+ * centralizada horizontalmente. Antes a marca ficava colada no canto e o
+ * formulário começava logo abaixo dela, o que em tela larga deixava tudo órfão
+ * num canto com 1500px de branco ao lado.
+ *
+ * A coluna da direita tem fundo próprio. Sem ele, em tela larga, os dois lados
+ * viravam um campo branco único e o formulário parecia solto no meio do nada —
+ * o corte precisa ser visível para a coluna da esquerda ler como painel.
+ *
+ * Ela some abaixo de `lg`: num celular viraria rolagem antes do campo de
+ * e-mail, que é o oposto do objetivo da tela.
  */
 export function MolduraAcesso({
   children,
@@ -17,20 +26,25 @@ export function MolduraAcesso({
 }) {
   return (
     <div className="flex w-full flex-1">
-      <div className="flex flex-1 flex-col px-8 py-11 md:px-18">
-        <Link href="/" className="font-heading text-[21px] font-semibold tracking-tight">
-          Nônio
-        </Link>
+      <div className="flex flex-1 justify-center px-8 py-12 md:px-20">
+        <div className="flex w-full max-w-[560px] flex-col">
+          <Link
+            href="/"
+            className="self-start font-heading text-[22px] font-semibold tracking-tight"
+          >
+            Nônio
+          </Link>
 
-        <div className="my-auto w-full max-w-[400px] py-12">{children}</div>
+          <div className="my-auto w-full py-14">{children}</div>
 
-        {rodape ? (
-          <p className="max-w-[52ch] text-xs leading-relaxed text-ink-soft">{rodape}</p>
-        ) : null}
+          {rodape ? (
+            <p className="text-[12.5px] leading-relaxed text-ink-soft">{rodape}</p>
+          ) : null}
+        </div>
       </div>
 
-      <aside className="hidden w-[480px] shrink-0 flex-col justify-center gap-7 border-l border-rule px-12 py-11 lg:flex">
-        {lateral}
+      <aside className="hidden w-[40%] max-w-[720px] min-w-[440px] shrink-0 flex-col justify-center gap-7 border-l border-rule bg-surface-3 px-16 py-12 lg:flex">
+        <div className="mx-auto flex w-full max-w-[440px] flex-col gap-7">{lateral}</div>
       </aside>
     </div>
   );
@@ -38,9 +52,9 @@ export function MolduraAcesso({
 
 export function ItemLateral({ titulo, texto }: { titulo: string; texto: string }) {
   return (
-    <div className="flex flex-col gap-1 border-t border-rule-soft py-3.5 first:border-rule">
-      <span className="text-[14.5px] font-semibold">{titulo}</span>
-      <span className="text-[13px] leading-relaxed text-ink-soft">{texto}</span>
+    <div className="flex flex-col gap-1 border-t border-rule-soft py-4 first:border-rule">
+      <span className="text-[15px] font-semibold">{titulo}</span>
+      <span className="text-[13.5px] leading-relaxed text-ink-soft">{texto}</span>
     </div>
   );
 }
