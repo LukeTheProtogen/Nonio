@@ -4,12 +4,52 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Paleta do Nônio.
+ *
+ * A regra que sustenta o resto: cor codifica significado, nunca decoração.
+ * No instante em que petróleo ou ocre aparece porque ficou bonito, o usuário
+ * deixa de confiar no gráfico — num produto de dados isso é defeito de leitura,
+ * não de gosto.
+ *
+ *   petróleo  o nosso modelo, e todo elemento clicável. Em nenhum outro lugar.
+ *   ocre      marcas do consenso (Focus, mercado). Nunca em botão ou título.
+ *   cinza     referência neutra: CDI, Ibovespa, meta, pico anterior.
+ *   verde     ganho. vermelho: perda. ocre-escuro: atenção. Só em deltas.
+ *
+ * Verde e vermelho ficam reservados a ganho e perda, e é por isso que a marca
+ * não pode ser de nenhuma dessas famílias. Petróleo fica entre azul e verde sem
+ * ser nenhum dos dois, então nunca é lido como "subiu".
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-zilla);
+
+  /* semântica do produto */
+  --color-modelo: var(--modelo);
+  --color-modelo-forte: var(--modelo-forte);
+  --color-modelo-lavado: var(--modelo-lavado);
+  --color-consenso: var(--consenso);
+  --color-referencia: var(--referencia);
+  --color-positivo: var(--positivo);
+  --color-negativo: var(--negativo);
+  --color-atencao: var(--atencao);
+  --color-atencao-borda: var(--atencao-borda);
+  --color-atencao-fundo: var(--atencao-fundo);
+
+  /* superfície e texto */
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-tinta: var(--tinta);
+  --color-tinta-suave: var(--tinta-suave);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -18,11 +58,6 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -39,82 +74,130 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* estrutura vem de régua e espaço, não de preenchimento: 70%+ de branco */
+  --background: #ffffff;
+  --foreground: #0e1616;
+
+  --ink: #0e1616;
+  --ink-soft: #55625f;
+  --rule: #dee5e5;
+  --rule-soft: #e8edeb;
+  --surface-2: #f7fafa;
+  /*
+   * Faixas de fundo. Neutros com viés levíssimo de petróleo — cinza puro lê
+   * como descuido, e cor de marca aqui viraria decoração. É o único jeito de
+   * quebrar o branco sem quebrar a regra semântica.
+   */
+  --surface-3: #f1f5f4;
+  --tinta: #0e1616;
+  --tinta-suave: #98a8a5;
+
+  --modelo: #0a6560;
+  --modelo-forte: #074c48;
+  --modelo-lavado: #f3f8f8;
+  /* ponta clara dos feixes da dobra: mesma família do petróleo, sem virar marca */
+  --feixe-claro: #3f9e97;
+  --consenso: #a8681a;
+  --referencia: #94a29e;
+  --positivo: #16704e;
+  --negativo: #a8342a;
+  --atencao: #9a6a12;
+  --atencao-borda: #eadfc4;
+  --atencao-fundo: #fdfaf3;
+
+  /* shadcn, mapeado para a nossa paleta */
+  --card: #ffffff;
+  --card-foreground: #0e1616;
+  --popover: #ffffff;
+  --popover-foreground: #0e1616;
+  --primary: #0a6560;
+  --primary-foreground: #ffffff;
+  --secondary: #f7fafa;
+  --secondary-foreground: #0e1616;
+  --muted: #f7fafa;
+  --muted-foreground: #55625f;
+  --accent: #f3f8f8;
+  --accent-foreground: #0a6560;
+  --destructive: #a8342a;
+  --border: #dee5e5;
+  --input: #dee5e5;
+  --ring: #0a6560;
+
+  /* raio: controle 6, painel 8, janela 10 — lg é a base */
+  --radius: 0.5rem;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0e1616;
+  --sidebar-primary: #0a6560;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f8f8;
+  --sidebar-accent-foreground: #0a6560;
+  --sidebar-border: #dee5e5;
+  --sidebar-ring: #0a6560;
 }
 
+/*
+ * Tema escuro: os pares vêm do doc de identidade. Fora do escopo da v1, mas os
+ * tokens já existem, então ligar é troca de variável e não redesenho.
+ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0d1211;
+  --foreground: #e8edeb;
+
+  --ink: #e8edeb;
+  --ink-soft: #94a29e;
+  --rule: #232e2c;
+  --rule-soft: #1b2624;
+  --surface-2: #141b1a;
+  --surface-3: #111817;
+  --tinta: #060a0a;
+  --tinta-suave: #8b9a97;
+
+  --modelo: #46bfb7;
+  --modelo-forte: #6fd3cc;
+  --modelo-lavado: #16313a;
+  --feixe-claro: #7fd6cf;
+  --consenso: #dda34a;
+  --referencia: #74838a;
+  --positivo: #4fb98a;
+  --negativo: #e0705e;
+  --atencao: #d9a244;
+  --atencao-borda: #3a3120;
+  --atencao-fundo: #1a1611;
+
+  --card: #141b1a;
+  --card-foreground: #e8edeb;
+  --popover: #141b1a;
+  --popover-foreground: #e8edeb;
+  --primary: #46bfb7;
+  --primary-foreground: #0d1211;
+  --secondary: #141b1a;
+  --secondary-foreground: #e8edeb;
+  --muted: #141b1a;
+  --muted-foreground: #94a29e;
+  --accent: #16313a;
+  --accent-foreground: #46bfb7;
+  --destructive: #e0705e;
+  --border: #232e2c;
+  --input: #232e2c;
+  --ring: #46bfb7;
+
+  --sidebar: #0d1211;
+  --sidebar-foreground: #e8edeb;
+  --sidebar-primary: #46bfb7;
+  --sidebar-primary-foreground: #0d1211;
+  --sidebar-accent: #16313a;
+  --sidebar-accent-foreground: #46bfb7;
+  --sidebar-border: #232e2c;
+  --sidebar-ring: #46bfb7;
 }
 
 @layer base {
@@ -123,8 +206,50 @@
   }
   body {
     @apply bg-background text-foreground;
+    letter-spacing: -0.004em;
   }
   html {
-    @apply font-sans;
+    @apply font-sans antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Todo dígito que pode ser comparado com outro dígito alinha em coluna. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes feixe-passa {
+  0% { stroke-dashoffset: 1.32; opacity: 0; }
+  12% { opacity: 0.26; }
+  68% { opacity: 0.26; }
+  100% { stroke-dashoffset: -0.32; opacity: 0; }
+}
+
+@layer components {
+  /*
+   * Feixe da dobra. `pathLength=1` no SVG normaliza a curva, então o mesmo
+   * dasharray serve para todas sem medir comprimento nenhum.
+   */
+  .feixe {
+    stroke-dasharray: 0.32 1;
+    animation-name: feixe-passa;
+    animation-iteration-count: infinite;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+  }
+
+  /* Movimento é enfeite: quem pediu para reduzir fica só com o leito estático. */
+  @media (prefers-reduced-motion: reduce) {
+    .feixe {
+      animation: none;
+      opacity: 0.12;
+      stroke-dasharray: none;
+    }
+  }
+
+  /* Rótulo de seção: mono, caixa alta, espaçado. Nunca em corpo de texto. */
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase text-ink-soft;
+    letter-spacing: 0.07em;
   }
 }
