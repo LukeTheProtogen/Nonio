@@ -1,0 +1,6 @@
+# O make quebra se a receita vier com CRLF. Força LF nos arquivos que dependem disso.
+* text=auto eol=lf
+Makefile text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.parquet binary

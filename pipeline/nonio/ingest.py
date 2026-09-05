@@ -23,21 +23,74 @@ SGS = "https://api.bcb.gov.br/dados/serie/bcdata.sgs.{serie}/dados"
 # Decisão travada no README: base 0 (amostra ampla). Nunca misturar com a base 1.
 BASE_CALCULO = 0
 
+# Schema explícito, não inferido. Nos registros dos anos 2000 vários campos vêm
+# inteiros ou nulos, e o Polars fixa o tipo pelas primeiras linhas — depois estoura
+# com "could not append value: 0.2 of type: f64". Num pipeline de dados o schema é
+# contrato, não adivinhação.
+FOCUS_SCHEMA = {
+    "Indicador": pl.String,
+    "Data": pl.String,
+    "DataReferencia": pl.String,
+    "Media": pl.Float64,
+    "Mediana": pl.Float64,
+    "DesvioPadrao": pl.Float64,
+    "Minimo": pl.Float64,
+    "Maximo": pl.Float64,
+    "numeroRespondentes": pl.Int64,
+}
 
-def focus(indicador: str = "IPCA", limite: int = 1000) -> pl.DataFrame:
-    params = {
-        "$format": "json",
-        "$top": limite,
-        "$orderby": "Data desc",
-        "$filter": f"Indicador eq '{indicador}' and baseCalculo eq {BASE_CALCULO}",
-        "$select": "Indicador,Data,DataReferencia,Media,Mediana,DesvioPadrao,"
-                   "Minimo,Maximo,numeroRespondentes",
-    }
-    # O Olinda rejeita espaço codificado como "+" (o padrão do requests) e exige
-    # "%20". Medido em 04-09-2026: com "+" a resposta é 400; com "%20", 200.
-    url = f"{OLINDA}?{urlencode(params, quote_via=quote)}"
-    return pl.DataFrame(_get_json(url)["value"])
 
+def focus(indicador: str = "IPCA", pagina: int = 20000) -> pl.DataFrame:
+    """Série completa do Focus para um indicador, paginada.
+
+    O Olinda não suporta `$count`, então não dá para saber o total antes;
+    paginamos com `$skip` até uma página voltar menor que o pedido.
+    Medido em 04-09-2026: `$top` aceita ao menos 20000 e `$skip` é confiável.
+
+    A ordenação por Data não é única (há muitas linhas por data), então a
+    paginação por skip pode repetir linhas na fronteira das páginas — por isso
+    o `unique` no fim, pela chave real (Data, DataReferencia).
+    """
+    campos = ("Indicador,Data,DataReferencia,Media,Mediana,DesvioPadrao,"
+              "Minimo,Maximo,numeroRespondentes")
+    paginas: list[pl.DataFrame] = []
+    pulo = 0
+    while True:
+        params = {
+            "$format": "json",
+            "$top": pagina,
+            "$skip": pulo,
+            "$orderby": "Data asc,DataReferencia asc",
+            "$filter": f"Indicador eq '{indicador}' and baseCalculo eq {BASE_CALCULO}",
+            "$select": campos,
+        }
+        # O Olinda rejeita espaço codificado como "+" (o padrão do requests) e
+        # exige "%20". Medido em 04-09-2026: com "+" a resposta é 400.
+        url = f"{OLINDA}?{urlencode(params, quote_via=quote)}"
+        lote = _get_json(url)["value"]
+        if not lote:
+            break
+        paginas.append(pl.DataFrame(lote, schema=FOCUS_SCHEMA))
+        print(f"    Focus {indicador}: +{len(lote):>6} (skip={pulo})")
+        if len(lote) < pagina:
+            break
+        pulo += pagina
+        time.sleep(0.5)
+
+    if not paginas:
+        raise FonteIndisponivel(f"Focus não devolveu nada para {indicador}")
+
+    return (pl.concat(paginas, how="vertical")
+              .unique(subset=["Data", "DataReferencia"], keep="first")
+              .with_columns(
+                  pl.col("Data").str.to_date("%Y-%m-%d"),
+                  # DataReferencia vem "MM/AAAA"; vira o 1º dia do mês de referência
+                  pl.col("DataReferencia")
+                    .str.replace(r"^(\d{2})/(\d{4})$", r"$2-$1-01")
+                    .str.to_date("%Y-%m-%d")
+                    .alias("Referencia"),
+              )
+              .sort(["Data", "Referencia"]))
 
 class FonteIndisponivel(RuntimeError):
     """A fonte respondeu, mas não com o dado pedido."""
