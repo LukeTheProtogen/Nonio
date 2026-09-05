@@ -1,6 +1,6 @@
 # Nônio
 
-> *contra-consenso* — a escala fina do consenso de mercado.
+> *Nomio* — a escala fina do consenso de mercado. Seu mercado com mais controle, na sua mão.
 
 No paquímetro, o nônio é a escala auxiliar que dá a casa decimal além da escala
 principal. Ele não substitui a régua grossa: lê mais fino que ela. É essa a
