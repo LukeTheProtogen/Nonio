@@ -6,8 +6,9 @@ import { FormularioCodigo } from "./formulario";
 export const metadata: Metadata = { title: "Confirmar entrada" };
 
 export default async function Codigo({ searchParams }: PageProps<"/entrar/codigo">) {
-  const { email } = await searchParams;
+  const { email, de } = await searchParams;
   const endereco = typeof email === "string" ? email : "";
+  const destino = typeof de === "string" && de.startsWith("/") ? de : "/macro";
 
   return (
     <MolduraAcesso
@@ -56,7 +57,7 @@ export default async function Codigo({ searchParams }: PageProps<"/entrar/codigo
           </div>
         </div>
 
-        <FormularioCodigo email={endereco} />
+        <FormularioCodigo email={endereco} de={destino} />
 
         <div className="flex items-center justify-between gap-3 text-[13px] text-ink-soft">
           <span>Não chegou?</span>

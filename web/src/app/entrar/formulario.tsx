@@ -7,12 +7,13 @@ import { botaoPrimario, entrada } from "@/components/acesso/estilos";
 
 const inicial: ResultadoEntrada = undefined;
 
-export function FormularioEntrar() {
+export function FormularioEntrar({ de }: { de: string }) {
   const [estado, acao, pendente] = useActionState(pedirCodigo, inicial);
   const comErro = Boolean(estado?.erro);
 
   return (
     <form action={acao} className="flex flex-col gap-5.5">
+      <input type="hidden" name="de" value={de} />
       <Campo rotulo="E-mail" erro={comErro}>
         <input
           name="email"

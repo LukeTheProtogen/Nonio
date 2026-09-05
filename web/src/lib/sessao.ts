@@ -47,6 +47,19 @@ export async function sessaoAtual(): Promise<Sessao | null> {
 export type ResultadoEntrada = { erro: string } | undefined;
 
 /**
+ * Para onde ir depois de entrar.
+ *
+ * Só aceita caminho interno começando com uma barra. Sem essa checagem, um
+ * `?de=https://outro-site` transformaria o nosso login em trampolim para
+ * phishing — o usuário digita a senha aqui e é jogado em qualquer lugar.
+ */
+function destino(bruto: FormDataEntryValue | null): string {
+  const alvo = String(bruto ?? "");
+  if (!alvo.startsWith("/") || alvo.startsWith("//")) return "/macro";
+  return alvo;
+}
+
+/**
  * Passo 1: e-mail e senha.
  *
  * MOCK: aceita qualquer par não vazio. Não há verificação de senha porque não
@@ -64,7 +77,8 @@ export async function pedirCodigo(
     return { erro: "E-mail ou senha não conferem." };
   }
 
-  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}`);
+  const de = destino(form.get("de"));
+  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&de=${encodeURIComponent(de)}`);
 }
 
 /**
@@ -97,7 +111,7 @@ export async function verificarCodigo(
     maxAge: 60 * 60 * 24 * 7,
   });
 
-  redirect("/macro");
+  redirect(destino(form.get("de")));
 }
 
 export async function sair(): Promise<void> {
@@ -131,7 +145,7 @@ export async function criarConta(
   if (!emailPlausivel(email)) return { erro: "Esse e-mail não parece válido." };
   if (!senhaValida(senha)) return { erro: "A senha ainda não cumpre as três regras." };
 
-  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&novo=1`);
+  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&novo=1&de=${encodeURIComponent(destino(form.get("de")))}`);
 }
 
 /**

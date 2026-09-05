@@ -7,7 +7,7 @@ import { botaoPrimario, caixaCodigo } from "@/components/acesso/estilos";
 const inicial: ResultadoEntrada = undefined;
 const CASAS = 6;
 
-export function FormularioCodigo({ email }: { email: string }) {
+export function FormularioCodigo({ email, de }: { email: string; de: string }) {
   const [estado, acao, pendente] = useActionState(verificarCodigo, inicial);
   const [digitos, setDigitos] = useState<string[]>(Array(CASAS).fill(""));
   const refs = useRef<(HTMLInputElement | null)[]>([]);
@@ -58,6 +58,7 @@ export function FormularioCodigo({ email }: { email: string }) {
   return (
     <form ref={formRef} action={acao} className="flex flex-col gap-6">
       <input type="hidden" name="email" value={email} />
+      <input type="hidden" name="de" value={de} />
       <input type="hidden" name="codigo" value={codigo} />
 
       <div className="flex gap-2" role="group" aria-label="Código de seis dígitos">
