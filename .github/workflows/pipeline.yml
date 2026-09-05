@@ -1,0 +1,63 @@
+name: pipeline
+
+# Só agendado e manual. NÃO dispara em push — o workflow commita, e commit em
+# push criaria laço infinito.
+on:
+  schedule:
+    # 09:00 UTC ≈ 06:00 BRT, antes da abertura do pregão.
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+    inputs:
+      motivo:
+        description: "Gatilho do recálculo (aparece carimbado em cada previsão)"
+        required: false
+        default: "manual"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pipeline
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Sincronizar ambiente
+        working-directory: pipeline
+        run: uv sync --frozen
+
+      - name: Ingerir fontes públicas
+        working-directory: pipeline
+        run: uv run python -m nonio.ingest
+
+      - name: Gerar previsões
+        working-directory: pipeline
+        env:
+          # Sem o segredo, o pipeline roda limitado aos 4 tickers gratuitos —
+          # não quebra, só cobre menos ativos.
+          BRAPI_TOKEN: ${{ secrets.BRAPI_TOKEN }}
+          NONIO_UNIVERSO: ${{ vars.NONIO_UNIVERSO }}
+          NONIO_GATILHO: ${{ inputs.motivo || 'agendado' }}
+        run: uv run python -m nonio.prever
+
+      - name: Publicar se algo mudou
+        run: |
+          git config user.name  "nonio-pipeline[bot]"
+          git config user.email "nonio-pipeline@users.noreply.github.com"
+          git add web/src/data/previsoes.json data/snapshot/historico_previsoes.jsonl
+          if git diff --cached --quiet; then
+            echo "nada mudou — nenhum commit"
+            exit 0
+          fi
+          git commit -m "dados: previsões de $(date -u +%Y-%m-%d) [skip ci]"
+          git push
