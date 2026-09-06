@@ -117,7 +117,7 @@ export function NuvemConsenso({
           d={mod.linha}
           fill="none"
           stroke="var(--modelo)"
-          strokeWidth={3.4}
+          strokeWidth={5}
           strokeLinecap="round"
           pathLength={1}
           className="percorre"

@@ -8,6 +8,7 @@ import { Cabecalho, Rodape } from "@/components/marketing/moldura-publica";
 import { FaixaFontes } from "@/components/marketing/faixa-fontes";
 import { Halo } from "@/components/marketing/halo";
 import { Vitrine } from "@/components/marketing/vitrine";
+import { ArteFecho } from "@/components/marketing/arte-fecho";
 import { obterMacro } from "@/lib/api/servico";
 import { porHorizonte, geradoEm as backtestGeradoEm } from "@/lib/backtest";
 import { dataLonga, num, probabilidade } from "@/lib/formato";
@@ -203,7 +204,7 @@ export default async function Landing() {
 
             <figure className="revela flex min-w-0 flex-col gap-4 rounded-xl border border-rule bg-carta p-6">
               <figcaption className="eyebrow">A probabilidade do consenso se confirma?</figcaption>
-              <CurvaCalibracao horizonte={h12} />
+              <CurvaCalibracao horizonte={h12} animado />
               <p className="text-[13px] leading-relaxed text-ink-soft">
                 Horizontal, o que o consenso dizia. Vertical, o que aconteceu. Em cima da
                 diagonal seria perfeito.
@@ -245,16 +246,27 @@ export default async function Landing() {
 
       {/* ═══ 7 · FECHO ═══════════════════════════════════════════════════ */}
       <Bloco tom="escuro">
-        <div className="revela flex flex-col items-start gap-8">
-          <h2 className="max-w-[15ch] font-heading text-[44px] font-semibold leading-[1.04] tracking-[-0.022em] text-balance md:text-[54px]">
-            A decisão é sua. Nosso trabalho é não esconder nada dela.
-          </h2>
-          <Link
-            href="/criar-conta"
-            className="inline-flex h-14 items-center rounded-lg bg-carta px-8 font-semibold text-modelo-forte transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-          >
-            Criar conta
-          </Link>
+        <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
+          <div className="revela flex flex-col items-start gap-8">
+            <h2 className="max-w-[15ch] font-heading text-[44px] font-semibold leading-[1.04] tracking-[-0.022em] text-balance md:text-[54px]">
+              A decisão é sua. Nosso trabalho é não esconder nada dela.
+            </h2>
+            <Link
+              href="/criar-conta"
+              className="inline-flex h-14 items-center rounded-lg bg-carta px-8 font-semibold text-modelo-forte transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              Criar conta
+            </Link>
+          </div>
+
+          {/*
+            `text-white/70` porque a arte desenha em `currentColor`: o desenho
+            herda a cor do bloco em vez de trazer paleta própria, e continua
+            correto se o fundo do fecho mudar um dia.
+          */}
+          <div className="revela min-w-0 text-white/70">
+            <ArteFecho />
+          </div>
         </div>
       </Bloco>
 
