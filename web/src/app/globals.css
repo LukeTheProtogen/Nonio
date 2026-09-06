@@ -509,6 +509,122 @@
     }
   }
 
+  /*
+   * ESCALA TIPOGRÁFICA
+   *
+   * Havia 34 tamanhos distintos no código, escolhidos um a um. Isso não é
+   * hierarquia — é ausência dela: quando quase todo tamanho existe, nenhum
+   * significa nada, e o olho não encontra por onde começar.
+   *
+   * Onze degraus, e cada um carrega tamanho, entrelinha, espacejamento E peso
+   * juntos. Separados eles se contradizem: título de 44px com entrelinha de
+   * corpo abre buraco entre as linhas, e corpo de 17px com espacejamento de
+   * título fica frouxo.
+   *
+   * Três regras que a escala aplica sozinha:
+   *
+   *   1. Quanto MAIOR, mais apertado. Espacejamento é correção óptica: o que
+   *      dá ar a 13px sufoca a 76px. Por isso o herói vai a -0.03em e a
+   *      etiqueta a +0.08em.
+   *   2. Quanto maior, MENOS entrelinha. 1.62 no corpo, 0.98 no herói.
+   *   3. Peso 300 acima de 20px. Regular em parágrafo grande escurece o bloco
+   *      inteiro; leve, a mesma frase respira e vira editorial.
+   */
+
+  .t-heroi {
+    font-family: var(--font-zilla);
+    font-size: clamp(44px, 5.4vw, 76px);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+  }
+
+  .t-titulo {
+    font-family: var(--font-zilla);
+    font-size: clamp(36px, 4vw, 56px);
+    font-weight: 600;
+    line-height: 1.03;
+    letter-spacing: -0.025em;
+  }
+
+  .t-secao {
+    font-family: var(--font-zilla);
+    font-size: clamp(30px, 3vw, 42px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  /* Título de tela do produto. Menor que o da landing: aqui não se vende. */
+  .t-tela {
+    font-family: var(--font-zilla);
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.016em;
+  }
+
+  .t-sub {
+    font-family: var(--font-zilla);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.28;
+    letter-spacing: -0.01em;
+  }
+
+  .t-cartao {
+    font-family: var(--font-zilla);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.32;
+    letter-spacing: -0.005em;
+  }
+
+  /* Parágrafo de entrada. Leve e grande: o contraste com o título é o gancho. */
+  .t-lead {
+    font-size: clamp(18px, 1.5vw, 21px);
+    font-weight: 300;
+    line-height: 1.5;
+    letter-spacing: -0.004em;
+  }
+
+  .t-corpo {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.62;
+  }
+
+  /* Corpo do produto. Menor que o da landing: densidade é a moeda aqui. */
+  .t-ui {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .t-rotulo {
+    font-size: 13.5px;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .t-meta {
+    font-size: 12.5px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  /*
+   * Número de destaque. Zilla porque dígito de slab tem haste larga e segura o
+   * tamanho grande; tabular porque número que se compara alinha em coluna.
+   */
+  .t-numero {
+    font-family: var(--font-zilla);
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
   /* Rótulo de seção: mono, caixa alta, espaçado. Nunca em corpo de texto. */
   .eyebrow {
     @apply font-mono text-[11px] uppercase text-ink-soft;

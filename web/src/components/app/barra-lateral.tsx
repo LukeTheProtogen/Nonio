@@ -55,7 +55,7 @@ export function BarraLateral({
       O pai é `display:flex` em linha, e `align-items: stretch` é o padrão: a
       barra estica sozinha, sem precisar de altura nenhuma.
     */
-    <aside className="flex w-58 shrink-0 flex-col border-r border-rule py-5.5">
+    <aside className="flex w-58 shrink-0 flex-col overflow-y-auto border-r border-rule py-5.5">
       <div className="flex flex-col gap-0.5 px-5 pb-4.5">
         <Link href="/macro" className="font-heading text-[21px] font-semibold tracking-tight">
           Nônio

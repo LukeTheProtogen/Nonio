@@ -55,7 +55,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-7">
         <header className="flex items-end justify-between gap-8 pb-6.5">
-          <h1 className="font-heading text-3xl font-semibold leading-tight">
+          <h1 className="t-tela">
             Onde o mercado discorda, e onde estamos dentro
           </h1>
           <nav className="flex shrink-0 gap-1 rounded-full border border-rule bg-surface-2 p-1">
@@ -89,7 +89,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
                 .join(" ")}
             >
               <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-[15px] font-semibold">{ind.nome}</h2>
+                <h2 className="t-cartao">{ind.nome}</h2>
                 <span className="font-mono text-[11px] text-ink-soft">{ind.evento}</span>
               </div>
 
@@ -118,7 +118,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
         <section className="grid min-h-0 grid-cols-[minmax(0,1fr)_320px] gap-12 pt-7">
           <div className="flex min-w-0 flex-col gap-3.5">
             <div className="flex items-baseline justify-between gap-6">
-              <h2 className="font-heading text-xl font-semibold">
+              <h2 className="t-sub">
                 {foco.nome} · as {foco.consenso.n} projeções
               </h2>
               <span className="font-mono text-xs text-ink-soft">
@@ -221,7 +221,7 @@ function Chip({
 function Numero({ valor, rotulo, cor }: { valor: string; rotulo: string; cor: string }) {
   return (
     <div className="flex flex-col">
-      <span className={`font-heading text-[38px] font-semibold leading-none tabular ${cor}`}>
+      <span className={`t-numero text-[40px] ${cor}`}>
         {valor}
       </span>
       <span className="pt-1 text-xs text-ink-soft">{rotulo}</span>

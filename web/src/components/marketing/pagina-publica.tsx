@@ -36,11 +36,11 @@ export async function PaginaPublica({
 
       <article className="mx-auto w-full max-w-[820px] px-8 pb-24 pt-16 md:px-10 md:pt-20">
         <p className="eyebrow">{chapeu}</p>
-        <h1 className="mt-6 font-heading text-[44px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[52px]">
+        <h1 className="t-titulo mt-6 text-balance">
           {titulo}
         </h1>
         {resumo ? (
-          <p className="mt-6 max-w-[46ch] text-[19px] leading-relaxed text-ink-soft">{resumo}</p>
+          <p className="t-lead mt-6 max-w-[46ch] text-ink-soft">{resumo}</p>
         ) : null}
         {atualizadoEm ? (
           <p className="mt-7 border-t border-rule pt-4 font-mono text-xs text-ink-soft">
@@ -68,7 +68,7 @@ export function Secao({
 }) {
   return (
     <section className="flex flex-col gap-4">
-      <h2 className="flex items-baseline gap-3 font-heading text-[26px] font-semibold leading-snug tracking-[-0.012em]">
+      <h2 className="t-sub flex items-baseline gap-3">
         {numero ? (
           <span className="font-mono text-[15px] font-normal text-referencia tabular">
             {String(numero).padStart(2, "0")}
@@ -76,7 +76,7 @@ export function Secao({
         ) : null}
         {titulo}
       </h2>
-      <div className="flex flex-col gap-4 text-[16.5px] leading-relaxed text-ink-soft">
+      <div className="t-corpo flex flex-col gap-4 text-ink-soft">
         {children}
       </div>
     </section>
