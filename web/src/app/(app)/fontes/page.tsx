@@ -29,7 +29,7 @@ export default async function Fontes() {
         </span>
       </BarraSuperior>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto px-5 py-6 md:px-9 md:py-7">
+      <div className="flex flex-1 flex-col gap-7 px-5 py-6 md:px-9 md:py-7 lg:min-h-0 lg:overflow-y-auto">
         <header className="flex flex-col gap-2">
           <h1 className="t-tela">
             Tudo que entra, e quando entrou

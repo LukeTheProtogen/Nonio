@@ -39,7 +39,16 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
       animação e trava de foco, e o ganho sobre uma faixa fixa é pequeno num
       produto com quatro rotas.
     */
-    <div className="flex h-[100svh] w-full flex-col overflow-hidden lg:flex-row">
+    /*
+      No DESKTOP a casca trava em `100svh` e quem rola é o conteúdo, por dentro:
+      barra lateral parada é o que se espera de produto de painel.
+
+      No CELULAR quem rola é o DOCUMENTO. Altura travada com rolagem interna no
+      celular briga com a barra de endereço do navegador, mata a rolagem por
+      inércia e, quando o contêiner interno não consegue encolher, simplesmente
+      não rola nada — que foi o que aconteceu.
+    */
+    <div className="flex w-full flex-col lg:h-[100svh] lg:flex-row lg:overflow-hidden">
       <BarraLateral
         sessao={sessao}
         demo={demo}
@@ -48,7 +57,7 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
           { rotulo: "Backtest", em: backtestGeradoEm },
         ]}
       />
-      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col lg:min-h-0">{children}</div>
     </div>
   );
 }

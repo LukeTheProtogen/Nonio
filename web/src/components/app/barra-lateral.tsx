@@ -67,11 +67,32 @@ export function BarraLateral({
         </Link>
         <span className="eyebrow hidden lg:block">pesquisa · probabilidade</span>
 
-        {/* Sair só aparece aqui em tela estreita: o bloco de conta do pé some,
-            e sem isto não haveria como encerrar a sessão no celular. */}
-        <span className="lg:hidden">
+        {/*
+          A conta no celular.
+
+          O bloco do pé some em tela estreita, e antes disto sobrava só "Sair":
+          dava para encerrar a sessão, mas não para CHEGAR na conta. Agora a
+          inicial é o atalho, e ela também diz quem está logado — que é a outra
+          função que o cartão do pé cumpria.
+
+          Só a inicial, sem nome: nome ao lado de quatro itens de navegação não
+          cabe em 390px, e o nome inteiro está a um toque de distância.
+        */}
+        <div className="flex items-center gap-1.5 lg:hidden">
+          <Link
+            href="/conta"
+            aria-label={`Conta de ${sessao.nome}`}
+            title={sessao.nome}
+            className={`flex size-8 items-center justify-center rounded-full border text-xs font-semibold transition-colors ${
+              ativa("/conta")
+                ? "border-modelo bg-modelo text-white"
+                : "border-rule bg-modelo-lavado text-modelo hover:border-modelo/40"
+            }`}
+          >
+            {sessao.nome.charAt(0).toUpperCase()}
+          </Link>
           <ConfirmarSaida>Sair</ConfirmarSaida>
-        </span>
+        </div>
       </div>
 
       <nav className="flex gap-0.5 overflow-x-auto lg:flex-col">

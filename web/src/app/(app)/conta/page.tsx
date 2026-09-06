@@ -41,7 +41,7 @@ export default async function Conta() {
       */}
       <BarraSuperior titulo="Conta" />
 
-      <div className="flex min-h-0 flex-1 justify-center overflow-y-auto px-5 py-7 md:px-9 md:py-9">
+      <div className="flex flex-1 justify-center px-5 py-7 md:px-9 md:py-9 lg:min-h-0 lg:overflow-y-auto">
         <div className="flex w-full max-w-[760px] flex-col gap-9">
           <header className="flex items-center gap-5">
             <span className="flex size-14 shrink-0 items-center justify-center rounded-full border border-rule bg-modelo-lavado font-heading text-xl font-semibold text-modelo">

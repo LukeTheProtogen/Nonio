@@ -53,7 +53,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
         </span>
       </BarraSuperior>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-6 md:px-9 md:pt-7">
+      <div className="flex flex-1 flex-col px-5 pt-6 md:px-9 md:pt-7 lg:min-h-0 lg:overflow-y-auto">
         <header className="flex flex-col items-start justify-between gap-5 pb-6.5 md:flex-row md:items-end md:gap-8">
           <h1 className="t-tela">
             Onde o mercado discorda, e onde estamos dentro
