@@ -106,7 +106,7 @@ function Conteudo({
         <header className="flex shrink-0 items-start justify-between gap-6 border-b border-rule px-8 py-5">
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex items-baseline gap-3">
-              <h2 className="font-heading text-[26px] font-semibold">{acao.ticker}</h2>
+              <h2 className="t-tela">{acao.ticker}</h2>
               <span className="truncate text-[15px] text-ink-soft">
                 {acao.nome} · {acao.setor}
               </span>
@@ -373,7 +373,7 @@ function Destaque({
   return (
     <div className="flex flex-col gap-0.5">
       <span className="eyebrow">{rotulo}</span>
-      <span className={`font-heading text-[32px] font-semibold leading-none tabular ${cor}`}>
+      <span className={`t-numero text-[34px] ${cor}`}>
         {valor}
       </span>
       <span className="pt-1 text-[12px] text-ink-soft">{nota}</span>

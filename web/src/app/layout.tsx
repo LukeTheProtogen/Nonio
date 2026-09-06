@@ -13,10 +13,16 @@ import { SITE } from "@/lib/site";
  *
  * O mono é obrigatório em coluna de número: sem tabular-nums as colunas dançam
  * a cada atualização de cotação.
+ *
+ * Os pesos não são todos os disponíveis, são os que a escala em `globals.css`
+ * de fato usa. Cada peso extra é um arquivo a baixar, e peso que ninguém aplica
+ * é banda gasta à toa.
  */
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  // 300 é o que faz parágrafo grande virar editorial em vez de inchado: acima
+  // de 20px, o regular pesa demais e a linha fica escura.
+  weight: ["300", "400", "500", "600"],
   variable: "--font-plex-sans",
   display: "swap",
 });
@@ -30,7 +36,9 @@ const plexMono = IBM_Plex_Mono({
 
 const zilla = Zilla_Slab({
   subsets: ["latin"],
-  weight: ["500", "600"],
+  // 700 no herói e 400 na citação: sem os extremos, todo título tinha o mesmo
+  // peso e a hierarquia dependia só do tamanho.
+  weight: ["400", "500", "600", "700"],
   variable: "--font-zilla",
   display: "swap",
 });

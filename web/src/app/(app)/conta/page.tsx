@@ -36,7 +36,7 @@ export default async function Conta() {
               {conta.nome.charAt(0).toUpperCase()}
             </span>
             <div className="flex min-w-0 flex-col gap-0.5">
-              <h1 className="font-heading text-[28px] font-semibold leading-tight">{conta.nome}</h1>
+              <h1 className="t-tela">{conta.nome}</h1>
               <p className="font-mono text-[13.5px] text-ink-soft">{conta.email}</p>
             </div>
           </header>
@@ -141,7 +141,7 @@ export default async function Conta() {
 function Bloco({ titulo, children }: { titulo: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-3 border-t border-rule pt-6">
-      <h2 className="font-heading text-[19px] font-semibold">{titulo}</h2>
+      <h2 className="t-sub">{titulo}</h2>
       {children}
     </section>
   );

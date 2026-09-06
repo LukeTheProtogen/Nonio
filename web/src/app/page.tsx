@@ -71,11 +71,11 @@ export default async function Landing() {
           <div className="flex flex-col items-start gap-7">
             <p className="eyebrow">Boletim Focus · {dataLonga(macro.coletadoEm)}</p>
 
-            <h1 className="max-w-[13ch] font-heading text-[52px] font-semibold leading-[1.02] tracking-[-0.028em] text-balance md:text-[64px]">
+            <h1 className="t-heroi max-w-[13ch] text-balance">
               Público desde 2000. Você nunca viu.
             </h1>
 
-            <p className="max-w-[38ch] text-[19px] leading-relaxed text-ink-soft">
+            <p className="t-lead max-w-[40ch] text-ink-soft">
               <span className="font-mono text-ink tabular">{ipca.consenso.n}</span> instituições
               projetam a inflação brasileira e discordam entre si. A imprensa publica a mediana.
               Nós mostramos a discordância inteira.
@@ -108,7 +108,7 @@ export default async function Landing() {
           */}
           <figure className="flex min-w-0 flex-col gap-4 rounded-xl border border-rule bg-carta p-6 shadow-[0_18px_48px_-24px_rgb(35_43_38/0.22)] md:p-8">
             <figcaption className="flex flex-wrap items-baseline justify-between gap-3">
-              <span className="font-heading text-[19px] font-semibold">{ipca.nome}</span>
+              <span className="t-cartao">{ipca.nome}</span>
               <span className="font-mono text-[12.5px] text-ink-soft tabular">
                 mediana {num(ipca.consenso.mediana)}% · desvio {num(ipca.consenso.dp)}
               </span>
@@ -120,7 +120,20 @@ export default async function Landing() {
               <Chave cor="var(--consenso)">
                 uma instituição por ponto, {ipca.consenso.n} no total
               </Chave>
-              <Chave cor="var(--modelo)">nosso modelo, com a faixa de 80%</Chave>
+              {/*
+                A legenda só promete o modelo quando ele existe. Com o macro
+                real ele é null — há modelo de AÇÕES, não de macro — e a linha
+                petróleo simplesmente não é desenhada. Anunciar uma curva que
+                não está na tela é o tipo de detalhe que destrói a confiança no
+                gráfico inteiro.
+              */}
+              {ipca.modelo ? (
+                <Chave cor="var(--modelo)">nosso modelo, com a faixa de 80%</Chave>
+              ) : (
+                <Chave cor="var(--referencia)">
+                  modelo próprio para macro ainda não existe
+                </Chave>
+              )}
             </div>
           </figure>
         </section>
@@ -131,7 +144,7 @@ export default async function Landing() {
 
       {/* ═══ 3 · O QUE VOCÊ VÊ ═══════════════════════════════════════════ */}
       <Bloco>
-        <h2 className="revela max-w-[17ch] pb-11 font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
+        <h2 className="t-secao revela max-w-[17ch] pb-11 text-balance">
           Três coisas que o resumo do mercado não te dá.
         </h2>
 
@@ -144,15 +157,25 @@ export default async function Landing() {
               numero: String(ipca.consenso.n),
               rodape: "projeções nesta semana",
             },
+            /*
+              Sem modelo macro, o número aqui é a probabilidade implícita no
+              CONSENSO — e o texto passa a dizer isso. A versão anterior caía
+              para o número do consenso mantendo "calculada, não estimada no
+              olho", o que apresentava a leitura do Focus como previsão nossa.
+              É exatamente a mentira que o produto existe para não contar.
+            */
             {
               titulo: "A probabilidade, com limiar",
-              texto: `A chance de o IPCA fechar ${ipca.evento}, calculada, não estimada no olho.`,
-              numero: ipca.modelo
-                ? probabilidade(ipca.modelo.pEvento)
-                : ipca.consenso.pEvento === null
-                  ? "—"
-                  : probabilidade(ipca.consenso.pEvento),
-              rodape: ipca.evento,
+              texto: ipca.modelo
+                ? `A chance de o IPCA fechar ${ipca.evento}, calculada, não estimada no olho.`
+                : `A chance de o IPCA fechar ${ipca.evento}, implícita na dispersão que o Banco Central publica.`,
+              numero:
+                ipca.modelo?.pEvento !== undefined
+                  ? probabilidade(ipca.modelo.pEvento)
+                  : ipca.consenso.pEvento === null
+                    ? "—"
+                    : probabilidade(ipca.consenso.pEvento),
+              rodape: ipca.modelo ? ipca.evento : `${ipca.evento} · do consenso`,
             },
             {
               titulo: "A fonte de cada número",
@@ -167,14 +190,14 @@ export default async function Landing() {
               className="revela flex flex-col gap-3 rounded-xl border border-rule bg-carta p-7"
               style={{ ["--atraso" as string]: `${i * 90}ms` }}
             >
-              <span className="font-heading text-[42px] font-semibold leading-none text-modelo">
+              <span className="t-numero text-[46px] text-modelo">
                 {c.numero}
               </span>
-              <span className="text-[12px] text-ink-soft">{c.rodape}</span>
-              <h3 className="pt-3 font-heading text-[19px] font-semibold leading-snug">
+              <span className="t-meta text-ink-soft">{c.rodape}</span>
+              <h3 className="t-cartao pt-3">
                 {c.titulo}
               </h3>
-              <p className="text-[14.5px] leading-relaxed text-ink-soft">{c.texto}</p>
+              <p className="t-rotulo text-ink-soft">{c.texto}</p>
             </article>
           ))}
         </div>
@@ -182,7 +205,7 @@ export default async function Landing() {
 
       {/* ═══ 4 · O PRODUTO ═══════════════════════════════════════════════ */}
       <Bloco tom="claro">
-        <h2 className="revela max-w-[16ch] pb-14 font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
+        <h2 className="t-secao revela max-w-[16ch] pb-14 text-balance">
           É assim que fica na sua tela.
         </h2>
         <Vitrine />
@@ -195,11 +218,11 @@ export default async function Landing() {
             <div className="revela flex flex-col items-start gap-6">
               <p className="eyebrow">Prova, não promessa</p>
 
-              <h2 className="max-w-[16ch] font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
+              <h2 className="t-secao max-w-[16ch] text-balance">
                 O consenso erra, e dá para medir quanto.
               </h2>
 
-              <p className="max-w-[42ch] font-heading text-[25px] font-medium leading-snug">
+              <p className="t-sub max-w-[42ch] font-medium">
                 A doze meses, a mediana do Focus erra o IPCA em{" "}
                 <span className="text-modelo tabular">{num(h12.consenso.mae)}</span> pontos
                 percentuais, em média.
@@ -211,7 +234,7 @@ export default async function Landing() {
                 com dado real. É a única frase da página que existe para impedir
                 uma leitura boa demais.
               */}
-              <p className="max-w-[46ch] text-[15px] leading-relaxed text-ink-soft">
+              <p className="t-ui max-w-[48ch] text-ink-soft">
                 {h12.n} observações entre {h12.periodo[0].slice(0, 4)} e{" "}
                 {h12.periodo[1].slice(0, 4)}. Isto mede o consenso, não a gente: o nosso modelo
                 ainda não publicou previsão, e chamar isto de acerto nosso seria mentira.
@@ -236,10 +259,10 @@ export default async function Landing() {
       <Bloco tom="salvia">
         <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
           <div className="revela flex flex-col items-start gap-6">
-            <h2 className="max-w-[18ch] font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
+            <h2 className="t-secao max-w-[18ch] text-balance">
               Não ganhamos nada quando você compra.
             </h2>
-            <p className="max-w-[44ch] text-[17px] leading-relaxed">
+            <p className="t-corpo max-w-[44ch]">
               Sem comissão de corretora, sem taxa por operação, sem repasse de gestora. A única
               receita é a assinatura de quem usa, e é isso que mantém o incentivo do seu lado da
               mesa.
@@ -266,7 +289,7 @@ export default async function Landing() {
       <Bloco tom="escuro">
         <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
           <div className="revela flex flex-col items-start gap-8">
-            <h2 className="max-w-[15ch] font-heading text-[44px] font-semibold leading-[1.04] tracking-[-0.022em] text-balance md:text-[54px]">
+            <h2 className="t-titulo max-w-[15ch] text-balance">
               A decisão é sua. Nosso trabalho é não esconder nada dela.
             </h2>
             <Link

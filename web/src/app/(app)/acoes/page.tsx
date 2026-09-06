@@ -46,10 +46,10 @@ export default async function Acoes({ searchParams }: PageProps<"/acoes">) {
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-7">
         <header className="flex flex-wrap items-end justify-between gap-6 pb-6">
           <div className="flex flex-col gap-2">
-            <h1 className="font-heading text-3xl font-semibold leading-tight">
+            <h1 className="t-tela">
               Uma pergunta por vez
             </h1>
-            <p className="max-w-[54ch] text-[14.5px] leading-relaxed text-ink-soft">
+            <p className="t-rotulo max-w-[54ch] text-ink-soft">
               Quinze colunas lado a lado não se comparam. Escolha o que quer saber, e clique no
               papel para abrir o resto.
             </p>

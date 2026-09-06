@@ -23,7 +23,7 @@ const COLUNAS: Record<Lente, { rotulo: string; dica?: string; largura?: string }
       dica: "Barra é o papel, traço é o CDI no mesmo período",
       largura: "w-[280px]",
     },
-    { rotulo: "Acima do CDI", dica: "Diferença em pontos percentuais", largura: "w-[110px]" },
+    { rotulo: "Acima do CDI", dica: "Diferença em pontos percentuais", largura: "w-[124px] pr-6" },
   ],
   risco: [
     { rotulo: "Volatilidade", dica: "Desvio anualizado dos retornos diários" },
@@ -133,8 +133,10 @@ export function TabelaAcoes({
                   <td className="py-2.5 pl-6">
                     <BarraCdi retorno={a.retorno12m} cdi={cdi12m} escala={escala} />
                   </td>
+                  {/* `pr-6`: o número encostava na borda da coluna seguinte, e
+                      dígito colado em régua vertical fica ilegível. */}
                   <td
-                    className={`py-2.5 text-right font-mono tabular ${corDelta(a.acimaDoCdi)}`}
+                    className={`py-2.5 pr-6 text-right font-mono tabular ${corDelta(a.acimaDoCdi)}`}
                   >
                     {pp(a.acimaDoCdi)}
                   </td>

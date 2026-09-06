@@ -19,7 +19,18 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
   const demo = await emDemo();
 
   return (
-    <div className="flex min-h-0 w-full flex-1 overflow-hidden">
+    /*
+      Altura travada na janela, e não no conteúdo.
+
+      `flex-1` dentro de um `body` com `min-height` deixa a linha CRESCER quando
+      o conteúdo cresce: numa tabela longa a barra lateral esticava junto, a
+      conta ia parar a mil pixels do topo, e era preciso rolar o documento
+      inteiro para chegar nela. Casca de produto não rola — quem rola é o
+      conteúdo, dentro dela.
+
+      `svh` porque no celular a barra de endereço aparece e some.
+    */
+    <div className="flex h-[100svh] w-full overflow-hidden">
       <BarraLateral
         sessao={sessao}
         demo={demo}

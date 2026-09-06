@@ -40,7 +40,7 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
 
       <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 py-7">
         <header className="flex flex-col gap-2">
-          <h1 className="max-w-[26ch] font-heading text-3xl font-semibold leading-tight">
+          <h1 className="t-tela max-w-[26ch]">
             O consenso erra, e dá para medir quanto
           </h1>
           <p className="max-w-[70ch] text-[14.5px] leading-relaxed text-ink-soft">
@@ -54,7 +54,7 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
         {/* ------------------------------------------------ erro por horizonte */}
         <section className="flex flex-col gap-5 border-t border-rule pt-7">
           <div className="flex flex-wrap items-baseline justify-between gap-4">
-            <h2 className="font-heading text-xl font-semibold">Erro médio por horizonte</h2>
+            <h2 className="t-sub">Erro médio por horizonte</h2>
             <p className="text-[13px] text-ink-soft">
               Contra dois modelos bobos: repetir o último valor, e cravar a meta.
             </p>
@@ -87,7 +87,7 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
         {/* -------------------------------------------------------- horizonte */}
         <section className="flex flex-col gap-5 border-t border-rule pt-7">
           <div className="flex flex-wrap items-end justify-between gap-5">
-            <h2 className="font-heading text-xl font-semibold">
+            <h2 className="t-sub">
               A {foco.horizonteMeses} {foco.horizonteMeses === 1 ? "mês" : "meses"} do fechamento
             </h2>
 
@@ -160,7 +160,7 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
         {/* ----------------------------------------------------- calibragem */}
         <section className="flex flex-col gap-5 border-t border-rule pt-7">
           <div className="flex flex-wrap items-baseline justify-between gap-4">
-            <h2 className="font-heading text-xl font-semibold">A probabilidade se confirma?</h2>
+            <h2 className="t-sub">A probabilidade se confirma?</h2>
             <p className="font-mono text-[12px] text-ink-soft tabular">
               Brier {num(foco.brier.valor, 3)} · climatologia {num(foco.brier.climatologia, 3)}
             </p>
@@ -233,7 +233,7 @@ function Metrica({
   return (
     <div className="flex flex-col gap-0.5">
       <span className="eyebrow">{rotulo}</span>
-      <span className={`font-heading text-[34px] font-semibold leading-none tabular ${cor}`}>
+      <span className={`t-numero text-[36px] ${cor}`}>
         {valor}
         {unidade ? <span className="pl-1.5 text-[15px] font-medium text-ink-soft">{unidade}</span> : null}
       </span>
