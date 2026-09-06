@@ -378,7 +378,7 @@ export async function fontes() {
 export function conta(p: {
   nome: string;
   email: string;
-  plano: string;
+  plano: string | null;
   verificado: boolean | null;
 }) {
   return {

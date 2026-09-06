@@ -54,7 +54,18 @@ export default async function Conta() {
           </header>
 
           <Bloco titulo="Plano">
-            <Par rotulo="Assinatura" valor={conta.plano} />
+            {/*
+              Sem plano, a linha diz que não há plano — e não some.
+              
+              Aqui a ausência é a informação: quem abre esta tela quer saber o
+              que está pagando, e uma seção "Plano" sem linha nenhuma parece
+              tela quebrada. Diferente de "conta criada em", onde a ausência não
+              responde pergunta nenhuma e a linha some.
+            */}
+            <Par
+              rotulo="Assinatura"
+              valor={conta.plano ?? "nenhum plano ativo"}
+            />
             {/*
               A data de criação só aparece quando existe. O fastapi-users não a
               guarda, e a versão anterior inventava uma — data inventada na tela
@@ -64,11 +75,21 @@ export default async function Conta() {
               <Par rotulo="Conta criada em" valor={dataLonga(conta.criadaEm)} />
             ) : null}
             {conta.verificado !== null ? (
-              <Par
-                rotulo="E-mail"
-                valor={conta.verificado ? "confirmado" : "ainda não confirmado"}
-              />
+              <Par rotulo="E-mail" valor={conta.verificado ? "confirmado" : "não confirmado"} />
             ) : null}
+            {/*
+              Sem envio de e-mail no servidor, ninguém consegue confirmar nada:
+              `on_after_request_verify` só imprime o token no log. Marcar "não
+              confirmado" sem dizer isso aponta um problema que a pessoa não tem
+              como resolver, e ela fica procurando o botão que não existe.
+            */}
+            {conta.verificado === false ? (
+              <p className="pt-1 text-[13.5px] leading-relaxed text-ink-soft">
+                A confirmação de e-mail chega junto com o envio de mensagens, que ainda não está
+                ligado. Não há nada para você fazer, e nada deixa de funcionar por causa disso.
+              </p>
+            ) : null}
+
             <p className="pt-1 text-[13.5px] leading-relaxed text-ink-soft">
               Não há cobrança ativa: o produto ainda está em desenvolvimento. Quando começar, você
               é avisado antes.{" "}

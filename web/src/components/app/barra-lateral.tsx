@@ -116,7 +116,11 @@ export function BarraLateral({
             </span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-[12.5px] font-medium">{sessao.nome}</span>
-              <span className="text-[11px] text-ink-soft">{sessao.plano}</span>
+              {/* Sem plano, mostra o e-mail: a linha existe para identificar de quem é
+                a conta, e o e-mail faz isso melhor que um rótulo vazio. */}
+            <span className="truncate text-[11px] text-ink-soft">
+              {sessao.plano ?? sessao.email}
+            </span>
             </span>
           </Link>
 

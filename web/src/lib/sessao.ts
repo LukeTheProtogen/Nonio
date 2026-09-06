@@ -48,7 +48,14 @@ const CODIGO_MOCK = "000000";
 export type Sessao = {
   nome: string;
   email: string;
-  plano: string;
+  /**
+   * Plano da assinatura, vindo do backend. NULO enquanto não houver cobrança.
+   *
+   * Era a string fixa "Assinatura", escrita no front. Rótulo fixo numa tela de
+   * conta se lê como fato sobre a conta da pessoa, e não era: ninguém assinou
+   * nada ainda. Nulo agora, e a tela mostra a ausência.
+   */
+  plano: string | null;
   /**
    * E-mail confirmado. `null` no mock, que não tem como saber.
    *
@@ -84,7 +91,7 @@ export async function sessaoAtual(): Promise<Sessao | null> {
     return {
       nome,
       email: usuario.email,
-      plano: "Assinatura",
+      plano: usuario.plan,
       verificado: usuario.is_verified,
     };
   }
@@ -185,7 +192,7 @@ export async function verificarCodigo(
   const sessao: Sessao = {
     nome: nomeDoEmail(email),
     email: email || "voce@exemplo.com.br",
-    plano: "Assinatura",
+    plano: null,
     verificado: null,
   };
 
@@ -301,7 +308,7 @@ async function abrirSessao(email: string): Promise<void> {
   const sessao: Sessao = {
     nome: nomeDoEmail(email),
     email: email || "voce@exemplo.com.br",
-    plano: "Assinatura",
+    plano: null,
     verificado: null,
   };
   (await cookies()).set(COOKIE, encodeURIComponent(JSON.stringify(sessao)), {

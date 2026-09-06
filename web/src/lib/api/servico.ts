@@ -160,7 +160,7 @@ export async function obterFontes(): Promise<Fontes> {
 export async function obterConta(p: {
   nome: string;
   email: string;
-  plano: string;
+  plano: string | null;
   verificado: boolean | null;
 }): Promise<Conta> {
   return zConta.parse(local.conta(p)).dados;

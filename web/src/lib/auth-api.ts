@@ -29,6 +29,8 @@ export const zUsuario = z.object({
   email: z.email(),
   name: z.string(),
   avatar_url: z.string().nullable(),
+  /** Plano da assinatura. Nulo enquanto não houver cobrança. */
+  plan: z.string().nullable(),
   is_active: z.boolean(),
   is_verified: z.boolean(),
   is_superuser: z.boolean(),

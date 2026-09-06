@@ -301,7 +301,8 @@ export const zConta = envelope(
   z.object({
     nome: z.string(),
     email: z.email(),
-    plano: z.string(),
+    /** Nulo enquanto não houver cobrança. Vem do backend, não do front. */
+    plano: z.string().nullable(),
     /** E-mail confirmado. O backend expõe; o mock não sabe e manda null. */
     verificado: z.boolean().nullable(),
     /**
