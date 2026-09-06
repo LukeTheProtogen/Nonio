@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { MolduraAcesso, ItemLateral } from "@/components/acesso/moldura";
+import { MolduraAcesso } from "@/components/acesso/moldura";
 import { FormularioCriarConta } from "./formulario";
 import { sessaoAtual } from "@/lib/sessao";
 
