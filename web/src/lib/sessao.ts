@@ -92,7 +92,14 @@ export async function verificarCodigo(
   form: FormData,
 ): Promise<ResultadoEntrada> {
   const email = String(form.get("email") ?? "").trim();
-  const codigo = String(form.get("codigo") ?? "").replace(/\D/g, "");
+  const codigo = String(form.get("codigo") ?? "").trim();
+
+  // Exatamente seis dígitos. Antes havia replace(/\D/g, ""), que APAGAVA o
+  // lixo em vez de recusar: "000000abc" virava "000000" e entrava. O formulário
+  // é controlado, mas a ação de servidor é a fronteira e não confia no cliente.
+  if (!/^\d{6}$/.test(codigo)) {
+    return { erro: "O código tem seis dígitos." };
+  }
 
   if (codigo !== CODIGO_MOCK) {
     return { erro: "Esse código não confere. Confira o e-mail mais recente." };
@@ -176,10 +183,17 @@ export async function redefinirSenha(
   form: FormData,
 ): Promise<ResultadoEntrada> {
   const email = String(form.get("email") ?? "").trim();
-  const codigo = String(form.get("codigo") ?? "").replace(/\D/g, "");
+  // Exatamente seis dígitos — mesma regra de verificarCodigo. Antes havia
+  // replace(/\D/g, ""), que APAGAVA o lixo em vez de recusar: "000000abc"
+  // virava "000000" e entrava, e não havia checagem de tamanho. A ação de
+  // servidor é a fronteira; ela não confia no formulário.
+  const codigo = String(form.get("codigo") ?? "").trim();
   const senha = String(form.get("senha") ?? "");
   const repetida = String(form.get("repetida") ?? "");
 
+  if (!/^\d{6}$/.test(codigo)) {
+    return { erro: "O código tem seis dígitos." };
+  }
   if (codigo !== CODIGO_MOCK) {
     return { erro: "Esse código não confere. Confira o e-mail mais recente." };
   }

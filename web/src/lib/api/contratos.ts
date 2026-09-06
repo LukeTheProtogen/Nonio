@@ -61,10 +61,15 @@ const zDistribuicao = z.object({
   mediana: z.number(),
   media: z.number(),
   dp: z.number(),
-  min: z.number(),
-  max: z.number(),
+  /**
+   * Nulos são reais, não descuido: o Focus não publica mínimo e máximo em ~0,8%
+   * das linhas, e só passou a publicar `n` em 02-01-2014. Exigir número aqui
+   * quebraria o pipeline em dado histórico legítimo.
+   */
+  min: z.number().nullable(),
+  max: z.number().nullable(),
   /** Quantas instituições responderam. Sem isto a nuvem não se reconstrói. */
-  n: z.number().int().positive(),
+  n: z.number().int().positive().nullable(),
 });
 
 export const zIndicador = z.object({
@@ -73,14 +78,26 @@ export const zIndicador = z.object({
   /** O evento sobre o qual a probabilidade é calculada, em português. */
   evento: z.string(),
   unidade: z.enum(["pct", "brl"]),
-  consenso: zDistribuicao.extend({ pEvento: z.number().min(0).max(1) }),
-  modelo: z.object({
-    mediana: z.number(),
-    /** Faixa de 80%. Extremo sem par não serve para desenhar nada. */
-    q10: z.number(),
-    q90: z.number(),
-    pEvento: z.number().min(0).max(1),
-  }),
+  /**
+   * Null quando não há limiar defensável. Só o IPCA tem: o teto do regime de
+   * metas vem de série oficial. Inventar limiar para Selic ou Câmbio produziria
+   * probabilidade sem significado.
+   */
+  consenso: zDistribuicao.extend({ pEvento: z.number().min(0).max(1).nullable() }),
+  /**
+   * Null enquanto não houver modelo MACRO — o modelo que existe cobre ações.
+   * Preencher isto com os quantis do consenso apresentaria a leitura do Focus
+   * como previsão nossa, que é a mentira que este produto existe para evitar.
+   */
+  modelo: z
+    .object({
+      mediana: z.number(),
+      /** Faixa de 80%. Extremo sem par não serve para desenhar nada. */
+      q10: z.number(),
+      q90: z.number(),
+      pEvento: z.number().min(0).max(1),
+    })
+    .nullable(),
   /** Falso antes de 02-01-2014, quando o Focus passou a publicar respondentes. */
   nuvemReconstruivel: z.boolean(),
 });

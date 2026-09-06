@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 /**
  * Moldura das telas de acesso: formulário à esquerda, argumento à direita.
@@ -40,6 +41,10 @@ export function MolduraAcesso({
           {rodape ? (
             <p className="text-[12.5px] leading-relaxed text-ink-soft">{rodape}</p>
           ) : null}
+
+          {/* Enquadramento em TODA tela de acesso, independente da prop acima:
+              a resposta ensaiada promete "no rodapé de cada tela". */}
+          <p className="pt-4 text-[12px] leading-relaxed text-ink-soft">{DISCLAIMER_MEDIO}</p>
         </div>
       </div>
 

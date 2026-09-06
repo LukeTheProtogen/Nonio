@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Marca } from "./marca";
 import { dataLonga } from "@/lib/formato";
+import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 /**
  * Cabeçalho e rodapé do lado público.
@@ -92,12 +93,9 @@ export function Rodape({ geradoEm }: { geradoEm: string }) {
           </nav>
         </div>
         <div className="flex flex-col justify-between gap-6 text-[12.5px] leading-relaxed text-ink-soft md:flex-row">
-          <p className="max-w-[86ch]">
-            Não constitui recomendação de investimento. Não indicamos compra ou venda, não
-            realizamos análise de valores mobiliários na forma da Resolução CVM 20 e não
-            distribuímos produtos financeiros. Probabilidade não é promessa, e resultado passado não
-            garante resultado futuro.
-          </p>
+          {/* Texto único, de lib/conformidade. Antes era escrito à mão aqui, e
+              divergia do que /macro e /acoes mostravam. */}
+          <p className="max-w-[86ch]">{DISCLAIMER_MEDIO}</p>
           <p className="shrink-0 font-mono md:text-right">
             Banco Central · CVM · IBGE · Tesouro · B3
             <br />

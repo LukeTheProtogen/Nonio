@@ -3,7 +3,7 @@ import { cotacoesCongeladas, ehDemo, snapshot } from "@/lib/demo";
 import { previsaoDe, todasPrevisoes, geradoEm as previsoesGeradasEm } from "@/lib/previsoes";
 import * as backtest from "@/lib/backtest";
 import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
-import { INDICADORES, CITACOES, FOCUS_COLETADO_EM, BASE_CALCULO } from "@/mock/macro";
+import { INDICADORES, FOCUS_COLETADO_EM, BASE_CALCULO } from "@/lib/macro";
 import { ACOES, CDI_12M } from "@/mock/acoes";
 import { serieDe, fatosDe, metricasDaSerie } from "@/mock/serie";
 import type { Meta } from "./contratos";
@@ -41,7 +41,14 @@ function meta(p: {
 
 // ------------------------------------------------------------------- macro
 
-/** MOCK inteiro. O pipeline calcula o consenso mas não publica por indicador. */
+/**
+ * REAL. Vem de `data/macro.json`, publicado por `nonio.publicar` a partir do
+ * Focus anual (base 0, 2000→hoje) e da série 13521 do BCB para a meta.
+ *
+ * Duas ausências deliberadas viajam no dado, em vez de serem preenchidas:
+ * `modelo` é null porque não existe modelo macro, e `citacoes` vem vazio porque
+ * as 280 atas do Copom ainda não foram processadas. A tela mostra a lacuna.
+ */
 export function macro() {
   return {
     dados: {
@@ -50,18 +57,29 @@ export function macro() {
         nome: i.nome,
         evento: i.evento,
         unidade: i.unidade,
-        consenso: { ...i.consenso },
-        modelo: { ...i.modelo },
+        consenso: {
+          mediana: i.consenso.mediana,
+          media: i.consenso.media,
+          dp: i.consenso.dp,
+          min: i.consenso.min,
+          max: i.consenso.max,
+          n: i.consenso.n,
+          pEvento: i.consenso.pEvento,
+        },
+        modelo: i.modelo,
         nuvemReconstruivel: i.nuvemReconstruivel,
       })),
       coletadoEm: FOCUS_COLETADO_EM,
       baseCalculo: BASE_CALCULO as 0 | 1,
-      citacoes: CITACOES.map((c) => ({ ...c })),
+      // Vazio até o acervo ser processado. Citação não verificada atribuída a
+      // documento oficial é pior que lacuna.
+      citacoes: [],
     },
     meta: meta({
       geradoEm: FOCUS_COLETADO_EM,
-      fontes: ["Banco Central — Boletim Focus", "Banco Central — atas do Copom"],
-      mock: true,
+      fontes: ["Banco Central — Boletim Focus (série anual, base 0)"],
+      // Deixou de ser mock: este bloco é dado publicado pelo pipeline.
+      mock: false,
     }),
   };
 }

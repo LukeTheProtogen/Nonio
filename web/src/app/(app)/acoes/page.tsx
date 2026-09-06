@@ -6,6 +6,7 @@ import { TabelaAcoes } from "@/components/app/tabela-acoes";
 import { JanelaPapel } from "@/components/app/janela-papel";
 import { BarraSuperior } from "@/components/app/barra-superior";
 import { num } from "@/lib/formato";
+import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 export const metadata: Metadata = { title: "Ações" };
 
@@ -84,10 +85,7 @@ export default async function Acoes({ searchParams }: PageProps<"/acoes">) {
         <TabelaAcoes acoes={acoes} lente={lente} cdi12m={cdi12m} selecionado={papel ?? undefined} />
 
         <footer className="mt-auto flex justify-between gap-8 border-t border-rule py-3.5 text-xs text-ink-soft">
-          <span>
-            Retorno, risco e contexto são descrição do passado. Probabilidade é do nosso modelo.
-            Não é recomendação de investimento.
-          </span>
+          <span>{DISCLAIMER_MEDIO}</span>
           <span className="font-mono">CDI 12m {num(cdi12m)}%</span>
         </footer>
       </div>
