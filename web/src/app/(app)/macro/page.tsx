@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { NuvemConsenso } from "@/components/marketing/nuvem-consenso";
-import { INDICADORES, CITACOES, FOCUS_COLETADO_EM, BASE_CALCULO } from "@/mock/macro";
+import { BarraSuperior } from "@/components/app/barra-superior";
+import { obterMacro } from "@/lib/api/servico";
+import type { Indicador } from "@/lib/api/contratos";
 import { fotoAtual } from "@/lib/backtest";
 import { dataLonga, num, probabilidade } from "@/lib/formato";
 
@@ -14,14 +16,20 @@ export const metadata: Metadata = { title: "Macro" };
  * mostrava seis elementos por cartão e nenhum deles dizia ao olho por onde
  * começar.
  */
-export default function Macro() {
-  const foco = INDICADORES[0];
-  const citacao = CITACOES[0];
-  const real = fotoAtual.linhas[0];
+export default async function Macro() {
+  const { indicadores, citacoes, coletadoEm, baseCalculo } = await obterMacro();
+
+  const foco = indicadores[0]!;
+  const citacao = citacoes[0]!;
+  const real = fotoAtual.linhas[0]!;
 
   return (
     <>
-      <BarraSuperior />
+      <BarraSuperior titulo="Macro" mock>
+        <span className="font-mono text-xs text-ink-soft">
+          Focus de {dataLonga(coletadoEm)}
+        </span>
+      </BarraSuperior>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-7">
         <header className="flex items-end justify-between gap-8 pb-6.5">
@@ -35,14 +43,14 @@ export default function Macro() {
         </header>
 
         <section className="grid grid-cols-4 border-y border-rule">
-          {INDICADORES.map((ind, i) => (
+          {indicadores.map((ind, i) => (
             <article
               key={ind.slug}
               className={[
                 "flex flex-col gap-3 px-6 py-5",
                 i > 0 && "border-l border-rule",
                 i === 0 && "pl-0 shadow-[inset_0_2px_0_var(--modelo)]",
-                i === INDICADORES.length - 1 && "pr-0",
+                i === indicadores.length - 1 && "pr-0",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -77,7 +85,7 @@ export default function Macro() {
                 {foco.nome} · as {foco.consenso.n} projeções
               </h2>
               <span className="font-mono text-xs text-ink-soft">
-                base de cálculo {BASE_CALCULO}
+                base de cálculo {baseCalculo}
               </span>
             </div>
 
@@ -135,26 +143,10 @@ export default function Macro() {
             Probabilidade com fonte rastreável. Não é recomendação de investimento (Res. CVM 19 e
             20).
           </span>
-          <span className="font-mono">Focus de {dataLonga(FOCUS_COLETADO_EM)}</span>
+          <span className="font-mono">Focus de {dataLonga(coletadoEm)}</span>
         </footer>
       </div>
     </>
-  );
-}
-
-function BarraSuperior() {
-  return (
-    <div className="flex h-14 shrink-0 items-center justify-between border-b border-rule px-9">
-      <span className="text-[13px] font-medium">Macro</span>
-      <div className="flex items-center gap-3">
-        <span className="rounded-sm border border-atencao-borda bg-atencao-fundo px-2 py-0.5 font-mono text-[11px] text-atencao">
-          dados de demonstração
-        </span>
-        <span className="font-mono text-xs text-ink-soft">
-          Focus de {dataLonga(FOCUS_COLETADO_EM)}
-        </span>
-      </div>
-    </div>
   );
 }
 
@@ -191,7 +183,7 @@ function Legenda({ cor, children }: { cor: string; children: React.ReactNode }) 
 }
 
 /** Curva de bolso do cartão: área do consenso, linha do modelo, nada mais. */
-function MiniDistribuicao({ indicador }: { indicador: (typeof INDICADORES)[number] }) {
+function MiniDistribuicao({ indicador }: { indicador: Indicador }) {
   return (
     <div className="h-[74px] w-full">
       <NuvemConsenso indicador={indicador} larguraViewBox={520} compacto />
