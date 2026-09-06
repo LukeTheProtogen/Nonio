@@ -4,12 +4,67 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Paleta do Nônio.
+ *
+ * A regra que sustenta o resto: cor codifica significado, nunca decoração.
+ * No instante em que petróleo ou ocre aparece porque ficou bonito, o usuário
+ * deixa de confiar no gráfico — num produto de dados isso é defeito de leitura,
+ * não de gosto.
+ *
+ *   petróleo  o nosso modelo, e todo elemento clicável. Em nenhum outro lugar.
+ *   ocre      marcas do consenso (Focus, mercado). Nunca em botão ou título.
+ *   cinza     referência neutra: CDI, Ibovespa, meta, pico anterior.
+ *   verde     ganho. vermelho: perda. ocre-escuro: atenção. Só em deltas.
+ *
+ * Verde e vermelho ficam reservados a ganho e perda, e é por isso que a marca
+ * não pode ser de nenhuma dessas famílias. Petróleo fica entre azul e verde sem
+ * ser nenhum dos dois, então nunca é lido como "subiu".
+ *
+ * É por isso que a marca continua petróleo mesmo depois do pedido de "verde":
+ * uma linha de modelo em verde-folha, ao lado de uma coluna de variação em
+ * verde-ganho, faz o olho ler alta onde há previsão. Petróleo ficou mais
+ * profundo e menos elétrico; o verde que o pedido queria entrou como SÁLVIA,
+ * e sálvia é decoração — fundo, ilustração, faixa. Nunca marca de dado, nunca
+ * perto de um número.
+ *
+ * O fundo deixou de ser branco puro. Papel quente embaixo, branco reservado
+ * para o que flutua acima dele. Branco puro com um teal chapado é metade da
+ * razão de a tela parecer template.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+  --font-heading: var(--font-zilla);
+
+  /* semântica do produto */
+  --color-modelo: var(--modelo);
+  --color-modelo-forte: var(--modelo-forte);
+  --color-modelo-lavado: var(--modelo-lavado);
+  --color-salvia: var(--salvia);
+  --color-salvia-lavado: var(--salvia-lavado);
+  --color-papel: var(--papel);
+  --color-carta: var(--carta);
+  --color-consenso: var(--consenso);
+  --color-referencia: var(--referencia);
+  --color-positivo: var(--positivo);
+  --color-negativo: var(--negativo);
+  --color-atencao: var(--atencao);
+  --color-atencao-borda: var(--atencao-borda);
+  --color-atencao-fundo: var(--atencao-fundo);
+
+  /* superfície e texto */
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-rule-soft: var(--rule-soft);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-tinta: var(--tinta);
+  --color-tinta-suave: var(--tinta-suave);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -18,11 +73,6 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -39,82 +89,142 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /*
+   * O chão é papel, não branco. Off-white quente com um fio de verde: dá
+   * profundidade sem faixa cinza, e faz o branco voltar a significar alguma
+   * coisa — agora branco é o que FLUTUA sobre o papel (cartão, janela, campo).
+   */
+  --papel: #f7f6f1;
+  --carta: #ffffff;
+  --background: var(--papel);
+  --foreground: #232b26;
+
+  /* Tinta espresso-esverdeada. Preto puro sobre papel quente vibra na borda. */
+  --ink: #232b26;
+  --ink-soft: #5e6a62;
+  --rule: #ddd9cd;
+  --rule-soft: #e7e3d8;
+  --surface-2: #f1efe7;
+  --surface-3: #e9e6dc;
+  --tinta: #232b26;
+  --tinta-suave: #a0a79c;
+
+  /* Marca: petróleo mais fundo e menos elétrico que o anterior (#0a6560). */
+  --modelo: #14544b;
+  --modelo-forte: #0c3b34;
+  --modelo-lavado: #e9f0ed;
+  /*
+   * Sálvia: o único verde decorativo. Aparece em massa grande — faixa, fundo,
+   * ilustração. NUNCA em traço de gráfico, marcador, chip ou ao lado de
+   * número, senão vira "subiu" e contamina a leitura.
+   */
+  --salvia: #9dbaa7;
+  --salvia-lavado: #e3ece5;
+
+  --consenso: #ac6f22;
+  --referencia: #9aa39a;
+  --positivo: #1a6b4c;
+  --negativo: #a2382c;
+  --atencao: #8f6714;
+  --atencao-borda: #e4d6b7;
+  --atencao-fundo: #faf5e9;
+
+  /* shadcn, mapeado para a nossa paleta */
+  --card: #ffffff;
+  --card-foreground: #232b26;
+  --popover: #ffffff;
+  --popover-foreground: #232b26;
+  --primary: #14544b;
+  --primary-foreground: #ffffff;
+  --secondary: #f1efe7;
+  --secondary-foreground: #232b26;
+  --muted: #f1efe7;
+  --muted-foreground: #5e6a62;
+  --accent: #e9f0ed;
+  --accent-foreground: #14544b;
+  --destructive: #a2382c;
+  --border: #ddd9cd;
+  --input: #ddd9cd;
+  --ring: #14544b;
+
+  /* raio: controle 6, painel 8, janela 10 — lg é a base */
+  --radius: 0.5rem;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #232b26;
+  --sidebar-primary: #14544b;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e9f0ed;
+  --sidebar-accent-foreground: #14544b;
+  --sidebar-border: #ddd9cd;
+  --sidebar-ring: #14544b;
 }
 
+/*
+ * Tema escuro: os pares vêm do doc de identidade. Fora do escopo da v1, mas os
+ * tokens já existem, então ligar é troca de variável e não redesenho.
+ */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --papel: #0f1413;
+  --carta: #171f1d;
+  --background: var(--papel);
+  --foreground: #e8ede9;
+
+  --ink: #e8edeb;
+  --ink-soft: #94a29e;
+  --rule: #232e2c;
+  --rule-soft: #1b2624;
+  --surface-2: #141b1a;
+  --surface-3: #111817;
+  --tinta: #060a0a;
+  --tinta-suave: #8b9a97;
+
+  --modelo: #46bfb7;
+  --modelo-forte: #6fd3cc;
+  --modelo-lavado: #16313a;
+  --salvia: #6d8f79;
+  --salvia-lavado: #1a2620;
+  --consenso: #dda34a;
+  --referencia: #74838a;
+  --positivo: #4fb98a;
+  --negativo: #e0705e;
+  --atencao: #d9a244;
+  --atencao-borda: #3a3120;
+  --atencao-fundo: #1a1611;
+
+  --card: #141b1a;
+  --card-foreground: #e8edeb;
+  --popover: #141b1a;
+  --popover-foreground: #e8edeb;
+  --primary: #46bfb7;
+  --primary-foreground: #0d1211;
+  --secondary: #141b1a;
+  --secondary-foreground: #e8edeb;
+  --muted: #141b1a;
+  --muted-foreground: #94a29e;
+  --accent: #16313a;
+  --accent-foreground: #46bfb7;
+  --destructive: #e0705e;
+  --border: #232e2c;
+  --input: #232e2c;
+  --ring: #46bfb7;
+
+  --sidebar: #0d1211;
+  --sidebar-foreground: #e8edeb;
+  --sidebar-primary: #46bfb7;
+  --sidebar-primary-foreground: #0d1211;
+  --sidebar-accent: #16313a;
+  --sidebar-accent-foreground: #46bfb7;
+  --sidebar-border: #232e2c;
+  --sidebar-ring: #46bfb7;
 }
 
 @layer base {
@@ -123,8 +233,463 @@
   }
   body {
     @apply bg-background text-foreground;
+    letter-spacing: -0.004em;
   }
   html {
-    @apply font-sans;
+    @apply font-sans antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  /* Todo dígito que pode ser comparado com outro dígito alinha em coluna. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+ * ANIMAÇÃO
+ *
+ * Três regras, para movimento não virar ruído:
+ *
+ *   1. Nada nasce invisível esperando script. `.revela` usa scroll-driven
+ *      animation (`animation-timeline: view()`); onde o navegador não suporta,
+ *      a propriedade é ignorada e a animação roda uma vez no carregamento,
+ *      terminando visível. Nenhum estado deixa conteúdo apagado na tela.
+ *   2. O movimento explica o dado. A curva se DESENHA porque foi medida ponto
+ *      a ponto; os pontos SURGEM um a um porque são instituições respondendo.
+ *      Movimento que não diz nada sobre o conteúdo é enfeite.
+ *   3. `prefers-reduced-motion` desliga tudo e entrega o estado final.
+ */
+
+@keyframes revela {
+  from { opacity: 0; transform: translateY(34px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes surge {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes desenha {
+  to { stroke-dashoffset: 0; }
+}
+
+/*
+ * A régua deslizando até o traço coincidir.
+ *
+ * É o gesto da marca, e estava parado: o nônio SÓ funciona deslizando, então
+ * uma régua imóvel não explica o nome. Vai e volta, devagar, porque medir é
+ * procurar a coincidência e não acertá-la de primeira.
+ */
+@keyframes desliza {
+  0%, 8%    { transform: translateX(-6%); }
+  46%, 62%  { transform: none; }
+  100%      { transform: translateX(-6%); }
+}
+
+/*
+ * Imagem do produto entrando com a rolagem. Escala mínima (1.04 para 1): o
+ * suficiente para a página ter vida, longe do zoom de apresentação corporativa.
+ */
+@keyframes aproxima {
+  from { opacity: 0; transform: scale(1.035) translateY(34px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/*
+ * Brilho percorrendo a curva do modelo, depois que ela termina de se desenhar.
+ *
+ * Existe porque a dobra ficava 100% imóvel depois do primeiro segundo, e página
+ * parada parece página quebrada. Mas o movimento é SOBRE a linha medida, não ao
+ * lado dela: um segmento claro que percorre a própria curva não inventa série
+ * nenhuma, ao contrário de partícula solta ou traço decorativo perto de um eixo.
+ *
+ * Ciclo longo, com pausa: brilho a cada segundo vira pisca-pisca.
+ */
+@keyframes percorre {
+  0%        { stroke-dashoffset: 1;     opacity: 0; }
+  5%        {                           opacity: 1; }
+  52%       {                           opacity: 1; }
+  62%, 100% { stroke-dashoffset: -0.16; opacity: 0; }
+}
+
+/*
+ * A nuvem do fecho, viva.
+ *
+ * Cada ponto sobe e desce no seu próprio ritmo, e o conjunto nunca repete o
+ * mesmo desenho. É o que a página diz em figura: as projeções não param, elas
+ * se mexem toda semana quando o Focus sai.
+ *
+ * Deslocamento pequeno de propósito. Ponto voando alto viraria gráfico de
+ * cotação subindo, que é justamente o vocabulário de corretora que este
+ * produto não usa.
+ */
+/*
+ * Área revelada da esquerda para a direita.
+ *
+ * A curva do consenso é medida, então pode se desenhar como qualquer outro
+ * dado. Antes só a linha do MODELO se desenhava; com o modelo macro nulo a
+ * dobra perdeu a animação inteira e o gráfico passou a nascer pronto.
+ *
+ * Recorte e não opacidade: a área aparecendo por transparência parece um
+ * fade genérico; varrendo da esquerda para a direita ela se CONSTRÓI, que é o
+ * que uma distribuição sendo lida faz.
+ */
+@keyframes revela-area {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* Linha vertical crescendo do eixo para cima. */
+@keyframes cresce {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/*
+ * Marcador subindo a diagonal do diagrama de confiabilidade.
+ *
+ * A diagonal é o ideal: probabilidade honesta cai em cima dela. O marcador
+ * percorre esse ideal de ponta a ponta, e é a única coisa que se move ali —
+ * os pontos são medição e ficam parados, porque ponto de dado que pulsa sugere
+ * valor mudando.
+ *
+ * `--dx` é a largura útil do desenho; a subida é o mesmo valor em negativo,
+ * porque a diagonal é exatamente 45 graus.
+ */
+@keyframes sobe-diagonal {
+  0%        { transform: translate(0, 0); opacity: 0; }
+  10%       { opacity: 1; }
+  82%       { opacity: 1; }
+  100%      { transform: translate(var(--dx, 236px), calc(var(--dx, 236px) * -1)); opacity: 0; }
+}
+
+@keyframes flutua {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(var(--altura, -7px)); }
+}
+
+/*
+ * A leitura varrendo a nuvem.
+ *
+ * O paquímetro só entrega número quando desliza até o traço coincidir, e este
+ * é o mesmo gesto: a linha atravessa o campo devagar, procurando. Vai e volta,
+ * porque medir é procurar e não cravar.
+ */
+@keyframes varre {
+  0%, 100% { transform: translateX(-52px); }
+  50%      { transform: translateX(52px); }
+}
+
+@keyframes respira {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 0.8; transform: scale(1.06); }
+}
+
+/*
+ * Traço de carregamento. Percorre a régua e some: é o gesto da própria marca,
+ * e não uma segunda linguagem de espera.
+ */
+@keyframes carregando-corre {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
+@layer components {
+    /* Movimento é enfeite: quem pediu para reduzir fica só com o leito estático. */
+  /* O traço que corre enquanto a rota carrega. */
+  .traco-carregando {
+    animation: carregando-corre 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  /*
+   * Entrada por rolagem, AMARRADA à posição da barra e não ao relógio.
+   *
+   * Com `animation-timeline: view()` o progresso é a posição do elemento na
+   * janela, não o tempo. Isso é o que faz a coisa voltar sozinha ao rolar para
+   * cima: não é "aparece e some", é o elemento indo e voltando da posição onde
+   * deveria estar. Rolagem lenta move devagar, rolagem rápida move rápido.
+   *
+   * A faixa é `entry`, e isso é o ajuste que importa: a animação termina quando
+   * o elemento acaba de ENTRAR na tela, não depois de atravessar meia janela.
+   * Com `cover 42%` o conteúdo ficava meio transparente enquanto já estava à
+   * vista, e a página parecia meio carregada — fantasma, e não elegante.
+   *
+   * `linear` de propósito: a curva de aceleração aqui é a da própria mão de
+   * quem rola. Uma segunda curva por cima briga com ela e dá sensação de
+   * arrasto.
+   */
+  .revela {
+    animation: revela 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--atraso, 0s) both;
+    animation-timeline: view();
+    animation-range: entry 8% entry 92%;
+    animation-timing-function: linear;
+  }
+
+  /* Ponto do gráfico aparecendo: uma instituição respondendo a pesquisa. */
+  .surge {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: surge 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) var(--atraso, 0s) both;
+  }
+
+  /*
+   * Curva se desenhando. `--traco` é o comprimento do caminho; com
+   * `pathLength="1"` no SVG ele é sempre 1, e não é preciso medir nada.
+   */
+  .desenha {
+    stroke-dasharray: var(--traco, 1);
+    stroke-dashoffset: var(--traco, 1);
+    animation: desenha 1.6s cubic-bezier(0.33, 1, 0.68, 1) var(--atraso, 0.2s) forwards;
+  }
+
+  /*
+   * As mesmas duas animações, porém amarradas à ROLAGEM.
+   *
+   * Existem separadas porque `view()` não serve para o herói: um elemento que
+   * já está inteiro na tela ao carregar tem progresso 100%, então a curva do
+   * herói nasceria pronta e ninguém veria nada. Acima da dobra a animação é do
+   * relógio; abaixo dela é da barra de rolagem.
+   *
+   * O escalonamento aqui NÃO é `animation-delay` — atraso é tempo, e não existe
+   * tempo numa linha do tempo de rolagem. É `--inicio` deslocando o começo da
+   * faixa de cada elemento, o que também torna tudo reversível ao subir.
+   */
+  .desenha-rolagem {
+    stroke-dasharray: var(--traco, 1);
+    stroke-dashoffset: var(--traco, 1);
+    animation: desenha 1s linear both;
+    animation-timeline: view();
+    animation-range: entry var(--inicio, 10%) entry 96%;
+  }
+
+  .surge-rolagem {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: surge 0.5s linear both;
+    animation-timeline: view();
+    animation-range: entry var(--inicio, 14%) entry 100%;
+  }
+
+  /* Halo ambiente atrás do herói. Sálvia, massa grande, nunca perto de número. */
+  .respira {
+    animation: respira 9s ease-in-out infinite;
+  }
+
+  /*
+   * O brilho só começa depois de a curva terminar de se desenhar (1,6s + 0,2s
+   * de atraso). Os dois ao mesmo tempo brigariam pela mesma linha.
+   */
+  .percorre {
+    stroke-dasharray: 0.16 1;
+    animation: percorre 4.5s ease-in-out 2s infinite;
+  }
+
+  .revela-area {
+    animation: revela-area 1.5s cubic-bezier(0.33, 1, 0.68, 1) 0.15s both;
+  }
+
+  /*
+   * `transform-origin: bottom` no SVG exige `fill-box`, senão a origem é o
+   * canto do SVG inteiro e a linha cresce do lugar errado.
+   */
+  .cresce {
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: cresce 0.7s cubic-bezier(0.34, 1.2, 0.64, 1) var(--atraso, 1s) both;
+  }
+
+  .sobe-diagonal {
+    transform-box: fill-box;
+    animation: sobe-diagonal 5.5s cubic-bezier(0.45, 0, 0.55, 1) 1.2s infinite;
+  }
+
+  .flutua {
+    transform-box: fill-box;
+    animation: flutua var(--periodo, 6s) ease-in-out var(--atraso, 0s) infinite;
+  }
+
+  .varre {
+    transform-box: fill-box;
+    animation: varre 11s cubic-bezier(0.4, 0, 0.4, 1) infinite;
+  }
+
+  /* Só a escala auxiliar do paquímetro se move. A principal é a referência. */
+  .desliza {
+    animation: desliza 7s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  }
+
+  .aproxima {
+    animation: aproxima 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view();
+    animation-range: entry 6% entry 96%;
+    animation-timing-function: linear;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Parado no meio da régua: ainda diz "ocupado", sem movimento. */
+    .traco-carregando {
+      animation: none;
+      transform: translateX(100%);
+    }
+
+    /*
+     * Tudo já no estado final. Note que não basta `animation: none` no
+     * `.desenha`: sem zerar o dash a curva ficaria invisível para sempre,
+     * que é o pior resultado possível de uma preferência de acessibilidade.
+     */
+    .revela,
+    .surge,
+    .surge-rolagem,
+    .respira,
+    .desliza,
+    .flutua,
+    .varre,
+    .aproxima,
+    .revela-area,
+    .cresce,
+    .sobe-diagonal {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    /*
+     * O brilho SOME, não congela. Ele é a única animação aqui sem estado final
+     * útil: parado vira um traço grosso pendurado no começo da curva, que o
+     * leitor tentaria interpretar como dado. A curva de baixo já está inteira.
+     */
+    .percorre {
+      display: none;
+    }
+
+    .desenha,
+    .desenha-rolagem {
+      animation: none;
+      stroke-dasharray: none;
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /*
+   * ESCALA TIPOGRÁFICA
+   *
+   * Havia 34 tamanhos distintos no código, escolhidos um a um. Isso não é
+   * hierarquia — é ausência dela: quando quase todo tamanho existe, nenhum
+   * significa nada, e o olho não encontra por onde começar.
+   *
+   * Onze degraus, e cada um carrega tamanho, entrelinha, espacejamento E peso
+   * juntos. Separados eles se contradizem: título de 44px com entrelinha de
+   * corpo abre buraco entre as linhas, e corpo de 17px com espacejamento de
+   * título fica frouxo.
+   *
+   * Três regras que a escala aplica sozinha:
+   *
+   *   1. Quanto MAIOR, mais apertado. Espacejamento é correção óptica: o que
+   *      dá ar a 13px sufoca a 76px. Por isso o herói vai a -0.03em e a
+   *      etiqueta a +0.08em.
+   *   2. Quanto maior, MENOS entrelinha. 1.62 no corpo, 0.98 no herói.
+   *   3. Peso 300 acima de 20px. Regular em parágrafo grande escurece o bloco
+   *      inteiro; leve, a mesma frase respira e vira editorial.
+   */
+
+  .t-heroi {
+    font-family: var(--font-zilla);
+    font-size: clamp(44px, 5.4vw, 76px);
+    font-weight: 700;
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+  }
+
+  .t-titulo {
+    font-family: var(--font-zilla);
+    font-size: clamp(36px, 4vw, 56px);
+    font-weight: 600;
+    line-height: 1.03;
+    letter-spacing: -0.025em;
+  }
+
+  .t-secao {
+    font-family: var(--font-zilla);
+    font-size: clamp(30px, 3vw, 42px);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+  }
+
+  /* Título de tela do produto. Menor que o da landing: aqui não se vende. */
+  .t-tela {
+    font-family: var(--font-zilla);
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.016em;
+  }
+
+  .t-sub {
+    font-family: var(--font-zilla);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.28;
+    letter-spacing: -0.01em;
+  }
+
+  .t-cartao {
+    font-family: var(--font-zilla);
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.32;
+    letter-spacing: -0.005em;
+  }
+
+  /* Parágrafo de entrada. Leve e grande: o contraste com o título é o gancho. */
+  .t-lead {
+    font-size: clamp(18px, 1.5vw, 21px);
+    font-weight: 300;
+    line-height: 1.5;
+    letter-spacing: -0.004em;
+  }
+
+  .t-corpo {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.62;
+  }
+
+  /* Corpo do produto. Menor que o da landing: densidade é a moeda aqui. */
+  .t-ui {
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .t-rotulo {
+    font-size: 13.5px;
+    font-weight: 400;
+    line-height: 1.45;
+  }
+
+  .t-meta {
+    font-size: 12.5px;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  /*
+   * Número de destaque. Zilla porque dígito de slab tem haste larga e segura o
+   * tamanho grande; tabular porque número que se compara alinha em coluna.
+   */
+  .t-numero {
+    font-family: var(--font-zilla);
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Rótulo de seção: mono, caixa alta, espaçado. Nunca em corpo de texto. */
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase text-ink-soft;
+    letter-spacing: 0.07em;
   }
 }

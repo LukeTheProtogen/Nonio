@@ -1,0 +1,321 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Marca } from "@/components/marketing/marca";
+import { type Sessao } from "@/lib/sessao";
+import { ConfirmarSaida } from "./confirmar-saida";
+import { alternarDemo } from "@/lib/demo-acoes";
+import { dataCurta, hora } from "@/lib/formato";
+
+/**
+ * Barra lateral do produto.
+ *
+ * Petróleo marca só o item ativo e o que é clicável. As rotas que ainda não
+ * existem aparecem apagadas em vez de sumirem: esconder o que vem depois faz o
+ * produto parecer menor do que é, e um link que dá 404 é pior que um item
+ * visivelmente desligado.
+ *
+ * A conta mora no pé, nunca no topo. O topo é do produto; a conta é acessório,
+ * e a hierarquia visual precisa dizer isso.
+ *
+ * Cliente por causa do `usePathname`. Layout de servidor não conhece a rota
+ * atual, e antes disto a barra marcava "Macro" como ativa em todas as telas —
+ * a navegação inteira mentia sobre onde a pessoa estava.
+ */
+
+type Rota = { href: string; rotulo: string; icone: React.ReactNode; pronta: boolean };
+
+export function BarraLateral({
+  sessao,
+  fontes,
+  demo,
+}: {
+  sessao: Sessao;
+  fontes: { rotulo: string; em: string; hora?: boolean }[];
+  /** Modo demonstração ligado. Vem do servidor, nunca de estado local. */
+  demo: boolean;
+}) {
+  const caminho = usePathname();
+  const ativa = (href: string) => caminho === href || caminho.startsWith(`${href}/`);
+
+  const rotas: Rota[] = [
+    { href: "/macro", rotulo: "Macro", icone: <IconeMacro />, pronta: true },
+    { href: "/acoes", rotulo: "Ações", icone: <IconeAcoes />, pronta: true },
+    { href: "/historico", rotulo: "Histórico", icone: <IconeHistorico />, pronta: true },
+  ];
+
+  return (
+    /*
+      Sem `h-full`.
+      
+      `height: 100%` só resolve contra pai com altura DEFINIDA, e a cadeia aqui
+      termina em `body { min-height: 100% }` — mínimo não é definido. A barra
+      ficava do tamanho do próprio conteúdo, o `grow` abaixo não tinha para onde
+      crescer, e a conta encalhava no topo em vez de descer para o pé.
+      
+      O pai é `display:flex` em linha, e `align-items: stretch` é o padrão: a
+      barra estica sozinha, sem precisar de altura nenhuma.
+    */
+    <aside className="flex shrink-0 flex-col overflow-y-auto border-b border-rule py-3 lg:w-58 lg:border-r lg:border-b-0 lg:py-5.5">
+      <div className="flex items-center justify-between gap-4 px-5 pb-3 lg:flex-col lg:items-stretch lg:gap-0.5 lg:pb-4.5">
+        <Link href="/macro" className="flex items-center gap-2.5">
+          {/* Sem caixa aqui: ao lado do nome, um bloco de cor sólida competiria
+              com o próprio nome em vez de assiná-lo. */}
+          <Marca tamanho={22} caixa={false} />
+          <span className="font-heading text-[21px] font-semibold tracking-tight">Nônio</span>
+        </Link>
+        <span className="eyebrow hidden lg:block">pesquisa · probabilidade</span>
+
+        {/*
+          A conta no celular.
+
+          O bloco do pé some em tela estreita, e antes disto sobrava só "Sair":
+          dava para encerrar a sessão, mas não para CHEGAR na conta. Agora a
+          inicial é o atalho, e ela também diz quem está logado — que é a outra
+          função que o cartão do pé cumpria.
+
+          Só a inicial, sem nome: nome ao lado de quatro itens de navegação não
+          cabe em 390px, e o nome inteiro está a um toque de distância.
+        */}
+        <div className="flex items-center gap-1.5 lg:hidden">
+          <Link
+            href="/conta"
+            aria-label={`Conta de ${sessao.nome}`}
+            title={sessao.nome}
+            className={`flex size-8 items-center justify-center rounded-full border text-xs font-semibold transition-colors ${
+              ativa("/conta")
+                ? "border-modelo bg-modelo text-white"
+                : "border-rule bg-modelo-lavado text-modelo hover:border-modelo/40"
+            }`}
+          >
+            {sessao.nome.charAt(0).toUpperCase()}
+          </Link>
+          <ConfirmarSaida>Sair</ConfirmarSaida>
+        </div>
+      </div>
+
+      <nav className="flex gap-0.5 overflow-x-auto lg:flex-col">
+        {rotas.map((r) => (
+          <ItemNav key={r.href} rota={r} ativa={ativa(r.href)} />
+        ))}
+        {/* Em tela estreita, Fontes entra na mesma fileira: separá-la exigiria
+            uma segunda linha para um item só. */}
+        <span className="lg:hidden">
+          <ItemNav
+            rota={{ href: "/fontes", rotulo: "Fontes", icone: <IconeFontes />, pronta: true }}
+            ativa={ativa("/fontes")}
+          />
+        </span>
+      </nav>
+
+      <div className="mx-5 my-3.5 hidden h-px bg-rule lg:block" />
+
+      <nav className="hidden flex-col gap-0.5 lg:flex">
+        <ItemNav
+          rota={{ href: "/fontes", rotulo: "Fontes", icone: <IconeFontes />, pronta: true }}
+          ativa={ativa("/fontes")}
+        />
+      </nav>
+
+      <div className="hidden grow lg:block" />
+
+      <div className="hidden flex-col gap-2.5 px-5 lg:flex">
+        <span className="eyebrow">Fontes</span>
+        <div className="flex flex-col gap-1.5 text-xs">
+          {fontes.map((f) => (
+            <div key={f.rotulo} className="flex justify-between gap-2">
+              <span>{f.rotulo}</span>
+              <span className="font-mono text-ink-soft tabular">
+                {f.hora ? hora(f.em) : dataCurta(f.em)}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mx-5 mt-3.5 hidden border-t border-rule pt-3 lg:block">
+        <ChaveDemo ligado={demo} />
+      </div>
+
+      <div className="mx-3.5 mt-3 hidden border-t border-rule px-2.5 pt-2.5 lg:block">
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/conta"
+            className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-sm py-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo ${
+              ativa("/conta") ? "text-modelo" : ""
+            }`}
+          >
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-rule bg-modelo-lavado text-xs font-semibold text-modelo">
+              {sessao.nome.charAt(0).toUpperCase()}
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-[12.5px] font-medium">{sessao.nome}</span>
+              {/* Sem plano, mostra o e-mail: a linha existe para identificar de quem é
+                a conta, e o e-mail faz isso melhor que um rótulo vazio. */}
+            <span className="truncate text-[11px] text-ink-soft">
+              {sessao.plano ?? sessao.email}
+            </span>
+            </span>
+          </Link>
+
+          {/* A ação de servidor mora dentro do diálogo de confirmação. */}
+          <ConfirmarSaida>Sair</ConfirmarSaida>
+        </div>
+      </div>
+
+      <p className="mx-5 mt-3.5 hidden text-[11px] leading-snug text-ink-soft lg:block">
+        Ferramenta de pesquisa. Não é recomendação de investimento. Res. CVM 19 e 20.
+      </p>
+    </aside>
+  );
+}
+
+/**
+ * Chave do modo demonstração.
+ *
+ * Mora na barra, à vista de todas as telas, e não escondida numa página de
+ * ajustes: enquanto ela está ligada NADA na tela vem da rede, e quem apresenta
+ * precisa conseguir conferir isso de relance.
+ *
+ * É formulário com ação de servidor, não estado de cliente. O modo decide o que
+ * o servidor busca — se fosse estado local, a tela alternaria a aparência e
+ * continuaria pedindo cotação para a brapi.
+ */
+function ChaveDemo({ ligado }: { ligado: boolean }) {
+  return (
+    <form action={alternarDemo}>
+      <button
+        type="submit"
+        role="switch"
+        aria-checked={ligado}
+        title={
+          ligado
+            ? "Desligar: volta a buscar cotação ao vivo"
+            : "Ligar: congela tudo no snapshot versionado, sem rede"
+        }
+        className="flex w-full items-center gap-2.5 rounded-sm py-1 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+      >
+        <span
+          aria-hidden
+          className={`relative h-4 w-7 shrink-0 rounded-full transition-colors ${
+            ligado ? "bg-modelo" : "bg-surface-3 ring-1 ring-rule ring-inset"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 size-3 rounded-full bg-white shadow-sm transition-[left] ${
+              ligado ? "left-3.5" : "left-0.5"
+            }`}
+          />
+        </span>
+        <span className="flex min-w-0 flex-col">
+          <span className="text-[12.5px] font-medium">Modo demonstração</span>
+          <span className="text-[11px] leading-tight text-ink-soft">
+            {ligado ? "congelado, sem rede" : "cotação ao vivo"}
+          </span>
+        </span>
+      </button>
+    </form>
+  );
+}
+
+function ItemNav({ rota, ativa }: { rota: Rota; ativa: boolean }) {
+  /*
+    No celular a faixa é horizontal e o espaço é o que é: a 390px, quatro itens
+    com o respiro do desktop somam mais que a largura da tela e "Fontes" ficava
+    cortado. Menos respiro e ícone menor abaixo de `lg` fazem os quatro caberem.
+
+    A borda também troca de lado: na coluna ela marca o item à esquerda; na
+    faixa horizontal, embaixo. Borda lateral numa fileira não indica nada.
+  */
+  const base =
+    "flex h-9 shrink-0 items-center gap-2 border-b-2 px-2.5 text-[13.5px] font-medium " +
+    "lg:gap-2.5 lg:border-b-0 lg:border-l-2 lg:px-4.5 lg:text-sm";
+
+  if (!rota.pronta) {
+    return (
+      <span
+        aria-disabled
+        title="Ainda não construída"
+        className={`${base} border-transparent text-referencia`}
+      >
+        <Icone>{rota.icone}</Icone>
+        <span>{rota.rotulo}</span>
+        <span className="ml-auto text-[10px] font-normal">em breve</span>
+      </span>
+    );
+  }
+
+  return (
+    <Link
+      href={rota.href}
+      className={`${base} focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-modelo ${
+        ativa ? "border-modelo text-modelo" : "border-transparent text-ink-soft hover:text-ink"
+      }`}
+    >
+      <Icone>{rota.icone}</Icone>
+      <span>{rota.rotulo}</span>
+    </Link>
+  );
+}
+
+/**
+ * O ícone do item de navegação, que some em tela muito estreita.
+ *
+ * Abaixo de 380px os quatro itens com ícone somam mais que a largura da tela e
+ * a faixa passa a rolar de lado, escondendo "Fontes". Entre o ícone e o rótulo,
+ * quem sai é o ícone: ele decora, o rótulo é que diz para onde o toque leva.
+ */
+function Icone({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="hidden min-[380px]:inline-flex lg:inline-flex" aria-hidden>
+      {children}
+    </span>
+  );
+}
+
+const traco = {
+  width: 20,
+  height: 20,
+  viewBox: "0 0 20 20",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 1.6,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+  className: "size-4 shrink-0 lg:size-5",
+  "aria-hidden": true,
+};
+
+function IconeMacro() {
+  return (
+    <svg {...traco}>
+      <path d="M2 16c4 0 5.5-12 8-12s4 12 8 12" />
+      <path d="M2 16h16" />
+    </svg>
+  );
+}
+function IconeAcoes() {
+  return (
+    <svg {...traco}>
+      <path d="M4 16v-6M8 16V5M12 16V8M16 16v-4" />
+    </svg>
+  );
+}
+function IconeHistorico() {
+  return (
+    <svg {...traco}>
+      <circle cx="10" cy="10" r="7" />
+      <path d="M10 6v4l3 2" />
+    </svg>
+  );
+}
+function IconeFontes() {
+  return (
+    <svg {...traco}>
+      <ellipse cx="10" cy="5" rx="6" ry="2.4" />
+      <path d="M4 5v10c0 1.3 2.7 2.4 6 2.4s6-1.1 6-2.4V5" />
+      <path d="M4 10c0 1.3 2.7 2.4 6 2.4s6-1.1 6-2.4" />
+    </svg>
+  );
+}

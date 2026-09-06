@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --papel:#F7F6F1; --carta:#FFFFFF; --ink:#232B26;
+    --modelo:#14544B; --modelo-forte:#0C3B34; --salvia:#9DBAA7;
+    --consenso:#AC6F22; --referencia:#9AA39A; --rule:#DDD9CD;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#333}
+
+  .slide{
+    width:1080px;height:1350px;position:relative;overflow:hidden;
+    font-family:"IBM Plex Sans",sans-serif;
+  }
+
+  /* ── a régua principal: y=1012 em TODOS os slides, é o fio da continuidade ── */
+  .regua{position:absolute;left:0;right:0;top:1012px;height:1px}
+  .regua .linha{position:absolute;inset:0;background:var(--referencia);opacity:.55}
+  .regua i{position:absolute;top:0;width:1px;background:var(--referencia);opacity:.45}
+
+  .slide > div, .slide > p, .slide > section{position:relative;z-index:2}
+  .regua{z-index:1}
+
+  .etiqueta{
+    font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500;
+    letter-spacing:.09em;text-transform:uppercase;
+  }
+  .titulo{font-family:"Zilla Slab",serif;font-weight:700;letter-spacing:-.03em;line-height:1}
+  .apoio{font-weight:300;font-size:34px;line-height:1.45;letter-spacing:-.004em}
+  .mono{font-family:"IBM Plex Mono",monospace}
+
+  /* A marca repete em TODO slide. Ninguém compartilha o carrossel inteiro:
+     printa o slide do número que surpreendeu, e esse print precisa dizer de
+     quem é. */
+  .marca{
+    position:absolute;left:96px;bottom:88px;display:flex;align-items:center;gap:18px;
+    font-family:"Zilla Slab",serif;font-weight:600;font-size:40px;letter-spacing:-.022em;
+  }
+  .marca svg{width:44px;height:44px}
+  .marca svg{fill:currentColor}
+
+  /* ── SLIDE 1 ─────────────────────────────────────────────────────────── */
+  #s1{background:var(--modelo-forte);color:var(--papel)}
+
+  /*
+   * A foto ocupa o quadro inteiro, e o VÉU é o que torna o número legível.
+   *
+   * Texto branco direto sobre foto é ilegível em metade dos pixels, e engrossar
+   * a fonte para compensar só piora. O véu resolve na origem: opaco onde o
+   * texto vive, transparente onde a imagem precisa aparecer.
+   *
+   * `saturate(.85)` e `contrast(1.04)`: a foto vem mais saturada que a paleta
+   * do resto do carrossel, e sem isso o slide 1 parece de outro conjunto.
+   */
+  #s1 .foto{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    filter:saturate(.82) contrast(1.05) brightness(1.02);
+  }
+  #s1 .veu{
+    position:absolute;inset:0;
+    background:linear-gradient(100deg,
+      rgba(12,59,52,.96) 0%,
+      rgba(12,59,52,.93) 34%,
+      rgba(12,59,52,.72) 56%,
+      rgba(12,59,52,.34) 78%,
+      rgba(12,59,52,.22) 100%);
+  }
+  #s1 .numero{
+    font-family:"Zilla Slab",serif;font-weight:700;font-size:400px;line-height:.82;
+    letter-spacing:-.045em;font-variant-numeric:tabular-nums;
+  }
+
+  /* ── SLIDE 2 ─────────────────────────────────────────────────────────── */
+  #s2{background:var(--papel);color:var(--ink)}
+  #s2 .glow{
+    position:absolute;width:1000px;height:1000px;right:-420px;top:120px;border-radius:50%;
+    background:radial-gradient(circle,rgba(157,186,167,.34) 0%,transparent 64%);
+  }
+  .par{display:flex;align-items:flex-end;gap:26px}
+  .par b{
+    font-family:"Zilla Slab",serif;font-weight:700;font-size:196px;line-height:.84;
+    letter-spacing:-.04em;font-variant-numeric:tabular-nums;
+  }
+
+  /* ── SLIDE 3 ─────────────────────────────────────────────────────────── */
+  #s3{background:var(--papel);color:var(--ink)}
+  #s3 .bloco{position:absolute;right:0;top:0;bottom:0;width:452px;background:var(--modelo-forte);overflow:hidden}
+  /*
+   * O mesmo recorte da foto do slide 1, agora fechado nas garras do
+   * paquímetro. Repetir a imagem amarra o começo ao fim do carrossel, e o
+   * recorte fechado diz que a leitura ficou mais fina, que é o argumento.
+   */
+  #s3 .bloco img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    object-position:38% 52%;
+    filter:saturate(.5) contrast(1.06);
+    opacity:.30;
+  }
+  #s3 .bloco .veu{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(12,59,52,.55) 0%,rgba(12,59,52,.88) 100%);
+  }
+</style>
+</head>
+<body>
+<template id="assinatura">
+  <div class="marca">
+    <svg width="30" height="30" viewBox="0 0 100 100">
+      <path d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z"/>
+      <path d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z" opacity=".55"/>
+    </svg>
+    <span>Nônio</span>
+  </div>
+</template>
+
+<!-- ═══════════════════════ 1 · O NÚMERO ═══════════════════════════════ -->
+<section class="slide" id="s1">
+  <img class="foto" src="maos.png" alt="">
+  <div class="veu"></div>
+
+  <!-- Uma marca só no slide 1. Havia duas, topo e rodapé, e a repetida no
+       mesmo quadro não reforça nada: só ocupa a banda que a origem do dado
+       precisava. -->
+  <div style="position:absolute;left:96px;top:88px;display:flex;align-items:center;gap:20px">
+    <svg width="60" height="60" viewBox="0 0 100 100">
+      <path d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z" fill="#F7F6F1"/>
+      <path d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z" fill="#F7F6F1" opacity=".6"/>
+    </svg>
+    <span style="font-family:'Zilla Slab',serif;font-weight:700;font-size:50px;letter-spacing:-.028em">Nônio</span>
+  </div>
+
+  <div style="position:absolute;left:96px;top:300px;right:96px">
+    <!--
+      A origem do dado é a CREDENCIAL da peça: sem ela, "1,59" é um número que
+      alguém inventou na internet. Estava do tamanho de uma legenda de rodapé.
+      Agora tem moldura, corpo e uma régua acima, e lê-se antes do número.
+    -->
+    <div style="display:inline-flex;flex-direction:column;gap:18px;margin-bottom:44px">
+      <span style="display:block;width:104px;height:3px;background:var(--salvia);opacity:.8"></span>
+      <span class="mono" style="font-size:30px;font-weight:500;letter-spacing:.075em;text-transform:uppercase;color:#F7F6F1;line-height:1.35">
+        Boletim Focus<br>
+        <span style="color:var(--salvia)">2000 a 2024</span>
+      </span>
+    </div>
+    <!--
+      "p.p." centralizado na altura do número, e não alinhado pela base. Pela
+      base ele pendurava no pé do "9" e lia como nota de rodapé; centrado, lê
+      como unidade DO número, que é o que ele é.
+    -->
+    <div style="display:flex;align-items:center;gap:26px">
+      <span class="numero">1,59</span>
+      <span class="mono" style="font-size:46px;color:rgba(247,246,241,.78)">p.p.</span>
+    </div>
+    <p class="apoio" style="max-width:22ch;margin-top:32px;color:rgba(247,246,241,.88);font-size:38px;line-height:1.3">
+      é o quanto a mediana do mercado erra o IPCA, a doze meses.
+    </p>
+  </div>
+
+  <p class="mono" style="position:absolute;left:96px;top:1058px;font-size:24px;color:rgba(247,246,241,.72);text-shadow:0 1px 12px rgba(12,59,52,.75)">
+    529 observações · dado público do Banco Central
+  </p>
+
+
+  <div class="regua" id="r1"><div class="linha" style="background:var(--salvia);opacity:.4"></div></div>
+</section>
+
+<!-- ═══════════════════════ 2 · O ACHADO ═══════════════════════════════ -->
+<section class="slide" id="s2">
+  <div class="glow"></div>
+
+  <div style="position:absolute;left:96px;top:96px;right:96px">
+    <p class="etiqueta" style="color:var(--consenso)">Diagrama de confiabilidade · 12 meses</p>
+    <h2 class="titulo" style="font-size:82px;margin-top:38px;max-width:15ch">
+      A probabilidade não se confirma.
+    </h2>
+  </div>
+
+  <div style="position:absolute;left:96px;top:430px;display:flex;flex-direction:column;gap:64px">
+    <div class="par">
+      <b style="color:var(--consenso)">72%</b>
+      <span class="apoio" style="padding-bottom:26px;width:330px">era a chance que o consenso indicava</span>
+    </div>
+    <div class="par">
+      <b style="color:var(--ink)">0%</b>
+      <span class="apoio" style="padding-bottom:26px;width:330px">foi o que aconteceu, em 40 observações</span>
+    </div>
+  </div>
+
+  <p class="mono" style="position:absolute;left:96px;top:1058px;right:96px;font-size:24px;color:var(--referencia);line-height:1.5">
+    Brier skill −19%: pior que chutar a frequência histórica.
+  </p>
+  <div class="marca" style="color:var(--modelo)"></div>
+
+  <div class="regua" id="r2"><div class="linha"></div></div>
+</section>
+
+<!-- ═══════════════════════ 3 · O PRODUTO ══════════════════════════════ -->
+<section class="slide" id="s3">
+  <div class="bloco">
+    <img src="maos.png" alt="">
+    <div class="veu"></div>
+  </div>
+
+  <div style="position:absolute;left:96px;top:96px;width:560px">
+    <p class="etiqueta" style="color:var(--consenso)">O que o Nônio mostra</p>
+    <h2 class="titulo" style="font-size:78px;margin-top:36px;max-width:11ch">A discordância inteira.</h2>
+    <p class="apoio" style="margin-top:44px;color:var(--ink);opacity:.7;width:520px;font-size:31px">
+      Não a mediana. A distribuição, o desvio, os extremos e quantos responderam.
+      Vinte indicadores macro, cinco anos à frente.
+    </p>
+  </div>
+
+  <!-- O bloco verde carrega a frase que fecha o carrossel, centrada na altura
+       dele: encostada no canto ela ficava espremida e quebrava em duas linhas
+       tortas. -->
+  <div style="position:absolute;right:0;top:0;bottom:0;width:452px;display:flex;flex-direction:column;justify-content:center;padding:0 56px 180px;color:var(--papel)">
+    <p class="titulo" style="font-size:64px;line-height:1.06">A decisão<br>é sua.</p>
+    <p class="etiqueta" style="color:var(--salvia);margin-top:38px;line-height:1.7;opacity:.85">
+      Fonte pública<br>em cada número
+    </p>
+  </div>
+
+  <div style="position:absolute;left:96px;top:1058px;width:540px">
+    <p style="font-size:29px;font-weight:600;color:var(--modelo);line-height:1.3;white-space:nowrap">
+      Comenta “Focus” que eu mando o link.
+    </p>
+    <p class="mono" style="font-size:19px;color:var(--referencia);margin-top:20px;line-height:1.55">
+      Ferramenta de pesquisa. Não é recomendação de<br>investimento. Res. CVM 19 e 20.
+    </p>
+  </div>
+
+  <!--
+    O fecho do carrossel é a marca, não a chamada. Quem chega até aqui já
+    decidiu se interessa; o que precisa ficar é de QUEM era. Por isso ela fecha
+    o bloco verde, grande, com a régua do nônio embaixo.
+  -->
+  <div style="position:absolute;right:0;bottom:88px;width:452px;display:flex;flex-direction:column;align-items:center;gap:20px;color:var(--papel)">
+    <div style="display:flex;align-items:center;gap:18px">
+      <svg width="52" height="52" viewBox="0 0 100 100">
+        <path d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z" fill="#F7F6F1"/>
+        <path d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z" fill="#F7F6F1" opacity=".6"/>
+      </svg>
+      <span style="font-family:'Zilla Slab',serif;font-weight:700;font-size:46px;letter-spacing:-.026em">Nônio</span>
+    </div>
+    <svg width="180" height="16" viewBox="0 0 180 16" aria-hidden>
+      <line x1="0" y1="4" x2="180" y2="4" stroke="#9DBAA7" stroke-width="1.4" opacity=".55"/>
+      <g stroke="#9DBAA7" stroke-width="1.2" opacity=".55">
+        <line x1="6"   y1="4" x2="6"   y2="11"/><line x1="30"  y1="4" x2="30"  y2="9"/>
+        <line x1="54"  y1="4" x2="54"  y2="9"/><line x1="78"  y1="4" x2="78"  y2="11"/>
+        <line x1="102" y1="4" x2="102" y2="9"/><line x1="126" y1="4" x2="126" y2="9"/>
+        <line x1="150" y1="4" x2="150" y2="11"/><line x1="174" y1="4" x2="174" y2="9"/>
+      </g>
+      <line x1="78" y1="4" x2="78" y2="14" stroke="#F7F6F1" stroke-width="2.4"/>
+    </svg>
+  </div>
+
+  <div class="regua" id="r3"><div class="linha"></div></div>
+</section>
+
+<script>
+  /* `?s=2` mostra só o slide 2. O Chrome headless não rola a página, então
+     exportar 1080x1350 exatos exige que só um slide exista de cada vez. */
+  {
+    const so = new URLSearchParams(location.search).get("s");
+    if (so) {
+      for (const el of document.querySelectorAll(".slide")) {
+        if (el.id !== "s" + so) el.remove();
+      }
+    }
+  }
+
+  for (const m of document.querySelectorAll(".marca")) {
+    m.innerHTML = document.getElementById("assinatura").innerHTML
+      .replace(/<\/?div[^>]*>/g, "");
+  }
+
+  /* Ticks da régua, iguais nos três slides: é o que faz o corte ler como corte
+     de uma tela só, e não como três imagens diferentes. */
+  for (const id of ["r1","r2","r3"]) {
+    const r = document.getElementById(id);
+    if (!r) continue;
+    for (let x = 0; x <= 1080; x += 27) {
+      const t = document.createElement("i");
+      const alto = x % 135 === 0;
+      t.style.left = x + "px";
+      t.style.height = (alto ? 26 : 12) + "px";
+      if (id === "r1") { t.style.background = "#9DBAA7"; t.style.opacity = alto ? ".5" : ".3"; }
+      r.appendChild(t);
+    }
+  }
+
+  /* A nuvem de projeções, com semente fixa: 145 no slide 1, convergindo até
+     uma leitura só no slide 3. É a história inteira contada pelos pontos. */
+  function prng(s){return()=>{s=(s*1103515245+12345)%2147483648;return s/2147483648}}
+  function normal(r){const u=Math.max(r(),1e-9);return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r())}
+
+  function nuvem(alvo,{n,cx,cy,sx,sy,r:raio,op}){
+    const rnd = prng(20260906);
+    const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("width","1080"); svg.setAttribute("height","1350");
+    svg.style.cssText="position:absolute;inset:0;pointer-events:none;z-index:0";
+    for(let i=0;i<n;i++){
+      const c=document.createElementNS("http://www.w3.org/2000/svg","circle");
+      c.setAttribute("cx", cx + normal(rnd)*sx);
+      c.setAttribute("cy", cy + normal(rnd)*sy);
+      c.setAttribute("r", raio.min + rnd()*(raio.max-raio.min));
+      c.setAttribute("fill","#AC6F22");
+      c.setAttribute("opacity", op);
+      svg.appendChild(c);
+    }
+    alvo.appendChild(svg);
+  }
+
+  /* Slide 1 NÃO tem nuvem. Ela existia para dar textura a um fundo chapado, e
+     a foto faz isso melhor. Sobrepor as duas coisas deixa a imagem com cara de
+     suja, e o olho não sabe se os pontos são dado ou defeito. */
+  // slide 2: concentrada à direita, já com forma
+  if(document.getElementById("s2")) nuvem(document.getElementById("s2"),
+    {n:90,cx:868,cy:560,sx:112,sy:190,r:{min:3.5,max:8},op:.5});
+  // slide 3: resolvida em torno de uma leitura só
+  if(document.getElementById("s3")) nuvem(document.getElementById("s3"),
+    {n:34,cx:360,cy:790,sx:58,sy:56,r:{min:3.5,max:8},op:.55});
+
+  // a leitura, no slide 3: o único ponto cheio, e a linha que o marca
+  const s3 = document.getElementById("s3");
+  if (s3) {
+  const marca = document.createElementNS("http://www.w3.org/2000/svg","svg");
+  marca.setAttribute("width","1080"); marca.setAttribute("height","1350");
+  marca.style.cssText="position:absolute;inset:0;z-index:1";
+  marca.innerHTML =
+    '<line x1="360" y1="690" x2="360" y2="1012" stroke="#14544B" stroke-width="3"/>' +
+    '<circle cx="360" cy="790" r="13" fill="#14544B"/>';
+  s3.appendChild(marca);
+  }
+</script>
+</body>
+</html>

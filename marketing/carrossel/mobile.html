@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>Nônio · 390px</title>
+<style>
+  body{margin:0;background:#20241f;font:13px ui-monospace,monospace;color:#9aa39a;padding:24px}
+  .linha{display:flex;gap:20px;overflow-x:auto;padding-bottom:16px}
+  .um{flex:0 0 auto}
+  .um p{margin:0 0 8px;color:#c9d0ca}
+  iframe{width:390px;height:844px;border:1px solid #3a423a;border-radius:12px;background:#fff}
+</style></head><body>
+<div class="linha" id="l"></div>
+<script>
+  // Mesmo site (porta diferente não separa cookie), então a sessão local
+  // acompanha e as rotas atrás de login renderizam.
+  const rotas = ["/", "/precos", "/sobre", "/termos", "/macro", "/acoes", "/historico", "/fontes", "/conta"];
+  document.getElementById("l").innerHTML = rotas.map(r =>
+    `<div class="um"><p>${r}</p><iframe src="http://localhost:3000${r}"></iframe></div>`
+  ).join("");
+</script>
+</body></html>
