@@ -53,7 +53,21 @@ export default async function Landing() {
         <Halo />
         <Cabecalho logado={Boolean(sessao)} />
 
-        <section className="mx-auto grid max-w-[1440px] items-center gap-14 px-10 pt-16 pb-20 md:px-20 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:pt-20 lg:pb-24">
+        {/*
+          O herói ocupa a primeira tela inteira.
+
+          Sem isso, em monitor grande sobrava uma tira da faixa de fontes no pé
+          da janela, com a animação de entrada pela metade: conteúdo meio
+          transparente à vista dá impressão de página que não carregou.
+
+          `svh` e não `vh`: no celular a barra de endereço aparece e some, e com
+          `vh` o herói pula de altura no meio da rolagem. O desconto de 104px é
+          o cabeçalho, que mora fora desta seção.
+
+          É `min-h`, nunca `h`: em tela baixa o conteúdo cresce em vez de ser
+          cortado.
+        */}
+        <section className="mx-auto grid max-w-[1440px] items-center gap-14 px-10 pt-10 pb-20 md:px-20 lg:min-h-[calc(100svh-104px)] lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:pt-0 lg:pb-16">
           <div className="flex flex-col items-start gap-7">
             <p className="eyebrow">Boletim Focus · {dataLonga(macro.coletadoEm)}</p>
 

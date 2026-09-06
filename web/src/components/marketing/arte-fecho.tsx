@@ -68,7 +68,16 @@ const PONTOS = (() => {
     const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * aleatorio());
     const w =
       Math.sqrt(-2 * Math.log(Math.max(aleatorio(), 1e-9))) * Math.cos(2 * Math.PI * aleatorio());
-    return { x: 210 + z * 62, y: 190 + w * 44, r: 2 + aleatorio() * 2.6 };
+    return {
+      x: 210 + z * 62,
+      y: 190 + w * 44,
+      r: 2 + aleatorio() * 2.6,
+      // Período e atraso próprios: com um só valor os 96 pontos subiriam juntos
+      // e a nuvem viraria uma respiração única, que é o efeito errado.
+      periodo: 4.5 + aleatorio() * 5,
+      atraso: aleatorio() * 5,
+      altura: -(4 + aleatorio() * 7),
+    };
   });
 })();
 
@@ -80,17 +89,33 @@ function Constelacao() {
       role="img"
       aria-label="Desenho: dezenas de projeções espalhadas, com uma única leitura marcada no meio."
     >
+      {/*
+        Dois elementos por ponto, de propósito: o grupo faz a ENTRADA, que é
+        amarrada à rolagem, e o círculo faz a FLUTUAÇÃO, que é do relógio. Um
+        elemento só não pode ter duas linhas do tempo ao mesmo tempo.
+      */}
       {PONTOS.map((p, i) => (
-        <circle
+        <g
           key={i}
-          cx={p.x}
-          cy={p.y}
-          r={p.r}
-          fill="currentColor"
-          fillOpacity={0.28}
           className="surge-rolagem"
           style={{ ["--inicio" as string]: `${6 + Math.min(i * 0.34, 30)}%` }}
-        />
+        >
+          <circle
+            cx={p.x}
+            cy={p.y}
+            r={p.r}
+            fill="currentColor"
+            fillOpacity={0.28}
+            className="flutua"
+            style={
+              {
+                "--periodo": `${p.periodo.toFixed(2)}s`,
+                "--atraso": `${p.atraso.toFixed(2)}s`,
+                "--altura": `${p.altura.toFixed(1)}px`,
+              } as React.CSSProperties
+            }
+          />
+        </g>
       ))}
 
       {/* A régua atravessando a nuvem: a escala que transforma nuvem em número. */}
@@ -122,9 +147,15 @@ function Constelacao() {
         );
       })}
 
-      {/* A leitura: o único traço cheio do desenho. */}
-      <line x1={210} y1={120} x2={210} y2={314} stroke="currentColor" strokeWidth={2} />
-      <circle cx={210} cy={190} r={7} fill="currentColor" />
+      {/*
+        A leitura: o único traço cheio do desenho, e a única coisa que atravessa
+        a nuvem inteira. Varre devagar, de um lado ao outro — o paquímetro só
+        entrega número quando desliza até o traço coincidir.
+      */}
+      <g className="varre">
+        <line x1={210} y1={120} x2={210} y2={314} stroke="currentColor" strokeWidth={2} />
+        <circle cx={210} cy={190} r={7} fill="currentColor" />
+      </g>
     </svg>
   );
 }
