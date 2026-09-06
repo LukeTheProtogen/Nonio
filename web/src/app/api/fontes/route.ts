@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    return NextResponse.json(zFontes.parse(local.fontes()));
+    return NextResponse.json(zFontes.parse(await local.fontes()));
   } catch (erro) {
     return NextResponse.json(
       { erro: erro instanceof Error ? erro.message : "falha desconhecida" },

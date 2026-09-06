@@ -121,7 +121,7 @@ export async function obterHistorico(): Promise<Historico> {
 export async function obterFontes(): Promise<Fontes> {
   const r = usandoBackend
     ? await doBackend("/fontes", zFontes, CACHE.fontes)
-    : zFontes.parse(local.fontes());
+    : zFontes.parse(await local.fontes());
   return r.dados;
 }
 

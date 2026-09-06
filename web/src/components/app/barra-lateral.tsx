@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { sair, type Sessao } from "@/lib/sessao";
+import { alternarDemo } from "@/lib/demo-acoes";
 import { dataCurta, hora } from "@/lib/formato";
 
 /**
@@ -26,9 +27,12 @@ type Rota = { href: string; rotulo: string; icone: React.ReactNode; pronta: bool
 export function BarraLateral({
   sessao,
   fontes,
+  demo,
 }: {
   sessao: Sessao;
   fontes: { rotulo: string; em: string; hora?: boolean }[];
+  /** Modo demonstração ligado. Vem do servidor, nunca de estado local. */
+  demo: boolean;
 }) {
   const caminho = usePathname();
   const ativa = (href: string) => caminho === href || caminho.startsWith(`${href}/`);
@@ -40,7 +44,18 @@ export function BarraLateral({
   ];
 
   return (
-    <aside className="flex h-full w-58 shrink-0 flex-col border-r border-rule py-5.5">
+    /*
+      Sem `h-full`.
+      
+      `height: 100%` só resolve contra pai com altura DEFINIDA, e a cadeia aqui
+      termina em `body { min-height: 100% }` — mínimo não é definido. A barra
+      ficava do tamanho do próprio conteúdo, o `grow` abaixo não tinha para onde
+      crescer, e a conta encalhava no topo em vez de descer para o pé.
+      
+      O pai é `display:flex` em linha, e `align-items: stretch` é o padrão: a
+      barra estica sozinha, sem precisar de altura nenhuma.
+    */
+    <aside className="flex w-58 shrink-0 flex-col border-r border-rule py-5.5">
       <div className="flex flex-col gap-0.5 px-5 pb-4.5">
         <Link href="/macro" className="font-heading text-[21px] font-semibold tracking-tight">
           Nônio
@@ -79,7 +94,11 @@ export function BarraLateral({
         </div>
       </div>
 
-      <div className="mx-3.5 mt-3.5 border-t border-rule px-2.5 pt-2.5">
+      <div className="mx-5 mt-3.5 border-t border-rule pt-3">
+        <ChaveDemo ligado={demo} />
+      </div>
+
+      <div className="mx-3.5 mt-3 border-t border-rule px-2.5 pt-2.5">
         <div className="flex items-center gap-2.5">
           <Link
             href="/conta"
@@ -113,6 +132,54 @@ export function BarraLateral({
         Ferramenta de pesquisa. Não é recomendação de investimento. Res. CVM 19 e 20.
       </p>
     </aside>
+  );
+}
+
+/**
+ * Chave do modo demonstração.
+ *
+ * Mora na barra, à vista de todas as telas, e não escondida numa página de
+ * ajustes: enquanto ela está ligada NADA na tela vem da rede, e quem apresenta
+ * precisa conseguir conferir isso de relance.
+ *
+ * É formulário com ação de servidor, não estado de cliente. O modo decide o que
+ * o servidor busca — se fosse estado local, a tela alternaria a aparência e
+ * continuaria pedindo cotação para a brapi.
+ */
+function ChaveDemo({ ligado }: { ligado: boolean }) {
+  return (
+    <form action={alternarDemo}>
+      <button
+        type="submit"
+        role="switch"
+        aria-checked={ligado}
+        title={
+          ligado
+            ? "Desligar: volta a buscar cotação ao vivo"
+            : "Ligar: congela tudo no snapshot versionado, sem rede"
+        }
+        className="flex w-full items-center gap-2.5 rounded-sm py-1 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+      >
+        <span
+          aria-hidden
+          className={`relative h-4 w-7 shrink-0 rounded-full transition-colors ${
+            ligado ? "bg-modelo" : "bg-surface-3 ring-1 ring-rule ring-inset"
+          }`}
+        >
+          <span
+            className={`absolute top-0.5 size-3 rounded-full bg-white shadow-sm transition-[left] ${
+              ligado ? "left-3.5" : "left-0.5"
+            }`}
+          />
+        </span>
+        <span className="flex min-w-0 flex-col">
+          <span className="text-[12.5px] font-medium">Modo demonstração</span>
+          <span className="text-[11px] leading-tight text-ink-soft">
+            {ligado ? "congelado, sem rede" : "cotação ao vivo"}
+          </span>
+        </span>
+      </button>
+    </form>
   );
 }
 
