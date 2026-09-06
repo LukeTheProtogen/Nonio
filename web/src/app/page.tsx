@@ -274,13 +274,32 @@ export default async function Landing() {
           </div>
 
           {/*
-            `text-white/70` porque a arte desenha em `currentColor`: o desenho
-            herda a cor do bloco em vez de trazer paleta própria, e continua
-            correto se o fundo do fecho mudar um dia.
+            A arte mora num cartão, como todas as outras figuras da página: a do
+            herói, a da calibração e a da régua. Solta sobre o verde ela parecia
+            jogada, e não era impressão — era a única figura da página sem
+            moldura e sem legenda, que é o que separa figura de enfeite.
+
+            Verde mais claro que o bloco (`--modelo` sobre `--modelo-forte`), na
+            mesma relação que papel e branco têm no resto: o que está por cima é
+            mais claro que o chão.
+
+            `text-white/70` porque a arte desenha em `currentColor` — herda a cor
+            do bloco em vez de trazer paleta própria, e continua certa se o fundo
+            do fecho mudar um dia.
           */}
-          <div className="revela min-w-0 text-white/70">
-            <ArteFecho />
-          </div>
+          <figure className="revela flex min-w-0 flex-col gap-4 rounded-xl border border-white/10 bg-modelo p-7">
+            <div className="text-white/70">
+              <ArteFecho />
+            </div>
+            <figcaption className="flex items-baseline justify-between gap-4 border-t border-white/10 pt-3.5">
+              <span className="eyebrow text-white/55">
+                {ipca.consenso.n} projeções · uma leitura
+              </span>
+              <span className="font-mono text-[12px] text-white/55 tabular">
+                {num(ipca.consenso.mediana)}%
+              </span>
+            </figcaption>
+          </figure>
         </div>
       </Bloco>
 
