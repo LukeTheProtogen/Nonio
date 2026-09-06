@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { NuvemConsenso } from "@/components/marketing/nuvem-consenso";
 import { BarraSuperior } from "@/components/app/barra-superior";
 import { obterMacro } from "@/lib/api/servico";
@@ -17,10 +18,29 @@ export const metadata: Metadata = { title: "Macro" };
  * mostrava seis elementos por cartão e nenhum deles dizia ao olho por onde
  * começar.
  */
-export default async function Macro() {
+export default async function Macro({ searchParams }: PageProps<"/macro">) {
+  const params = await searchParams;
   const { indicadores, citacoes, coletadoEm, baseCalculo } = await obterMacro();
 
-  const foco = indicadores[0]!;
+  /*
+    O Focus projeta cinco anos à frente para quatro famílias: são vinte
+    indicadores. A tela mostrava os vinte num grid de quatro colunas, o que dava
+    cinco fileiras de cartão e empurrava o gráfico principal para fora da tela.
+
+    Ano é um FILTRO, não conteúdo. Ninguém compara IPCA de 2026 com Selic de
+    2030; compara-se o mesmo ano entre famílias, ou a mesma família ao longo dos
+    anos. Os chips já existiam na tela — só não faziam nada.
+  */
+  const anos = [...new Set(indicadores.map((i) => i.ano))].sort();
+  const pedido = Number(params.ano);
+  const ano = anos.includes(pedido) ? pedido : anos[0]!;
+
+  const doAno = indicadores.filter((i) => i.ano === ano);
+
+  // O indicador em foco embaixo. Padrão é o primeiro do ano, que é o IPCA.
+  const slugPedido = typeof params.ind === "string" ? params.ind : null;
+  const foco = doAno.find((i) => i.slug === slugPedido) ?? doAno[0]!;
+
   // Pode não existir: as 280 atas ainda não foram processadas.
   const citacao = citacoes[0];
   const real = fotoAtual.linhas[0]!;
@@ -38,21 +58,32 @@ export default async function Macro() {
           <h1 className="font-heading text-3xl font-semibold leading-tight">
             Onde o mercado discorda, e onde estamos dentro
           </h1>
-          <div className="flex shrink-0 gap-2">
-            <Chip ativo>Fim de 2026</Chip>
-            <Chip>Fim de 2027</Chip>
-          </div>
+          <nav className="flex shrink-0 gap-1 rounded-full border border-rule bg-surface-2 p-1">
+            {anos.map((a) => (
+              <Chip key={a} href={`/macro?ano=${a}`} ativo={a === ano}>
+                {a}
+              </Chip>
+            ))}
+          </nav>
         </header>
 
         <section className="grid grid-cols-4 border-y border-rule">
-          {indicadores.map((ind, i) => (
-            <article
+          {doAno.map((ind, i) => (
+            /*
+              O cartão é link: clicar troca o indicador do gráfico abaixo. Antes
+              o foco era sempre o primeiro da lista e os outros três eram
+              decoração — quatro cartões que não levam a lugar nenhum.
+            */
+            <Link
+              href={`/macro?ano=${ano}&ind=${ind.slug}`}
               key={ind.slug}
+              aria-current={ind.slug === foco.slug}
               className={[
-                "flex flex-col gap-3 px-6 py-5",
+                "flex flex-col gap-3 px-6 py-5 transition-colors hover:bg-surface-2",
                 i > 0 && "border-l border-rule",
-                i === 0 && "pl-0 shadow-[inset_0_2px_0_var(--modelo)]",
-                i === indicadores.length - 1 && "pr-0",
+                i === 0 && "pl-0",
+                ind.slug === foco.slug && "shadow-[inset_0_2px_0_var(--modelo)]",
+                i === doAno.length - 1 && "pr-0",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -80,7 +111,7 @@ export default async function Macro() {
                   cor="text-consenso"
                 />
               </div>
-            </article>
+            </Link>
           ))}
         </section>
 
@@ -164,15 +195,26 @@ export default async function Macro() {
   );
 }
 
-function Chip({ children, ativo }: { children: React.ReactNode; ativo?: boolean }) {
+function Chip({
+  children,
+  href,
+  ativo,
+}: {
+  children: React.ReactNode;
+  href: string;
+  ativo?: boolean;
+}) {
   return (
-    <span
-      className={`inline-flex h-8 items-center rounded-full border px-3.5 text-[13px] font-medium ${
-        ativo ? "border-modelo bg-modelo-lavado text-modelo" : "border-rule text-ink-soft"
+    <Link
+      href={href}
+      scroll={false}
+      aria-current={ativo}
+      className={`inline-flex h-8 items-center rounded-full px-3.5 font-mono text-[13px] font-medium tabular transition-colors ${
+        ativo ? "bg-modelo text-white" : "text-ink-soft hover:bg-carta hover:text-ink"
       }`}
     >
       {children}
-    </span>
+    </Link>
   );
 }
 
