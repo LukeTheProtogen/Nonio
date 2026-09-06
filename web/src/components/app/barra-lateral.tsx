@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Marca } from "@/components/marketing/marca";
-import { sair, type Sessao } from "@/lib/sessao";
+import { type Sessao } from "@/lib/sessao";
+import { ConfirmarSaida } from "./confirmar-saida";
 import { alternarDemo } from "@/lib/demo-acoes";
 import { dataCurta, hora } from "@/lib/formato";
 
@@ -119,16 +120,8 @@ export function BarraLateral({
             </span>
           </Link>
 
-          {/* Sair é POST, nunca link: um GET que encerra sessão é derrubado pelo
-              pré-carregamento do próprio navegador. */}
-          <form action={sair}>
-            <button
-              type="submit"
-              className="rounded-sm px-1.5 py-1 text-[11px] text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
-            >
-              Sair
-            </button>
-          </form>
+          {/* A ação de servidor mora dentro do diálogo de confirmação. */}
+          <ConfirmarSaida>Sair</ConfirmarSaida>
         </div>
       </div>
 

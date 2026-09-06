@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { obterConta } from "@/lib/api/servico";
-import { sessaoAtual, sair } from "@/lib/sessao";
+import { sessaoAtual } from "@/lib/sessao";
 import { BarraSuperior } from "@/components/app/barra-superior";
+import { ConfirmarSaida } from "@/components/app/confirmar-saida";
 import { dataLonga, hora, idadeEmDias } from "@/lib/formato";
 
 export const metadata: Metadata = { title: "Conta" };
@@ -116,14 +117,10 @@ export default async function Conta() {
           </Bloco>
 
           <div className="flex flex-wrap items-center justify-between gap-5 border-t border-rule pt-7">
-            <form action={sair}>
-              <button
-                type="submit"
-                className="inline-flex h-11 items-center rounded-md border border-rule px-5 text-[14.5px] font-medium transition-colors hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
-              >
-                Sair desta sessão
-              </button>
-            </form>
+            {/* Mesmo diálogo da barra lateral: uma pergunta só, um lugar só. */}
+            <ConfirmarSaida className="inline-flex h-11 items-center rounded-md border border-rule px-5 text-[14.5px] font-medium transition-colors hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo">
+              Sair desta sessão
+            </ConfirmarSaida>
 
             <a
               href="mailto:contato@nonio.com.br?subject=Encerrar%20conta"
