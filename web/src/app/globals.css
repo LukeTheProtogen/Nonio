@@ -261,7 +261,7 @@
  */
 
 @keyframes revela {
-  from { opacity: 0; transform: translateY(64px) scale(0.985); }
+  from { opacity: 0; transform: translateY(34px); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -292,7 +292,7 @@
  * suficiente para a página ter vida, longe do zoom de apresentação corporativa.
  */
 @keyframes aproxima {
-  from { opacity: 0; transform: scale(1.07) translateY(56px); }
+  from { opacity: 0; transform: scale(1.035) translateY(34px); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -311,6 +311,34 @@
   5%        {                           opacity: 1; }
   52%       {                           opacity: 1; }
   62%, 100% { stroke-dashoffset: -0.16; opacity: 0; }
+}
+
+/*
+ * A nuvem do fecho, viva.
+ *
+ * Cada ponto sobe e desce no seu próprio ritmo, e o conjunto nunca repete o
+ * mesmo desenho. É o que a página diz em figura: as projeções não param, elas
+ * se mexem toda semana quando o Focus sai.
+ *
+ * Deslocamento pequeno de propósito. Ponto voando alto viraria gráfico de
+ * cotação subindo, que é justamente o vocabulário de corretora que este
+ * produto não usa.
+ */
+@keyframes flutua {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(var(--altura, -7px)); }
+}
+
+/*
+ * A leitura varrendo a nuvem.
+ *
+ * O paquímetro só entrega número quando desliza até o traço coincidir, e este
+ * é o mesmo gesto: a linha atravessa o campo devagar, procurando. Vai e volta,
+ * porque medir é procurar e não cravar.
+ */
+@keyframes varre {
+  0%, 100% { transform: translateX(-52px); }
+  50%      { transform: translateX(52px); }
 }
 
 @keyframes respira {
@@ -342,18 +370,19 @@
    * cima: não é "aparece e some", é o elemento indo e voltando da posição onde
    * deveria estar. Rolagem lenta move devagar, rolagem rápida move rápido.
    *
-   * A faixa antes era `entry 2% cover 24%` e terminava cedo demais: quando o
-   * elemento chegava ao olho a animação já tinha acabado, e não sobrava
-   * movimento nenhum para perceber. Agora ela atravessa quase meia tela.
+   * A faixa é `entry`, e isso é o ajuste que importa: a animação termina quando
+   * o elemento acaba de ENTRAR na tela, não depois de atravessar meia janela.
+   * Com `cover 42%` o conteúdo ficava meio transparente enquanto já estava à
+   * vista, e a página parecia meio carregada — fantasma, e não elegante.
    *
    * `linear` de propósito: a curva de aceleração aqui é a da própria mão de
    * quem rola. Uma segunda curva por cima briga com ela e dá sensação de
    * arrasto.
    */
   .revela {
-    animation: revela 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--atraso, 0s) both;
+    animation: revela 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--atraso, 0s) both;
     animation-timeline: view();
-    animation-range: entry 0% cover 42%;
+    animation-range: entry 8% entry 92%;
     animation-timing-function: linear;
   }
 
@@ -391,7 +420,7 @@
     stroke-dashoffset: var(--traco, 1);
     animation: desenha 1s linear both;
     animation-timeline: view();
-    animation-range: entry var(--inicio, 8%) cover 38%;
+    animation-range: entry var(--inicio, 10%) entry 96%;
   }
 
   .surge-rolagem {
@@ -399,7 +428,7 @@
     transform-origin: center;
     animation: surge 0.5s linear both;
     animation-timeline: view();
-    animation-range: entry var(--inicio, 12%) cover 44%;
+    animation-range: entry var(--inicio, 14%) entry 100%;
   }
 
   /* Halo ambiente atrás do herói. Sálvia, massa grande, nunca perto de número. */
@@ -416,15 +445,25 @@
     animation: percorre 4.5s ease-in-out 2s infinite;
   }
 
+  .flutua {
+    transform-box: fill-box;
+    animation: flutua var(--periodo, 6s) ease-in-out var(--atraso, 0s) infinite;
+  }
+
+  .varre {
+    transform-box: fill-box;
+    animation: varre 11s cubic-bezier(0.4, 0, 0.4, 1) infinite;
+  }
+
   /* Só a escala auxiliar do paquímetro se move. A principal é a referência. */
   .desliza {
     animation: desliza 7s cubic-bezier(0.45, 0, 0.35, 1) infinite;
   }
 
   .aproxima {
-    animation: aproxima 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation: aproxima 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-timeline: view();
-    animation-range: entry 0% cover 46%;
+    animation-range: entry 6% entry 96%;
     animation-timing-function: linear;
   }
 
@@ -445,6 +484,8 @@
     .surge-rolagem,
     .respira,
     .desliza,
+    .flutua,
+    .varre,
     .aproxima {
       animation: none;
       opacity: 1;
