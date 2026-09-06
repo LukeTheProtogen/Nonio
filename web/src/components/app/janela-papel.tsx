@@ -5,6 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { AcaoDetalhe } from "@/lib/api/contratos";
 import { GraficoPreco } from "./grafico-preco";
+import {
+  PERIODOS,
+  PERIODOS_INDISPONIVEIS,
+  PERIODO_PADRAO,
+  recortar,
+} from "./periodos";
 import { BarrasDivergentes } from "./barras";
 import { num, pctSinal, moeda, probabilidade, corDelta, dataLonga } from "@/lib/formato";
 
@@ -207,6 +213,9 @@ function Conteudo({
 // ------------------------------------------------------------------- passos
 
 function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDetalhe["acao"] }) {
+  const [periodo, setPeriodo] = useState(PERIODO_PADRAO);
+  const recorte = recortar(serie, periodo);
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap gap-x-12 gap-y-4">
@@ -232,13 +241,18 @@ function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDe
           cor={acao.probabilidade ? "text-modelo" : "text-referencia"}
           nota={
             acao.probabilidade
-              ? `Nosso modelo · ${acao.probabilidade.modeloVersao}`
+              /* "Não muda com o período" é obrigatório aqui. Com o seletor de
+                 período logo abaixo, sem esse aviso a pessoa assume que a
+                 probabilidade acompanha o recorte do gráfico. Ela não
+                 acompanha: o modelo publica doze meses e só um horizonte. */
+              ? `Não muda com o período · ${acao.probabilidade.modeloVersao}`
               : "O modelo ainda não publicou para este papel"
           }
         />
       </div>
 
-      <GraficoPreco serie={serie} />
+      <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />
+      <GraficoPreco serie={recorte} />
     </div>
   );
 }
@@ -358,6 +372,61 @@ function PassoContexto({
 }
 
 // ------------------------------------------------------------------ pedaços
+
+/**
+ * Períodos do gráfico.
+ *
+ * Filtra a SÉRIE DE PREÇO, e o rótulo do destaque acima diz que a
+ * probabilidade continua a de doze meses. O modelo publica um horizonte só, e
+ * um seletor que parecesse trocar o horizonte da previsão mostraria sete
+ * números onde existe um.
+ *
+ * Três e cinco anos aparecem desligados em vez de sumirem. Esconder o que falta
+ * faz o produto parecer menor e não explica nada; apagado com o motivo diz que
+ * a lacuna é de dado. Mesmo tratamento das rotas "em breve" na barra lateral.
+ */
+function SeletorPeriodo({
+  escolhido,
+  aoEscolher,
+}: {
+  escolhido: string;
+  aoEscolher: (id: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
+      <span className="eyebrow pr-3">Período do gráfico</span>
+
+      <div className="flex gap-1 rounded-full border border-rule bg-surface-2 p-1">
+        {PERIODOS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => aoEscolher(p.id)}
+            aria-pressed={escolhido === p.id}
+            className={`inline-flex h-7 cursor-pointer items-center rounded-full px-3 font-mono text-[12.5px] tabular transition-colors ${
+              escolhido === p.id
+                ? "bg-modelo text-white"
+                : "text-ink-soft hover:bg-carta hover:text-ink"
+            }`}
+          >
+            {p.rotulo}
+          </button>
+        ))}
+
+        {PERIODOS_INDISPONIVEIS.map((p) => (
+          <span
+            key={p.id}
+            aria-disabled
+            title="A série publicada cobre um ano. Períodos mais longos entram quando o histórico entrar."
+            className="inline-flex h-7 cursor-default items-center rounded-full px-3 font-mono text-[12.5px] text-referencia tabular"
+          >
+            {p.rotulo}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function Destaque({
   rotulo,
