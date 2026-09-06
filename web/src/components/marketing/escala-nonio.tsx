@@ -59,7 +59,14 @@ export function EscalaNonio({ className }: { className?: string }) {
           );
         })}
 
-        {/* escala auxiliar: nós */}
+        {/*
+          Escala auxiliar, agrupada para poder deslizar inteira.
+
+          Só ela se move: a principal é a referência, e referência que anda não
+          é referência. O `transform-box: fill-box` deixa o translate percentual
+          valer sobre a caixa do próprio grupo em vez do SVG inteiro.
+        */}
+        <g className="desliza" style={{ transformBox: "fill-box" }}>
         <line
           x1={inicioNonio}
           y1={yNonio}
@@ -96,6 +103,8 @@ export function EscalaNonio({ className }: { className?: string }) {
             </g>
           );
         })}
+
+        </g>
 
         {/* o traço que coincide: onde a leitura fina aparece */}
         <line
