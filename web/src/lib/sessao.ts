@@ -1,31 +1,16 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { destinoSeguro } from "@/lib/destino";
 import { emailPlausivel, senhaValida } from "@/lib/senha";
+import { supabaseConfigured } from "@/lib/supabase/env";
+import { createClient } from "@/lib/supabase/server";
 
 /**
- * Sessão — MOCK.
- *
- * Não existe backend de autenticação ainda. Este módulo grava um cookie e
- * pronto: não valida senha de verdade, não cifra nada, não expira do lado do
- * servidor. Serve para a interface poder ser construída e navegada.
- *
- * O código de e-mail está fixo em CODIGO_MOCK. Quando o envio real existir,
- * trocar `verificarCodigo` por uma chamada ao serviço e apagar a constante — o
- * resto da interface não muda, porque só depende de `sessaoAtual()`.
- *
- * Duas regras de segurança que valem desde já, e que estão implementadas aqui
- * porque são decisão de produto e não de infraestrutura:
- *   1. a mensagem de erro nunca diz se foi o e-mail ou a senha;
- *   2. a confirmação de recuperação é idêntica exista a conta ou não.
- * As duas evitam que alguém descubra quem é cliente.
+ * Sessão = Supabase Auth (e-mail/senha ou Google).
+ * Sem SQLite e sem NextAuth. FastAPI só vê o JWT curto mintado depois.
  */
-
-const COOKIE = "nonio_sessao";
-
-/** MOCK: qualquer e-mail entra com este código. Remover ao ligar o envio real. */
-const CODIGO_MOCK = "000000";
 
 export type Sessao = {
   nome: string;
@@ -33,100 +18,12 @@ export type Sessao = {
   plano: string;
 };
 
-/** Lê a sessão do cookie. `null` quando não há ninguém logado. */
-export async function sessaoAtual(): Promise<Sessao | null> {
-  const bruto = (await cookies()).get(COOKIE)?.value;
-  if (!bruto) return null;
-  try {
-    return JSON.parse(decodeURIComponent(bruto)) as Sessao;
-  } catch {
-    return null;
-  }
-}
-
 export type ResultadoEntrada = { erro: string } | undefined;
 
-/**
- * Para onde ir depois de entrar.
- *
- * Só aceita caminho interno começando com uma barra. Sem essa checagem, um
- * `?de=https://outro-site` transformaria o nosso login em trampolim para
- * phishing — o usuário digita a senha aqui e é jogado em qualquer lugar.
- */
-function destino(bruto: FormDataEntryValue | null): string {
-  const alvo = String(bruto ?? "");
-  if (!alvo.startsWith("/") || alvo.startsWith("//")) return "/macro";
-  return alvo;
+function destino(bruto: FormDataEntryValue | null | string): string {
+  return destinoSeguro(bruto);
 }
 
-/**
- * Passo 1: e-mail e senha.
- *
- * MOCK: aceita qualquer par não vazio. Não há verificação de senha porque não
- * há onde verificar — o que importa aqui é o fluxo da interface.
- */
-export async function pedirCodigo(
-  _anterior: ResultadoEntrada,
-  form: FormData,
-): Promise<ResultadoEntrada> {
-  const email = String(form.get("email") ?? "").trim();
-  const senha = String(form.get("senha") ?? "");
-
-  if (!email || !senha) {
-    // Deliberadamente genérico: não dizemos qual dos dois faltou.
-    return { erro: "E-mail ou senha não conferem." };
-  }
-
-  const de = destino(form.get("de"));
-  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&de=${encodeURIComponent(de)}`);
-}
-
-/**
- * Passo 2: o código de seis dígitos.
- *
- * MOCK: compara com CODIGO_MOCK. O código real expira em 10 minutos, vale uma
- * vez só, e três erros seguidos o invalidam — nada disso existe ainda.
- */
-export async function verificarCodigo(
-  _anterior: ResultadoEntrada,
-  form: FormData,
-): Promise<ResultadoEntrada> {
-  const email = String(form.get("email") ?? "").trim();
-  const codigo = String(form.get("codigo") ?? "").trim();
-
-  // Exatamente seis dígitos. Antes havia replace(/\D/g, ""), que APAGAVA o
-  // lixo em vez de recusar: "000000abc" virava "000000" e entrava. O formulário
-  // é controlado, mas a ação de servidor é a fronteira e não confia no cliente.
-  if (!/^\d{6}$/.test(codigo)) {
-    return { erro: "O código tem seis dígitos." };
-  }
-
-  if (codigo !== CODIGO_MOCK) {
-    return { erro: "Esse código não confere. Confira o e-mail mais recente." };
-  }
-
-  const sessao: Sessao = {
-    nome: nomeDoEmail(email),
-    email: email || "voce@exemplo.com.br",
-    plano: "Assinatura",
-  };
-
-  (await cookies()).set(COOKIE, encodeURIComponent(JSON.stringify(sessao)), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-
-  redirect(destino(form.get("de")));
-}
-
-export async function sair(): Promise<void> {
-  (await cookies()).delete(COOKIE);
-  redirect("/entrar");
-}
-
-/** "guilherme.bohrer@x.com" vira "Guilherme". Só para a interface ter um nome. */
 function nomeDoEmail(email: string): string {
   const local = email.split("@")[0] ?? "";
   const primeiro = local.split(/[._-]/)[0] ?? "";
@@ -134,11 +31,143 @@ function nomeDoEmail(email: string): string {
   return primeiro.charAt(0).toUpperCase() + primeiro.slice(1);
 }
 
+function msgErroAuth(mensagem: string | undefined): string {
+  const m = (mensagem ?? "").toLowerCase();
+  if (m.includes("already") || m.includes("registered") || m.includes("exists")) {
+    return "Este e-mail já tem conta. Entre com e-mail e senha ou use Continuar com Google.";
+  }
+  if (m.includes("invalid login") || m.includes("invalid credentials")) {
+    return "E-mail ou senha não conferem.";
+  }
+  if (m.includes("email not confirmed")) {
+    return "Confirme o e-mail antes de entrar. Olhe a caixa de entrada.";
+  }
+  return "Não deu para entrar agora. Tente de novo.";
+}
+
+export async function sessaoAtual(): Promise<Sessao | null> {
+  if (!supabaseConfigured()) return null;
+
+  const supabase = await createClient();
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  if (!claims?.sub) return null;
+
+  const email =
+    typeof claims.email === "string"
+      ? claims.email
+      : typeof claims.user_metadata === "object" &&
+          claims.user_metadata &&
+          "email" in claims.user_metadata &&
+          typeof (claims.user_metadata as { email?: unknown }).email === "string"
+        ? (claims.user_metadata as { email: string }).email
+        : null;
+
+  if (!email) {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user?.email) return null;
+    const nomeMeta =
+      typeof data.user.user_metadata?.name === "string"
+        ? data.user.user_metadata.name
+        : null;
+    return {
+      nome: nomeMeta?.trim() || nomeDoEmail(data.user.email),
+      email: data.user.email,
+      plano: "Assinatura",
+    };
+  }
+
+  const nomeMeta =
+    typeof claims.user_metadata === "object" &&
+    claims.user_metadata &&
+    "name" in claims.user_metadata &&
+    typeof (claims.user_metadata as { name?: unknown }).name === "string"
+      ? (claims.user_metadata as { name: string }).name
+      : null;
+
+  return {
+    nome: nomeMeta?.trim() || nomeDoEmail(email),
+    email,
+    plano: "Assinatura",
+  };
+}
+
+export async function entrarComGoogle(form: FormData): Promise<void> {
+  const de = destino(form.get("de"));
+  if (!supabaseConfigured()) {
+    redirect("/entrar?erro=oauth");
+  }
+
+  const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(de)}`,
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
+    },
+  });
+
+  if (error || !data.url) {
+    redirect("/entrar?erro=oauth");
+  }
+  redirect(data.url);
+}
+
 /**
- * Cria a conta e manda para a verificação por código.
- *
- * MOCK: não persiste nada. O que vale aqui é a validação, que roda com as
- * MESMAS regras do formulário (lib/senha), para as duas pontas não divergirem.
+ * E-mail + senha → sessão Supabase (sem OTP mock).
+ */
+export async function pedirCodigo(
+  _anterior: ResultadoEntrada,
+  form: FormData,
+): Promise<ResultadoEntrada> {
+  const email = String(form.get("email") ?? "").trim();
+  const senha = String(form.get("senha") ?? "");
+  const de = destino(form.get("de"));
+
+  if (!email || !senha) {
+    return { erro: "E-mail ou senha não conferem." };
+  }
+  if (!supabaseConfigured()) {
+    return {
+      erro: "Supabase não configurado (NEXT_PUBLIC_SUPABASE_URL e chave).",
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password: senha,
+  });
+
+  if (error) {
+    return { erro: msgErroAuth(error.message) };
+  }
+
+  redirect(de);
+}
+
+/** Mantido para a rota /entrar/codigo legada — redireciona ao login. */
+export async function verificarCodigo(
+  _anterior: ResultadoEntrada,
+  _form: FormData,
+): Promise<ResultadoEntrada> {
+  return { erro: "Sessão de login expirou. Entre de novo." };
+}
+
+export async function sair(): Promise<void> {
+  if (supabaseConfigured()) {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+  }
+  redirect("/entrar");
+}
+
+/**
+ * Cria conta no Supabase Auth (e-mail único no projeto).
  */
 export async function criarConta(
   _anterior: ResultadoEntrada,
@@ -147,21 +176,58 @@ export async function criarConta(
   const nome = String(form.get("nome") ?? "").trim();
   const email = String(form.get("email") ?? "").trim();
   const senha = String(form.get("senha") ?? "");
+  const de = destino(form.get("de"));
 
   if (!nome) return { erro: "Diga como quer ser chamado." };
   if (!emailPlausivel(email)) return { erro: "Esse e-mail não parece válido." };
-  if (!senhaValida(senha)) return { erro: "A senha ainda não cumpre as três regras." };
+  if (!senhaValida(senha)) {
+    return { erro: "A senha ainda não cumpre as três regras." };
+  }
+  if (!supabaseConfigured()) {
+    return {
+      erro: "Supabase não configurado (NEXT_PUBLIC_SUPABASE_URL e chave).",
+    };
+  }
 
-  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&novo=1&de=${encodeURIComponent(destino(form.get("de")))}`);
+  const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password: senha,
+    options: {
+      data: { name: nome, auth_via: "password" },
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(de)}`,
+    },
+  });
+
+  if (error) {
+    const m = error.message.toLowerCase();
+    if (m.includes("already") || m.includes("registered") || m.includes("exists")) {
+      // Mensagem única de propósito: não revelar se a conta é Google ou senha.
+      return {
+        erro: "Este e-mail já tem conta. Entre com o método que você usou (e-mail e senha ou Google).",
+      };
+    }
+    return { erro: "Não deu para criar a conta agora. Tente de novo." };
+  }
+
+  // Supabase às vezes devolve user sem identities em e-mail já cadastrado.
+  if (data.user && (data.user.identities?.length ?? 0) === 0) {
+    return {
+      erro: "Este e-mail já tem conta. Entre com o método que você usou (e-mail e senha ou Google).",
+    };
+  }
+
+  if (data.session) {
+    redirect(de);
+  }
+
+  // Confirmação de e-mail ligada no projeto Supabase.
+  redirect(
+    `/entrar?de=${encodeURIComponent(de)}&erro=confirme-email`,
+  );
 }
 
-/**
- * Pede o código de recuperação.
- *
- * A resposta é sempre a mesma, exista a conta ou não. É o que impede usar esta
- * tela para descobrir quem é cliente — e por isso ela nunca retorna erro de
- * "e-mail não encontrado", nem agora nem quando houver backend.
- */
 export async function pedirRecuperacao(
   _anterior: ResultadoEntrada,
   form: FormData,
@@ -169,52 +235,43 @@ export async function pedirRecuperacao(
   const email = String(form.get("email") ?? "").trim();
   if (!emailPlausivel(email)) return { erro: "Esse e-mail não parece válido." };
 
+  if (supabaseConfigured()) {
+    const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+    const supabase = await createClient();
+    await supabase.auth
+      .resetPasswordForEmail(email, {
+        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/redefinir-senha")}`,
+      })
+      .catch(() => undefined);
+  }
+
   redirect(`/redefinir-senha?email=${encodeURIComponent(email)}`);
 }
 
-/**
- * Troca a senha e já entra.
- *
- * Trocar a senha encerra as outras sessões e avisa por e-mail — nada disso
- * existe ainda, mas a tela já promete, então o backend precisa cumprir.
- */
 export async function redefinirSenha(
   _anterior: ResultadoEntrada,
   form: FormData,
 ): Promise<ResultadoEntrada> {
-  const email = String(form.get("email") ?? "").trim();
-  // Exatamente seis dígitos — mesma regra de verificarCodigo. Antes havia
-  // replace(/\D/g, ""), que APAGAVA o lixo em vez de recusar: "000000abc"
-  // virava "000000" e entrava, e não havia checagem de tamanho. A ação de
-  // servidor é a fronteira; ela não confia no formulário.
-  const codigo = String(form.get("codigo") ?? "").trim();
   const senha = String(form.get("senha") ?? "");
   const repetida = String(form.get("repetida") ?? "");
 
-  if (!/^\d{6}$/.test(codigo)) {
-    return { erro: "O código tem seis dígitos." };
+  if (!senhaValida(senha)) {
+    return { erro: "A senha ainda não cumpre as três regras." };
   }
-  if (codigo !== CODIGO_MOCK) {
-    return { erro: "Esse código não confere. Confira o e-mail mais recente." };
-  }
-  if (!senhaValida(senha)) return { erro: "A senha ainda não cumpre as três regras." };
   if (senha !== repetida) return { erro: "As duas senhas não são iguais." };
+  if (!supabaseConfigured()) {
+    return {
+      erro: "Supabase não configurado (NEXT_PUBLIC_SUPABASE_URL e chave).",
+    };
+  }
 
-  await abrirSessao(email);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.updateUser({ password: senha });
+  if (error) {
+    return {
+      erro: "Não deu para redefinir. Abra o link do e-mail de novo e tente outra vez.",
+    };
+  }
+
   redirect("/macro");
-}
-
-/** Grava o cookie de sessão. Único lugar que sabe o formato. */
-async function abrirSessao(email: string): Promise<void> {
-  const sessao: Sessao = {
-    nome: nomeDoEmail(email),
-    email: email || "voce@exemplo.com.br",
-    plano: "Assinatura",
-  };
-  (await cookies()).set(COOKIE, encodeURIComponent(JSON.stringify(sessao)), {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
 }

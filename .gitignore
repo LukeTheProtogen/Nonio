@@ -28,6 +28,11 @@ data/*.sqlite-*
 # notas locais (não versionar)
 local/
 
+# supabase local
+supabase/.temp/
+supabase/.branches/
+supabase/.env
+
 # sistema
 .DS_Store
 *.log

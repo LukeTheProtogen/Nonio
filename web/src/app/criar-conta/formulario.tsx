@@ -18,7 +18,7 @@ export function FormularioCriarConta({ de }: { de: string }) {
         <CampoTexto nome="nome" autoComplete="given-name" placeholder="Guilherme" autoFocus />
       </Campo>
 
-      <Campo rotulo="E-mail" ajuda="É para cá que vai o código de entrada.">
+      <Campo rotulo="E-mail" ajuda="Um e-mail, uma conta. Se já entra com Google, não crie senha neste endereço.">
         <CampoTexto nome="email" tipo="email" autoComplete="email" placeholder="voce@empresa.com.br" />
       </Campo>
 

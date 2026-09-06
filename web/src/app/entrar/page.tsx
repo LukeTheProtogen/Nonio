@@ -3,16 +3,24 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { MolduraAcesso, ItemLateral } from "@/components/acesso/moldura";
 import { FormularioEntrar } from "./formulario";
-import { botaoNeutro } from "@/components/acesso/estilos";
-import { sessaoAtual } from "@/lib/sessao";
+import { botaoNeutro, AVISO_EMAIL_UNICO } from "@/components/acesso/estilos";
+import { destinoSeguro } from "@/lib/destino";
+import { entrarComGoogle, sessaoAtual } from "@/lib/sessao";
+import { supabaseConfigured } from "@/lib/supabase/env";
 
 export const metadata: Metadata = { title: "Entrar" };
 
 export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
-  const { de } = await searchParams;
-  const destino = typeof de === "string" && de.startsWith("/") ? de : "/macro";
+  const { de, erro, error } = await searchParams;
+  const destino = destinoSeguro(de);
+  const codigo =
+    (typeof erro === "string" && erro) || (typeof error === "string" && error) || "";
+  const avisoOauth = avisoErroOauth(codigo);
+  // Google no Supabase local/cloud; UI só habilita se as chaves OAuth existem.
+  const googleOk =
+    supabaseConfigured() &&
+    Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
 
-  // Quem já tem sessão não precisa ver esta tela.
   if (await sessaoAtual()) redirect(destino);
 
   return (
@@ -59,7 +67,14 @@ export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
         <div className="flex flex-col gap-2">
           <h1 className="font-heading text-[42px] font-semibold leading-[1.1]">Entrar</h1>
           <p className="text-[16px] leading-relaxed text-ink-soft">Bem-vindo de volta.</p>
+          <p className="text-[13px] leading-relaxed text-ink-soft">{AVISO_EMAIL_UNICO}</p>
         </div>
+
+        {avisoOauth ? (
+          <p role="alert" className="text-[12.5px] text-negativo">
+            {avisoOauth}
+          </p>
+        ) : null}
 
         <FormularioEntrar de={destino} />
 
@@ -70,14 +85,26 @@ export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {/* Sem backend de OAuth ainda: desabilitado, e a tela diz por quê. */}
-          <button type="button" disabled className={`${botaoNeutro} opacity-45`}>
-            <IconeGoogle />
-            Continuar com Google
-          </button>
-          <p className="text-center text-[12px] text-ink-soft">
-            Entrada por Google chega junto com o envio de e-mail.
-          </p>
+          {googleOk ? (
+            <form action={entrarComGoogle}>
+              <input type="hidden" name="de" value={destino} />
+              <button type="submit" className={botaoNeutro}>
+                <IconeGoogle />
+                Continuar com Google
+              </button>
+            </form>
+          ) : (
+            <>
+              <button type="button" disabled className={`${botaoNeutro} opacity-45`}>
+                <IconeGoogle />
+                Continuar com Google
+              </button>
+              <p className="text-center text-[12px] text-ink-soft">
+                Google: configure AUTH_GOOGLE_ID/SECRET e o redirect
+                http://127.0.0.1:54321/auth/v1/callback no Google Cloud (local).
+              </p>
+            </>
+          )}
         </div>
 
         <p className="text-[13.5px] text-ink-soft">
@@ -89,6 +116,24 @@ export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
       </div>
     </MolduraAcesso>
   );
+}
+
+function avisoErroOauth(codigo: string): string | null {
+  if (codigo === "email-senha") {
+    return "Este e-mail já tem conta com senha. Entre com e-mail e senha — o Google não abre essa conta.";
+  }
+  if (codigo === "confirme-email") {
+    return "Conta criada. Confirme o e-mail pelo link que mandamos e depois entre.";
+  }
+  if (
+    codigo === "oauth" ||
+    codigo === "OAuthAccountNotLinked" ||
+    codigo === "OAuthCallback" ||
+    codigo === "AccessDenied"
+  ) {
+    return "Não deu para entrar com Google. Tente de novo ou use e-mail e senha.";
+  }
+  return null;
 }
 
 function IconeGoogle() {

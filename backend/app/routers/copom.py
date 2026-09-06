@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.auth import User, current_active_user
+from app.auth.nextauth_gate import ApiUser, require_nextauth_user
 from app.schemas.copom import CopomDetailOut, CopomPage
 from app.services import copom as copom_service
 
@@ -15,7 +15,7 @@ def list_copom(
         default=False,
         description="Se true, só reuniões com extração LLM",
     ),
-    _user: User = Depends(current_active_user),
+    _user: ApiUser = Depends(require_nextauth_user),
 ) -> CopomPage:
     return copom_service.list_meetings(
         page=page,
@@ -26,7 +26,7 @@ def list_copom(
 
 @router.get("/latest", response_model=CopomDetailOut)
 def latest_copom(
-    _user: User = Depends(current_active_user),
+    _user: ApiUser = Depends(require_nextauth_user),
 ) -> CopomDetailOut:
     item = copom_service.latest_meeting()
     if item is None:
@@ -37,7 +37,7 @@ def latest_copom(
 @router.get("/{nro}", response_model=CopomDetailOut)
 def get_copom(
     nro: int,
-    _user: User = Depends(current_active_user),
+    _user: ApiUser = Depends(require_nextauth_user),
 ) -> CopomDetailOut:
     item = copom_service.get_meeting(nro)
     if item is None:

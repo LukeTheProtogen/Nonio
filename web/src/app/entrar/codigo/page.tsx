@@ -2,13 +2,14 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { MolduraAcesso, ItemLateral } from "@/components/acesso/moldura";
 import { FormularioCodigo } from "./formulario";
+import { destinoSeguro } from "@/lib/destino";
 
 export const metadata: Metadata = { title: "Confirmar entrada" };
 
 export default async function Codigo({ searchParams }: PageProps<"/entrar/codigo">) {
   const { email, de } = await searchParams;
   const endereco = typeof email === "string" ? email : "";
-  const destino = typeof de === "string" && de.startsWith("/") ? de : "/macro";
+  const destino = destinoSeguro(de);
 
   return (
     <MolduraAcesso

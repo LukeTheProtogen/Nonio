@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { MolduraAcesso } from "@/components/acesso/moldura";
 import { FormularioCriarConta } from "./formulario";
 import { sessaoAtual } from "@/lib/sessao";
+import { AVISO_EMAIL_UNICO } from "@/components/acesso/estilos";
+import { destinoSeguro } from "@/lib/destino";
 
 export const metadata: Metadata = { title: "Criar conta" };
 
@@ -17,7 +19,7 @@ const NAO_PEDIMOS = [
 
 export default async function CriarConta({ searchParams }: PageProps<"/criar-conta">) {
   const { de } = await searchParams;
-  const destino = typeof de === "string" && de.startsWith("/") ? de : "/macro";
+  const destino = destinoSeguro(de);
 
   if (await sessaoAtual()) redirect(destino);
 
@@ -60,6 +62,7 @@ export default async function CriarConta({ searchParams }: PageProps<"/criar-con
           <p className="text-[16px] leading-relaxed text-ink-soft">
             Leva um minuto. Sem cartão e sem CPF.
           </p>
+          <p className="text-[13px] leading-relaxed text-ink-soft">{AVISO_EMAIL_UNICO}</p>
         </div>
 
         <FormularioCriarConta de={destino} />

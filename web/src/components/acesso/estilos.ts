@@ -34,3 +34,7 @@ export function caixaCodigo(erro?: boolean): string {
     erro ? "border-negativo text-negativo" : "border-rule focus-visible:border-modelo",
   ].join(" ");
 }
+
+/** Um e-mail, um jeito de entrar — Google e senha não compartilham conta. */
+export const AVISO_EMAIL_UNICO =
+  "Cada e-mail é uma conta só. Quem entra com Google não cria senha, e quem criou senha não entra pelo Google.";

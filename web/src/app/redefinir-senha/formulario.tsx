@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { redefinirSenha, type ResultadoEntrada } from "@/lib/sessao";
 import { botaoPrimario } from "@/components/acesso/estilos";
-import { Campo, CampoTexto, CampoSenha } from "@/components/acesso/campos";
+import { CampoSenha } from "@/components/acesso/campos";
 
 const inicial: ResultadoEntrada = undefined;
 
@@ -15,17 +15,9 @@ export function FormularioRedefinir({ email }: { email: string }) {
     <form action={acao} className="flex flex-col gap-5">
       <input type="hidden" name="email" value={email} />
 
-      <Campo rotulo="Código do e-mail" erro={erro}>
-        <CampoTexto
-          nome="codigo"
-          autoComplete="one-time-code"
-          placeholder="000000"
-          maxLength={6}
-          inputMode="numeric"
-          pattern="[0-9]{6}"
-          autoFocus
-        />
-      </Campo>
+      <p className="text-[13px] leading-relaxed text-ink-soft">
+        Abra o link do e-mail de recuperação neste mesmo navegador. Depois escolha a senha nova.
+      </p>
 
       <CampoSenha nome="senha" rotulo="Nova senha" erro={erro} />
       <CampoSenha nome="repetida" rotulo="Repita a nova senha" erro={erro} comRegras={false} />

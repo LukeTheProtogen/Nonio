@@ -1,7 +1,14 @@
 import uuid
 
-from fastapi import Depends, Request
-from fastapi_users import BaseUserManager, FastAPIUsers, UUIDIDMixin, models
+from fastapi import Depends, HTTPException, Request, status
+from fastapi_users import (
+    BaseUserManager,
+    FastAPIUsers,
+    UUIDIDMixin,
+    exceptions,
+    models,
+    schemas,
+)
 from fastapi_users.authentication import (
     AuthenticationBackend,
     BearerTransport,
@@ -22,6 +29,25 @@ google_oauth_client = GoogleOAuth2(
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
     reset_password_token_secret = settings.auth_secret
     verification_token_secret = settings.auth_secret
+
+    async def create(
+        self,
+        user_create: schemas.UC,
+        safe: bool = False,
+        request: Request | None = None,
+    ) -> User:
+        existing = await self.user_db.get_by_email(user_create.email)
+        if existing is not None:
+            via = (getattr(existing, "auth_via", None) or "password").lower()
+            if via == "google":
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="email_registered_with_google",
+                )
+            raise exceptions.UserAlreadyExists()
+
+        created = await super().create(user_create, safe=safe, request=request)
+        return await self.user_db.update(created, {"auth_via": "password"})
 
     async def on_after_register(
         self, user: User, request: Request | None = None
