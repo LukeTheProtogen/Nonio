@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans, IBM_Plex_Mono, Zilla_Slab } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { SITE } from "@/lib/site";
 
 /*
  * Três famílias, sem exceção.
@@ -35,12 +36,31 @@ const zilla = Zilla_Slab({
 });
 
 export const metadata: Metadata = {
+  /*
+   * metadataBase é o que transforma "/opengraph-image" em URL absoluta. Sem
+   * ela, o cartão de compartilhamento sai com caminho relativo e nenhum
+   * aplicativo de mensagem consegue buscar a imagem.
+   */
+  metadataBase: new URL(SITE.url),
   title: {
     default: "Nônio",
     template: "%s · Nônio",
   },
-  description:
-    "Ferramenta de pesquisa e probabilidade sobre dados públicos do Banco Central e da CVM. Não é recomendação de investimento.",
+  description: SITE.descricao,
+  applicationName: SITE.nome,
+  openGraph: {
+    type: "website",
+    locale: "pt_BR",
+    siteName: SITE.nome,
+    title: "Nônio — a decisão é sua",
+    description: SITE.descricao,
+    url: SITE.url,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Nônio — a decisão é sua",
+    description: SITE.descricao,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

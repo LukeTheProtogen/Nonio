@@ -218,6 +218,15 @@
   }
 }
 
+/*
+ * Traço de carregamento. Percorre a régua e some, no ritmo do feixe da dobra —
+ * é o mesmo gesto da marca, e não uma segunda linguagem de espera.
+ */
+@keyframes carregando-corre {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+
 @keyframes feixe-passa {
   0% { stroke-dashoffset: 1.32; opacity: 0; }
   12% { opacity: 0.26; }
@@ -239,11 +248,22 @@
   }
 
   /* Movimento é enfeite: quem pediu para reduzir fica só com o leito estático. */
+  /* O traço que corre enquanto a rota carrega. */
+  .traco-carregando {
+    animation: carregando-corre 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .feixe {
       animation: none;
       opacity: 0.12;
       stroke-dasharray: none;
+    }
+
+    /* Parado no meio da régua: ainda diz "ocupado", sem movimento. */
+    .traco-carregando {
+      animation: none;
+      transform: translateX(100%);
     }
   }
 
