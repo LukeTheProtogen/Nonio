@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { AcaoDetalhe } from "@/lib/api/contratos";
+import type { AcaoDetalhe, CopomReuniao } from "@/lib/api/contratos";
 import { GraficoPreco } from "./grafico-preco";
 import {
-  PERIODOS,
-  PERIODOS_INDISPONIVEIS,
   PERIODO_PADRAO,
+  mostraCopom,
+  periodosDisponiveis,
+  periodosIndisponiveis,
   recortar,
 } from "./periodos";
 import { BarrasDivergentes } from "./barras";
@@ -34,6 +35,7 @@ export function JanelaPapel(props: {
   lente: string;
   anterior: string | null;
   proximo: string | null;
+  copom: CopomReuniao[];
 }) {
   /*
    * A chave é o ticker: trocar de papel remonta a janela do zero, e o passo
@@ -48,11 +50,13 @@ function Conteudo({
   lente,
   anterior,
   proximo,
+  copom,
 }: {
   detalhe: AcaoDetalhe;
   lente: string;
   anterior: string | null;
   proximo: string | null;
+  copom: CopomReuniao[];
 }) {
   const router = useRouter();
   const [passo, setPasso] = useState(0);
@@ -207,21 +211,41 @@ function Conteudo({
             */}
             {passo < 2 && (
               <div className="hidden sm:block">
-                <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />
+                <SeletorPeriodo
+                  escolhido={periodo}
+                  aoEscolher={setPeriodo}
+                  nPregoes={serie.length}
+                />
               </div>
             )}
           </nav>
 
           {passo < 2 && (
             <div className="flex justify-center border-b border-rule px-5 py-2 sm:hidden">
-              <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />
+              <SeletorPeriodo
+                escolhido={periodo}
+                aoEscolher={setPeriodo}
+                nPregoes={serie.length}
+              />
             </div>
           )}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 md:px-8 md:py-7">
-          {passo === 0 && <PassoPreco serie={recortar(serie, periodo)} acao={acao} />}
-          {passo === 1 && <PassoRisco acao={acao} serie={recortar(serie, periodo)} />}
+          {passo === 0 && (
+            <PassoPreco
+              serie={recortar(serie, periodo)}
+              acao={acao}
+              copom={mostraCopom(periodo) ? copom : []}
+            />
+          )}
+          {passo === 1 && (
+            <PassoRisco
+              acao={acao}
+              serie={recortar(serie, periodo)}
+              copom={mostraCopom(periodo) ? copom : []}
+            />
+          )}
           {passo === 2 && <PassoContexto acao={acao} fatos={fatos} />}
         </div>
 
@@ -253,7 +277,15 @@ function Conteudo({
 
 // ------------------------------------------------------------------- passos
 
-function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDetalhe["acao"] }) {
+function PassoPreco({
+  serie,
+  acao,
+  copom,
+}: {
+  serie: AcaoDetalhe["serie"];
+  acao: AcaoDetalhe["acao"];
+  copom: CopomReuniao[];
+}) {
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:flex sm:flex-wrap sm:gap-x-12 sm:gap-y-4">
@@ -289,7 +321,7 @@ function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDe
         />
       </div>
 
-      <GraficoPreco serie={serie} />
+      <GraficoPreco serie={serie} copom={copom} />
     </div>
   );
 }
@@ -297,9 +329,11 @@ function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDe
 function PassoRisco({
   acao,
   serie,
+  copom,
 }: {
   acao: AcaoDetalhe["acao"];
   serie: AcaoDetalhe["serie"];
+  copom: CopomReuniao[];
 }) {
   return (
     <div className="flex flex-col gap-7">
@@ -340,7 +374,7 @@ function PassoRisco({
         </p>
 
         <div className="min-w-0">
-          <GraficoPreco serie={serie} marcarQueda />
+          <GraficoPreco serie={serie} marcarQueda copom={copom} />
         </div>
       </div>
     </div>
@@ -418,30 +452,35 @@ function PassoContexto({
  * um seletor que parecesse trocar o horizonte da previsão mostraria sete
  * números onde existe um.
  *
- * Três e cinco anos aparecem desligados em vez de sumirem. Esconder o que falta
- * faz o produto parecer menor e não explica nada; apagado com o motivo diz que
- * a lacuna é de dado. Mesmo tratamento das rotas "em breve" na barra lateral.
+ * Três e cinco anos aparecem desligados quando ESTE papel não tem série
+ * suficiente. Esconder o que falta faz o produto parecer menor; apagado com o
+ * motivo diz que a lacuna é daquele histórico. Copom só desenha nesses dois.
  */
 function SeletorPeriodo({
   escolhido,
   aoEscolher,
+  nPregoes,
 }: {
   escolhido: string;
   aoEscolher: (id: string) => void;
+  nPregoes: number;
 }) {
+  const disponiveis = periodosDisponiveis(nPregoes);
+  const indisponiveis = periodosIndisponiveis(nPregoes);
+
   return (
     <div
       className="flex shrink-0 items-center gap-0.5 rounded-full border border-rule bg-surface-2 p-0.5"
       role="group"
       aria-label="Período do gráfico"
     >
-      {PERIODOS.map((p) => (
+      {disponiveis.map((p) => (
         <button
           key={p.id}
           type="button"
           onClick={() => aoEscolher(p.id)}
           aria-pressed={escolhido === p.id}
-          title={p.nome}
+          title={mostraCopom(p.id) ? `${p.nome}, com o Copom` : p.nome}
           className={`inline-flex h-6 cursor-pointer items-center rounded-full px-2.5 font-mono text-[11.5px] tabular transition-colors ${
             escolhido === p.id
               ? "bg-modelo text-white"
@@ -452,13 +491,11 @@ function SeletorPeriodo({
         </button>
       ))}
 
-      {/* Apagados, não escondidos: a lacuna é de dado, e some quando o
-          histórico longo entrar. Mesmo tratamento das rotas "em breve". */}
-      {PERIODOS_INDISPONIVEIS.map((p) => (
+      {indisponiveis.map((p) => (
         <span
           key={p.id}
           aria-disabled
-          title={`${p.nome}: a série publicada cobre um ano`}
+          title={`${p.nome}: a série deste papel ainda não cobre ${p.nome.toLowerCase()}`}
           className="inline-flex h-6 cursor-default items-center rounded-full px-2.5 font-mono text-[11.5px] text-referencia tabular"
         >
           {p.rotulo}

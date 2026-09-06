@@ -3,12 +3,14 @@ import {
   zMacro,
   zAcoes,
   zAcaoDetalhe,
+  zCopomPage,
   zHistorico,
   zFontes,
   zConta,
   type Macro,
   type Acoes,
   type AcaoDetalhe,
+  type CopomReuniao,
   type Historico,
   type Fontes,
   type Conta,
@@ -29,15 +31,16 @@ import { mintApiAccessToken } from "./access-token";
 
 const BASE = process.env.NONIO_API_URL?.replace(/\/$/, "") ?? "";
 
-type Recurso = "macro" | "acoes" | "historico" | "fontes";
+type Recurso = "macro" | "acoes" | "historico" | "fontes" | "copom";
 
 /**
  * O que o backend serve, POR PADRÃO.
  *
- * `acoes` está ligado porque o nonio-api publica a lowvol spine. Macro,
+ * `acoes` está ligado porque o nonio-api publica a lowvol spine. `copom` porque
+ * as atas extraídas (features.parquet) já alimentam o gráfico longo. Macro,
  * histórico e fontes ainda não existem lá.
  */
-const PADRAO: Recurso[] = ["acoes"];
+const PADRAO: Recurso[] = ["acoes", "copom"];
 
 /**
  * Sobrescrita por ambiente: `NONIO_RECURSOS_BACKEND`.
@@ -49,9 +52,9 @@ const PADRAO: Recurso[] = ["acoes"];
  * Antes disso a única saída era comentar a linha e desfazer a integração de
  * quem a ligou — e aí um dos dois lados sempre quebrava a cada pull.
  *
- *   NONIO_RECURSOS_BACKEND=acoes,macro   liga os dois
- *   NONIO_RECURSOS_BACKEND=              desliga tudo, cai no mock
- *   variável ausente                     usa o padrão acima
+ *   NONIO_RECURSOS_BACKEND=acoes,copom,macro   liga os três
+ *   NONIO_RECURSOS_BACKEND=                    desliga tudo, cai no mock
+ *   variável ausente                           usa o padrão acima
  */
 const RECURSOS_NO_BACKEND = new Set<Recurso>(
   process.env.NONIO_RECURSOS_BACKEND === undefined
@@ -70,6 +73,7 @@ const CACHE = {
   acoes: 300,
   historico: 3600,
   fontes: 300,
+  copom: 3600,
 } as const;
 
 /** Há backend configurado. Não implica que ele sirva todos os recursos. */
@@ -159,6 +163,43 @@ export async function obterAcoes(): Promise<Acoes> {
 export async function obterAcao(ticker: string): Promise<AcaoDetalhe | null> {
   const env = await envelopeAcao(ticker);
   return env?.dados ?? null;
+}
+
+export async function obterCopom(): Promise<CopomReuniao[]> {
+  if (!noBackend("copom")) return [];
+  try {
+    const page = await doBackend(
+      "/copom?page_size=100&with_features_only=true",
+      zCopomPage,
+      CACHE.copom,
+    );
+    return page.items
+      .map((r) => {
+        const data =
+          r.data_referencia ??
+          r.data_publicacao ??
+          r.datas_reuniao?.match(/\d{4}-\d{2}-\d{2}/)?.[0] ??
+          null;
+        if (!data) return null;
+        return {
+          nro: r.nro_reuniao,
+          data,
+          pdfUrl: r.pdf_url ?? null,
+          decisao: r.decisao ?? null,
+          selic: r.selic_meta_aa ?? null,
+          delta: r.delta_pp ?? null,
+          tom: r.tom_politica ?? null,
+          resumo: r.resumo ?? null,
+        } satisfies CopomReuniao;
+      })
+      .filter((r): r is CopomReuniao => r !== null)
+      .sort((a, b) => (a.data < b.data ? -1 : 1));
+  } catch (erro) {
+    if (erro instanceof ErroApi && (erro.status === 401 || erro.status === 404)) {
+      return [];
+    }
+    throw erro;
+  }
 }
 
 export async function obterHistorico(): Promise<Historico> {

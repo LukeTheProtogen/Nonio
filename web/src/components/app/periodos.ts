@@ -7,10 +7,12 @@
  * probabilidade mostraria sete números onde existe um. Mudar o recorte do
  * gráfico não muda a previsão, e a tela precisa dizer isso.
  *
- * Três e cinco anos entram na lista DESLIGADOS, não são omitidos. Esconder o
- * que falta faz o produto parecer menor do que é e não explica nada; mostrar
- * apagado, com o motivo, diz que a lacuna é de dado e não de intenção. É o
- * mesmo tratamento das rotas "em breve" na barra lateral.
+ * Três e cinco anos só aparecem ligados quando a série do papel chega lá.
+ * Yahoo publica cinco anos; o mock local ainda gera doze meses. Apagar o
+ * botão no papel curto faz o produto parecer menor; desligado, com o motivo,
+ * diz que a lacuna é daquele papel e não da intenção. Copom entra no desenho
+ * só nesses recortes longos: em um ano as reuniões (oito) viram ruído em cima
+ * do preço; em três ou cinco anos elas são o ciclo da Selic.
  */
 
 export type Periodo = {
@@ -26,29 +28,46 @@ export type Periodo = {
 /** 252 pregões é o ano de bolsa. O resto é proporção disso. */
 const ANO = 252;
 
+/** Abaixo disto o Copom não entra no gráfico — ver o comentário do topo. */
+const PREGOES_COPOM = ANO;
+
 export const PERIODOS: Periodo[] = [
   { id: "1m", rotulo: "1M", nome: "1 mês", pregoes: 21 },
   { id: "3m", rotulo: "3M", nome: "3 meses", pregoes: 63 },
   { id: "6m", rotulo: "6M", nome: "6 meses", pregoes: 126 },
   { id: "9m", rotulo: "9M", nome: "9 meses", pregoes: 189 },
   { id: "1a", rotulo: "1A", nome: "1 ano", pregoes: ANO },
+  { id: "3a", rotulo: "3A", nome: "3 anos", pregoes: ANO * 3 },
+  { id: "5a", rotulo: "5A", nome: "5 anos", pregoes: ANO * 5 },
 ];
-
-/**
- * O que o pedido pede e o dado ainda não tem.
- *
- * A série publicada cobre um ano. Desenhar três ou cinco anos exigiria inventar
- * o que não foi medido, que é exatamente o que este produto não faz.
- */
-export const PERIODOS_INDISPONIVEIS = [
-  { id: "3a", rotulo: "3A", nome: "3 anos" },
-  { id: "5a", rotulo: "5A", nome: "5 anos" },
-] as const;
 
 export const PERIODO_PADRAO = "1a";
 
 export function ehPeriodo(v: string): boolean {
   return PERIODOS.some((p) => p.id === v);
+}
+
+/**
+ * Recortes até um ano existem sempre: até o mock de 252 pregões os cobre.
+ * Três e cinco anos pedem série de verdade; 85% do pedido basta — 252×5 é
+ * 1260, e o Yahoo de cinco anos chega ~1248.
+ */
+export function periodoCabe(p: Periodo, nPregoes: number): boolean {
+  if (p.pregoes <= ANO) return true;
+  return nPregoes >= p.pregoes * 0.85;
+}
+
+export function periodosDisponiveis(nPregoes: number): Periodo[] {
+  return PERIODOS.filter((p) => periodoCabe(p, nPregoes));
+}
+
+export function periodosIndisponiveis(nPregoes: number): Periodo[] {
+  return PERIODOS.filter((p) => !periodoCabe(p, nPregoes));
+}
+
+export function mostraCopom(periodo: string): boolean {
+  const p = PERIODOS.find((x) => x.id === periodo);
+  return !!p && p.pregoes > PREGOES_COPOM;
 }
 
 /**

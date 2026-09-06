@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { obterAcoes, obterAcao } from "@/lib/api/servico";
+import { obterAcoes, obterAcao, obterCopom } from "@/lib/api/servico";
+import type { CopomReuniao } from "@/lib/api/contratos";
 import { LENTES, ehLente, type Lente } from "@/mock/acoes";
 import { TabelaAcoes } from "@/components/app/tabela-acoes";
 import { JanelaPapel } from "@/components/app/janela-papel";
@@ -9,6 +10,19 @@ import { num } from "@/lib/formato";
 import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 export const metadata: Metadata = { title: "Ações" };
+
+/**
+ * Copom é global, não do papel. Se a extração falhar, a janela ainda abre —
+ * só sem a linha da Selic. Derrubar o painel inteiro por uma ata seria
+ * punir o preço, que chegou.
+ */
+async function copomOuVazio(): Promise<CopomReuniao[]> {
+  try {
+    return await obterCopom();
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Universo de papéis.
@@ -25,8 +39,11 @@ export default async function Acoes({ searchParams }: PageProps<"/acoes">) {
 
   const papel = typeof params.papel === "string" ? params.papel.toUpperCase() : null;
 
-  const { acoes, cdi12m, limitadoSemToken } = await obterAcoes();
-  const detalhe = papel ? await obterAcao(papel) : null;
+  const [{ acoes, cdi12m, limitadoSemToken }, detalhe, copom] = await Promise.all([
+    obterAcoes(),
+    papel ? obterAcao(papel) : Promise.resolve(null),
+    papel ? copomOuVazio() : Promise.resolve([] as CopomReuniao[]),
+  ]);
 
   // Vizinhos para as setas da janela, na ordem em que a tabela está mostrando.
   const i = papel ? acoes.findIndex((a) => a.ticker === papel) : -1;
@@ -114,7 +131,13 @@ export default async function Acoes({ searchParams }: PageProps<"/acoes">) {
       </div>
 
       {detalhe && (
-        <JanelaPapel detalhe={detalhe} lente={lente} anterior={anterior} proximo={proximo} />
+        <JanelaPapel
+          detalhe={detalhe}
+          lente={lente}
+          anterior={anterior}
+          proximo={proximo}
+          copom={copom}
+        />
       )}
     </>
   );

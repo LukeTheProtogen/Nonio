@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { moeda, dataLonga, pctSinal } from "@/lib/formato";
+import type { CopomReuniao } from "@/lib/api/contratos";
+import { moeda, dataLonga, pctSinal, num, pp } from "@/lib/formato";
 
 /**
- * Caminho do preço, com a pior queda marcada.
+ * Caminho do preço, com a pior queda marcada — e, nos recortes longos, o
+ * Copom por cima.
  *
  * SVG à mão, no mesmo idioma de `nuvem-consenso` e `curva-calibracao`. Não é
  * teimosia: uma biblioteca aqui traria outro tipo de eixo, outro tooltip e
@@ -15,11 +17,17 @@ import { moeda, dataLonga, pctSinal } from "@/lib/formato";
  * A faixa sombreada é o trecho entre o topo e o fundo — o que a coluna "pior
  * queda" resume num número. Ver o número e ver onde ele aconteceu são leituras
  * diferentes, e a segunda é a que diz se dava para aguentar.
+ *
+ * Copom só entra quando quem chama passa reuniões. Em doze meses as oito
+ * atas viram ruído; em três ou cinco anos a linha da Selic é o ciclo que o
+ * preço atravessou. Eixo da Selic à esquerda, preço à direita — unidades
+ * diferentes não compartilham régua.
  */
 
 type Ponto = { data: string; fechamento: number };
 
 const MARGEM = { topo: 16, base: 30, esq: 8, dir: 62 };
+const MARGEM_COPOM_ESQ = 62;
 
 /**
  * O viewBox acompanha a largura real, e isso não é detalhe.
@@ -40,6 +48,7 @@ const ESTREITO = 620;
 export function GraficoPreco({
   serie,
   marcarQueda = false,
+  copom = [],
 }: {
   serie: Ponto[];
   /**
@@ -51,6 +60,8 @@ export function GraficoPreco({
    * tempo, e repetir o gráfico inteiro em dois passos seria repetição.
    */
   marcarQueda?: boolean;
+  /** Vazio = gráfico de preço puro. Quem decide o recorte é a janela. */
+  copom?: CopomReuniao[];
 }) {
   const [i, setI] = useState<number | null>(null);
   const [largura, setLargura] = useState(LARGURA_PADRAO);
@@ -85,39 +96,48 @@ export function GraficoPreco({
   // Deitado no celular, mais alto no desktop, onde há largura de sobra.
   const A = L < ESTREITO ? 190 : 260;
 
-  const g = useMemo(() => calcular(serie, L, A), [serie, L, A]);
+  const g = useMemo(() => calcular(serie, copom, L, A), [serie, copom, L, A]);
   if (!g) return null;
 
   const foco = i === null ? null : serie[i];
+  const reuniao = foco ? copomPerto(g.copomNaJanela, foco.data) : null;
+  const comCopom = g.copomNaJanela.length > 0;
 
   return (
-    <figure ref={caixa} className="flex min-w-0 flex-col gap-2">
+    <figure
+      ref={caixa}
+      className="flex min-w-0 flex-col gap-2"
+      onPointerLeave={() => setI(null)}
+    >
       <svg
         viewBox={`0 0 ${L} ${A}`}
         className="w-full touch-none"
         role="img"
-        aria-label={`Preço de fechamento nos últimos doze meses, de ${moeda(g.min)} a ${moeda(g.max)}`}
+        aria-label={
+          comCopom
+            ? `Preço de fechamento e decisões do Copom, de ${moeda(g.min)} a ${moeda(g.max)}`
+            : `Preço de fechamento nos últimos doze meses, de ${moeda(g.min)} a ${moeda(g.max)}`
+        }
         onPointerMove={(e) => {
-          const caixa = e.currentTarget.getBoundingClientRect();
-          const x = ((e.clientX - caixa.left) / caixa.width) * L;
-          const frac = (x - MARGEM.esq) / (L - MARGEM.esq - MARGEM.dir);
+          const caixaSvg = e.currentTarget.getBoundingClientRect();
+          const x = ((e.clientX - caixaSvg.left) / caixaSvg.width) * L;
+          const frac = (x - g.margem.esq) / (L - g.margem.esq - g.margem.dir);
           setI(Math.min(serie.length - 1, Math.max(0, Math.round(frac * (serie.length - 1)))));
         }}
-        onPointerLeave={() => setI(null)}
       >
         {/* Grade: quatro linhas, rótulo à direita para não empurrar o desenho. */}
         {g.ticks.map((t) => (
           <g key={t.v}>
             <line
-              x1={MARGEM.esq}
-              x2={L - MARGEM.dir}
+              x1={g.margem.esq}
+              x2={L - g.margem.dir}
               y1={t.y}
               y2={t.y}
               stroke="var(--rule-soft)"
               strokeWidth={1}
             />
             <text
-              x={L - MARGEM.dir + 10}
+              x={L - g.margem.dir + 10}
               y={t.y + 4}
               fontSize={13}
               fill="var(--ink-soft)"
@@ -128,13 +148,27 @@ export function GraficoPreco({
           </g>
         ))}
 
+        {g.ticksSelic.map((t) => (
+          <text
+            key={`s-${t.v}`}
+            x={g.margem.esq - 8}
+            y={t.y + 4}
+            fontSize={13}
+            fill="var(--atencao)"
+            fontFamily="var(--font-plex-mono)"
+            textAnchor="end"
+          >
+            {num(t.v, 2)}%
+          </text>
+        ))}
+
         {/* O trecho da pior queda, do topo até o fundo. */}
         {marcarQueda && g.queda && (
           <rect
             x={g.queda.x1}
-            y={MARGEM.topo}
+            y={g.margem.topo}
             width={Math.max(g.queda.x2 - g.queda.x1, 2)}
-            height={A - MARGEM.topo - MARGEM.base}
+            height={A - g.margem.topo - g.margem.base}
             fill="var(--negativo)"
             opacity={0.06}
           />
@@ -150,6 +184,40 @@ export function GraficoPreco({
           strokeLinecap="round"
         />
 
+        {g.selic && (
+          <path
+            d={g.selic.linha}
+            fill="none"
+            stroke="var(--atencao)"
+            strokeWidth={1.6}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        )}
+
+        {g.marcadores.map((m) => (
+          <g key={m.nro}>
+            <line
+              x1={m.x}
+              x2={m.x}
+              y1={g.margem.topo}
+              y2={A - g.margem.base}
+              stroke={m.cor}
+              strokeWidth={1}
+              strokeDasharray="3 4"
+              opacity={0.35}
+            />
+            <circle
+              cx={m.x}
+              cy={m.y}
+              r={reuniao?.nro === m.nro ? 5 : 3.5}
+              fill="var(--surface-2)"
+              stroke={m.cor}
+              strokeWidth={1.7}
+            />
+          </g>
+        ))}
+
         {/* Fecho do período: o ponto que a tabela chama de retorno de 12 meses. */}
         <circle cx={g.fim.x} cy={g.fim.y} r={4} fill="var(--modelo)" />
 
@@ -158,8 +226,8 @@ export function GraficoPreco({
             <line
               x1={g.x(i)}
               x2={g.x(i)}
-              y1={MARGEM.topo}
-              y2={A - MARGEM.base}
+              y1={g.margem.topo}
+              y2={A - g.margem.base}
               stroke="var(--ink-soft)"
               strokeWidth={1}
               strokeDasharray="3 3"
@@ -176,11 +244,17 @@ export function GraficoPreco({
         )}
 
         {/* Extremos do eixo do tempo. Data no meio seria enfeite. */}
-        <text x={MARGEM.esq} y={A - 8} fontSize={13} fill="var(--ink-soft)" fontFamily="var(--font-plex-mono)">
+        <text
+          x={g.margem.esq}
+          y={A - 8}
+          fontSize={13}
+          fill="var(--ink-soft)"
+          fontFamily="var(--font-plex-mono)"
+        >
           {dataLonga(serie[0]!.data)}
         </text>
         <text
-          x={L - MARGEM.dir}
+          x={L - g.margem.dir}
           y={A - 8}
           fontSize={13}
           fill="var(--ink-soft)"
@@ -200,21 +274,49 @@ export function GraficoPreco({
         "Percorra", e não "passe o cursor": no celular não há cursor nenhum, e
         o gesto é arrastar o dedo. Uma frase que serve aos dois é melhor que
         duas frases atrás de uma media query.
+
+        O leave fica na figure, não no SVG: senão o link da ata some no instante
+        em que o dedo sai do desenho para clicar.
       */}
-      <figcaption className="flex min-h-6 flex-wrap items-baseline gap-x-4 gap-y-1 text-[13px] text-ink-soft">
+      <figcaption className="flex min-h-6 flex-col justify-center gap-0.5 text-[13px] text-ink-soft">
         {foco ? (
           <>
-            <span className="font-mono text-ink tabular">{moeda(foco.fechamento)}</span>
-            <span className="font-mono tabular">{dataLonga(foco.data)}</span>
-            <span className={`font-mono tabular ${g.corDesde(foco.fechamento)}`}>
-              {pctSinal((foco.fechamento / serie[0]!.fechamento - 1) * 100)} no período
+            <span className="flex min-h-5 flex-wrap items-baseline gap-x-4 gap-y-1">
+              <span className="font-mono text-ink tabular">{moeda(foco.fechamento)}</span>
+              <span className="font-mono tabular">{dataLonga(foco.data)}</span>
+              <span className={`font-mono tabular ${g.corDesde(foco.fechamento)}`}>
+                {pctSinal((foco.fechamento / serie[0]!.fechamento - 1) * 100)} no período
+              </span>
             </span>
+            {comCopom && (
+              <span className="flex min-h-5 flex-wrap items-baseline gap-x-3 gap-y-1">
+                {reuniao ? (
+                  <>
+                    <span className="font-mono text-ink tabular">{rotuloCopom(reuniao)}</span>
+                    {reuniao.pdfUrl && (
+                      <a
+                        href={reuniao.pdfUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-modelo"
+                      >
+                        ata
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  <span aria-hidden>&nbsp;</span>
+                )}
+              </span>
+            )}
           </>
         ) : (
           <span>
-            {marcarQueda
-              ? "A faixa sombreada é a pior queda. Percorra o gráfico para ler qualquer pregão."
-              : "Percorra o gráfico para ler qualquer pregão."}
+            {comCopom
+              ? "Linha do preço e degrau da Selic. Percorra o gráfico para ler o pregão e a reunião."
+              : marcarQueda
+                ? "A faixa sombreada é a pior queda. Percorra o gráfico para ler qualquer pregão."
+                : "Percorra o gráfico para ler qualquer pregão."}
           </span>
         )}
       </figcaption>
@@ -222,8 +324,19 @@ export function GraficoPreco({
   );
 }
 
-function calcular(serie: Ponto[], L: number, A: number) {
+function calcular(serie: Ponto[], copom: CopomReuniao[], L: number, A: number) {
   if (serie.length < 2) return null;
+
+  const inicio = serie[0]!.data;
+  const fim = serie[serie.length - 1]!.data;
+  const previa = [...copom].reverse().find((r) => r.data < inicio) ?? null;
+  const naJanela = copom.filter((r) => r.data >= inicio && r.data <= fim);
+  const comCopom = naJanela.length > 0;
+
+  const margem = {
+    ...MARGEM,
+    esq: comCopom ? MARGEM_COPOM_ESQ : MARGEM.esq,
+  };
 
   const valores = serie.map((p) => p.fechamento);
   const bruto = { min: Math.min(...valores), max: Math.max(...valores) };
@@ -233,12 +346,12 @@ function calcular(serie: Ponto[], L: number, A: number) {
   const max = bruto.max + folga;
 
   const x = (i: number) =>
-    MARGEM.esq + (i / (serie.length - 1)) * (L - MARGEM.esq - MARGEM.dir);
+    margem.esq + (i / (serie.length - 1)) * (L - margem.esq - margem.dir);
   const y = (v: number) =>
-    MARGEM.topo + (1 - (v - min) / (max - min)) * (A - MARGEM.topo - MARGEM.base);
+    margem.topo + (1 - (v - min) / (max - min)) * (A - margem.topo - margem.base);
 
   const linha = serie.map((p, i) => `${i === 0 ? "M" : "L"}${x(i)} ${y(p.fechamento)}`).join(" ");
-  const area = `${linha} L${x(serie.length - 1)} ${A - MARGEM.base} L${x(0)} ${A - MARGEM.base} Z`;
+  const area = `${linha} L${x(serie.length - 1)} ${A - margem.base} L${x(0)} ${A - margem.base} Z`;
 
   // Onde a pior queda aconteceu: do topo que a causou até o fundo.
   let pico = valores[0]!;
@@ -267,17 +380,126 @@ function calcular(serie: Ponto[], L: number, A: number) {
 
   const partida = valores[0]!;
 
+  const selics = [previa, ...naJanela]
+    .map((r) => r?.selic)
+    .filter((v): v is number => v != null);
+  let ticksSelic: { v: number; y: number }[] = [];
+  let selic: { linha: string } | null = null;
+  let ySelic = (_v: number) => margem.topo;
+
+  if (selics.length >= 2 || (selics.length === 1 && naJanela.length > 0)) {
+    const sBruto = { min: Math.min(...selics), max: Math.max(...selics) };
+    const sFolga = (sBruto.max - sBruto.min) * 0.12 || 0.25;
+    const sMin = sBruto.min - sFolga;
+    const sMax = sBruto.max + sFolga;
+    ySelic = (v: number) =>
+      margem.topo + (1 - (v - sMin) / (sMax - sMin)) * (A - margem.topo - margem.base);
+    const sPasso = (sMax - sMin) / 4;
+    ticksSelic = Array.from({ length: 5 }, (_, k) => {
+      const v = sMin + k * sPasso;
+      return { v, y: ySelic(v) };
+    });
+
+    const degraus: { x: number; selic: number }[] = [];
+    if (previa?.selic != null) degraus.push({ x: x(0), selic: previa.selic });
+    for (const r of naJanela) {
+      if (r.selic == null) continue;
+      degraus.push({ x: x(indiceMaisProximo(serie, r.data)), selic: r.selic });
+    }
+    if (degraus.length > 0) {
+      const ultimo = degraus[degraus.length - 1]!;
+      if (ultimo.x < x(serie.length - 1)) {
+        degraus.push({ x: x(serie.length - 1), selic: ultimo.selic });
+      }
+      const d = [`M${degraus[0]!.x} ${ySelic(degraus[0]!.selic)}`];
+      for (let k = 1; k < degraus.length; k++) {
+        const a = degraus[k - 1]!;
+        const b = degraus[k]!;
+        d.push(`L${b.x} ${ySelic(a.selic)}`);
+        d.push(`L${b.x} ${ySelic(b.selic)}`);
+      }
+      selic = { linha: d.join(" ") };
+    }
+  }
+
+  const marcadores = naJanela.map((r) => {
+    const xi = x(indiceMaisProximo(serie, r.data));
+    const yi = r.selic != null && selic ? ySelic(r.selic) : margem.topo + 6;
+    return { nro: r.nro, x: xi, y: yi, cor: corDecisao(r.decisao) };
+  });
+
   return {
     x,
     y,
     linha,
     area,
     ticks,
+    ticksSelic,
+    margem,
     min: bruto.min,
     max: bruto.max,
     queda: pior < -0.02 ? { x1: x(iTopo), x2: x(iFundo) } : null,
     fim: { x: x(serie.length - 1), y: y(valores[valores.length - 1]!) },
     corDesde: (v: number) =>
       v > partida ? "text-positivo" : v < partida ? "text-negativo" : "text-ink-soft",
+    copomNaJanela: naJanela,
+    selic,
+    marcadores,
   };
+}
+
+function ts(iso: string): number {
+  const [a, m, d] = iso.slice(0, 10).split("-").map(Number);
+  return Date.UTC(a!, m! - 1, d!);
+}
+
+function indiceMaisProximo(serie: Ponto[], iso: string): number {
+  const alvo = ts(iso);
+  let lo = 0;
+  let hi = serie.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (ts(serie[mid]!.data) < alvo) lo = mid + 1;
+    else hi = mid;
+  }
+  if (lo > 0) {
+    const da = Math.abs(ts(serie[lo]!.data) - alvo);
+    const db = Math.abs(ts(serie[lo - 1]!.data) - alvo);
+    if (db < da) return lo - 1;
+  }
+  return lo;
+}
+
+/** Dez dias: o Copom não cai num pregão, e oito reuniões por ano não se tocam. */
+function copomPerto(reunioes: CopomReuniao[], data: string): CopomReuniao | null {
+  const alvo = ts(data);
+  const teto = 10 * 86_400_000;
+  let melhor: CopomReuniao | null = null;
+  let dist = teto;
+  for (const r of reunioes) {
+    const d = Math.abs(ts(r.data) - alvo);
+    if (d <= dist) {
+      dist = d;
+      melhor = r;
+    }
+  }
+  return melhor;
+}
+
+function corDecisao(decisao: string | null): string {
+  if (decisao === "reduzir") return "var(--positivo)";
+  if (decisao === "elevar") return "var(--negativo)";
+  return "var(--atencao)";
+}
+
+function rotuloCopom(r: CopomReuniao): string {
+  const taxa = r.selic != null ? num(r.selic) : null;
+  const dpp = r.delta != null && r.delta !== 0 ? ` (${pp(r.delta)})` : "";
+  let ato = "reunião";
+  if (r.decisao === "reduzir" && taxa) ato = `reduziu a Selic para ${taxa}%${dpp}`;
+  else if (r.decisao === "elevar" && taxa) ato = `elevou a Selic para ${taxa}%${dpp}`;
+  else if (r.decisao === "manter" && taxa) ato = `manteve a Selic em ${taxa}%`;
+  else if (taxa) ato = `Selic em ${taxa}%`;
+  const tom = r.tom && r.tom !== "indefinido" ? ` · ${r.tom}` : "";
+  return `Copom ${r.nro} · ${ato}${tom}`;
 }

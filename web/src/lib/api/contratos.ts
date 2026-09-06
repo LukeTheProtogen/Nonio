@@ -225,6 +225,68 @@ export const zAcaoDetalhe = envelope(
 
 export type AcaoDetalhe = z.infer<typeof zAcaoDetalhe>["dados"];
 
+// -------------------------------------------------------------- GET /copom
+
+/**
+ * Reunião do Copom no formato da FastAPI (`CopomMeetingOut`).
+ *
+ * Snake_case de propósito: o endpoint já existia assim, e traduzir na borda
+ * esconderia o contrato real. O `servico` é quem reduz para o que o gráfico
+ * precisa (`CopomReuniao`). FastAPI manda `date` como "YYYY-MM-DD"; datetime
+ * com hora às vezes vaza, e cortar nos dez primeiros caracteres é o que
+ * `lib/formato` já faz no resto.
+ */
+const zDataCopom = z
+  .string()
+  .nullish()
+  .transform((v) => {
+    if (!v) return null;
+    const d = v.slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : null;
+  });
+
+export const zCopomMeetingOut = z.object({
+  nro_reuniao: z.number().int(),
+  data_referencia: zDataCopom,
+  data_publicacao: zDataCopom,
+  titulo: z.string().nullish(),
+  pdf_url: z.string().nullish(),
+  has_features: z.boolean(),
+  decisao: z.string().nullish(),
+  selic_meta_aa: z.number().nullish(),
+  delta_pp: z.number().nullish(),
+  datas_reuniao: z.string().nullish(),
+  tom_politica: z.string().nullish(),
+  tom_inflacao: z.string().nullish(),
+  tom_atividade: z.string().nullish(),
+  resumo: z.string().nullish(),
+});
+
+export const zCopomPage = z.object({
+  items: z.array(zCopomMeetingOut),
+  page: z.number().int(),
+  page_size: z.number().int(),
+  total: z.number().int(),
+});
+
+/**
+ * O que o gráfico do papel realmente desenha.
+ *
+ * `data` é o dia da reunião (`data_referencia`), com publicação só como
+ * reserva: a ata sai dias depois, e marcar no dia da publicação deslocaria o
+ * ponto para um pregão que não foi o da decisão.
+ */
+export type CopomReuniao = {
+  nro: number;
+  data: string;
+  pdfUrl: string | null;
+  decisao: string | null;
+  selic: number | null;
+  delta: number | null;
+  tom: string | null;
+  resumo: string | null;
+};
+
 // ------------------------------------------------------------ GET /historico
 
 export const zHistorico = envelope(
