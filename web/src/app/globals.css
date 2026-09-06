@@ -346,6 +346,24 @@
   to   { transform: scaleY(1); }
 }
 
+/*
+ * Marcador subindo a diagonal do diagrama de confiabilidade.
+ *
+ * A diagonal é o ideal: probabilidade honesta cai em cima dela. O marcador
+ * percorre esse ideal de ponta a ponta, e é a única coisa que se move ali —
+ * os pontos são medição e ficam parados, porque ponto de dado que pulsa sugere
+ * valor mudando.
+ *
+ * `--dx` é a largura útil do desenho; a subida é o mesmo valor em negativo,
+ * porque a diagonal é exatamente 45 graus.
+ */
+@keyframes sobe-diagonal {
+  0%        { transform: translate(0, 0); opacity: 0; }
+  10%       { opacity: 1; }
+  82%       { opacity: 1; }
+  100%      { transform: translate(var(--dx, 236px), calc(var(--dx, 236px) * -1)); opacity: 0; }
+}
+
 @keyframes flutua {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(var(--altura, -7px)); }
@@ -481,6 +499,11 @@
     animation: cresce 0.7s cubic-bezier(0.34, 1.2, 0.64, 1) var(--atraso, 1s) both;
   }
 
+  .sobe-diagonal {
+    transform-box: fill-box;
+    animation: sobe-diagonal 5.5s cubic-bezier(0.45, 0, 0.55, 1) 1.2s infinite;
+  }
+
   .flutua {
     transform-box: fill-box;
     animation: flutua var(--periodo, 6s) ease-in-out var(--atraso, 0s) infinite;
@@ -524,7 +547,8 @@
     .varre,
     .aproxima,
     .revela-area,
-    .cresce {
+    .cresce,
+    .sobe-diagonal {
       animation: none;
       opacity: 1;
       transform: none;

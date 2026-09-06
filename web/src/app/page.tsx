@@ -326,13 +326,27 @@ export default async function Landing() {
             <div className="text-white/70">
               <ArteFecho />
             </div>
-            <figcaption className="flex items-baseline justify-between gap-4 border-t border-white/10 pt-3.5">
-              <span className="eyebrow text-white/55">
-                {ipca.consenso.n} projeções · uma leitura
-              </span>
-              <span className="font-mono text-[12px] text-white/55 tabular">
-                {num(ipca.consenso.mediana)}%
-              </span>
+            {/*
+              A legenda virou par de números, e não uma linha de rodapé.
+
+              Ela carrega a informação que o desenho mostra — quantas projeções
+              e onde cai a leitura — e estava em 11px, cinza, do tamanho de um
+              aviso de rodapé. Informação relevante com peso de rodapé é
+              informação perdida: o olho pula.
+
+              Dois números grandes com rótulo pequeno embaixo. É o mesmo padrão
+              dos destaques do resto do produto, então lê-se sem aprender nada
+              novo.
+            */}
+            <figcaption className="grid grid-cols-2 gap-6 border-t border-white/15 pt-4">
+              <Estatistica
+                valor={String(ipca.consenso.n)}
+                rotulo="projeções nesta semana"
+              />
+              <Estatistica
+                valor={`${num(ipca.consenso.mediana)}%`}
+                rotulo="a leitura no meio delas"
+              />
             </figcaption>
           </figure>
         </div>
@@ -368,6 +382,16 @@ function Bloco({
     <section className={fundo}>
       <div className="mx-auto max-w-[1440px] px-10 py-24 md:px-20 md:py-28">{children}</div>
     </section>
+  );
+}
+
+/** Número grande com rótulo embaixo. Usado dentro do bloco escuro do fecho. */
+function Estatistica({ valor, rotulo }: { valor: string; rotulo: string }) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="t-numero text-[30px] text-white">{valor}</span>
+      <span className="t-meta text-white/60">{rotulo}</span>
+    </div>
   );
 }
 

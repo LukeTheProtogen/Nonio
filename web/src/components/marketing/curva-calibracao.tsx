@@ -63,6 +63,22 @@ export function CurvaCalibracao({
         stroke="var(--referencia)"
         strokeDasharray="4 6"
       />
+      {/*
+        O marcador que percorre a diagonal. Só existe na landing (`animado`),
+        e é a única coisa que se mexe aqui: os pontos são medição, e ponto de
+        dado pulsando sugere valor mudando.
+      */}
+      {animado && (
+        <g
+          className="sobe-diagonal"
+          style={{ ["--dx" as string]: `${fim - m}px` }}
+          aria-hidden
+        >
+          <circle cx={m} cy={fim} r={9} fill="var(--referencia)" fillOpacity={0.18} />
+          <circle cx={m} cy={fim} r={3.5} fill="var(--referencia)" />
+        </g>
+      )}
+
       <line x1={m} y1={fim} x2={fim} y2={fim} stroke="var(--rule)" />
       <line x1={m} y1={m} x2={m} y2={fim} stroke="var(--rule)" />
 
