@@ -67,24 +67,44 @@ export function corDelta(v: number): string {
   return "text-ink-soft";
 }
 
+/**
+ * O pipeline publica dois formatos: timestamp completo (`previsoes.json`) e
+ * data pura (`backtest.json`, que roda uma vez por dia). Os dois passam por
+ * aqui, e a diferença importa.
+ *
+ * `new Date("2026-01-08")` é meia-noite em UTC, que em São Paulo ainda é dia 7.
+ * Sem este tratamento toda data pura aparece um dia atrasada na tela — o tipo
+ * de erro que ninguém percebe até alguém conferir com a fonte.
+ */
+const SO_DATA = /^\d{4}-\d{2}-\d{2}$/;
+
+function comoData(iso: string): { d: Date; fuso: string | undefined } {
+  if (SO_DATA.test(iso)) {
+    // Interpreta como data local: sem hora no dado, não há fuso a converter.
+    const [a, m, dia] = iso.split("-").map(Number);
+    return { d: new Date(a!, m! - 1, dia!), fuso: undefined };
+  }
+  return { d: new Date(iso), fuso: "America/Sao_Paulo" };
+}
+
 /** 31-08 */
 export function dataCurta(iso: string): string {
-  const d = new Date(iso);
+  const { d, fuso } = comoData(iso);
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
-    timeZone: "America/Sao_Paulo",
+    timeZone: fuso,
   }).format(d);
 }
 
 /** 31-08-2026 */
 export function dataLonga(iso: string): string {
-  const d = new Date(iso);
+  const { d, fuso } = comoData(iso);
   return new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-    timeZone: "America/Sao_Paulo",
+    timeZone: fuso,
   }).format(d);
 }
 
@@ -104,6 +124,6 @@ export function hora(iso: string): string {
  * vista, em vez de esconder que a fonte não atualizou.
  */
 export function idadeEmDias(iso: string, agora = new Date()): number {
-  const d = new Date(iso);
-  return Math.floor((agora.getTime() - d.getTime()) / 86_400_000);
+  const { d } = comoData(iso);
+  return Math.max(0, Math.floor((agora.getTime() - d.getTime()) / 86_400_000));
 }
