@@ -296,6 +296,23 @@
   to   { opacity: 1; transform: none; }
 }
 
+/*
+ * Brilho percorrendo a curva do modelo, depois que ela termina de se desenhar.
+ *
+ * Existe porque a dobra ficava 100% imóvel depois do primeiro segundo, e página
+ * parada parece página quebrada. Mas o movimento é SOBRE a linha medida, não ao
+ * lado dela: um segmento claro que percorre a própria curva não inventa série
+ * nenhuma, ao contrário de partícula solta ou traço decorativo perto de um eixo.
+ *
+ * Ciclo longo, com pausa: brilho a cada segundo vira pisca-pisca.
+ */
+@keyframes percorre {
+  0%        { stroke-dashoffset: 1;     opacity: 0; }
+  6%        {                           opacity: 0.9; }
+  38%       {                           opacity: 0.9; }
+  46%, 100% { stroke-dashoffset: -0.09; opacity: 0; }
+}
+
 @keyframes respira {
   0%, 100% { opacity: 0.5; transform: scale(1); }
   50%      { opacity: 0.8; transform: scale(1.06); }
@@ -349,6 +366,15 @@
     animation: respira 9s ease-in-out infinite;
   }
 
+  /*
+   * O brilho só começa depois de a curva terminar de se desenhar (1,6s + 0,2s
+   * de atraso). Os dois ao mesmo tempo brigariam pela mesma linha.
+   */
+  .percorre {
+    stroke-dasharray: 0.09 1;
+    animation: percorre 7s ease-in-out 2s infinite;
+  }
+
   /* Só a escala auxiliar do paquímetro se move. A principal é a referência. */
   .desliza {
     animation: desliza 7s cubic-bezier(0.45, 0, 0.35, 1) infinite;
@@ -380,6 +406,15 @@
       animation: none;
       opacity: 1;
       transform: none;
+    }
+
+    /*
+     * O brilho SOME, não congela. Ele é a única animação aqui sem estado final
+     * útil: parado vira um traço grosso pendurado no começo da curva, que o
+     * leitor tentaria interpretar como dado. A curva de baixo já está inteira.
+     */
+    .percorre {
+      display: none;
     }
 
     .desenha {

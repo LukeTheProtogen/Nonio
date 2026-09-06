@@ -23,7 +23,21 @@ const L = 1000;
 const A = 260;
 const MARGEM = { topo: 16, base: 30, esq: 8, dir: 62 };
 
-export function GraficoPreco({ serie }: { serie: Ponto[] }) {
+export function GraficoPreco({
+  serie,
+  marcarQueda = false,
+}: {
+  serie: Ponto[];
+  /**
+   * Sombreia o trecho entre o topo e o fundo.
+   *
+   * Desligado no passo do preço e ligado no do risco, de propósito: é a MESMA
+   * figura com uma coisa a mais. Ver o caminho primeiro e a pior queda depois
+   * ensina; mostrar as duas de uma vez só dá duas coisas para olhar ao mesmo
+   * tempo, e repetir o gráfico inteiro em dois passos seria repetição.
+   */
+  marcarQueda?: boolean;
+}) {
   const [i, setI] = useState<number | null>(null);
 
   const g = useMemo(() => calcular(serie), [serie]);
@@ -70,7 +84,7 @@ export function GraficoPreco({ serie }: { serie: Ponto[] }) {
         ))}
 
         {/* O trecho da pior queda, do topo até o fundo. */}
-        {g.queda && (
+        {marcarQueda && g.queda && (
           <rect
             x={g.queda.x1}
             y={MARGEM.topo}
@@ -146,7 +160,11 @@ export function GraficoPreco({ serie }: { serie: Ponto[] }) {
             </span>
           </>
         ) : (
-          <span>Passe o cursor para ler qualquer pregão. A faixa é a pior queda.</span>
+          <span>
+            {marcarQueda
+              ? "A faixa sombreada é a pior queda. Passe o cursor para ler qualquer pregão."
+              : "Passe o cursor para ler qualquer pregão."}
+          </span>
         )}
       </figcaption>
     </figure>

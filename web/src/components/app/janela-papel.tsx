@@ -92,7 +92,16 @@ function Conteudo({
       <div
         ref={caixa}
         tabIndex={-1}
-        className="relative flex max-h-full w-full max-w-[1080px] flex-col overflow-hidden rounded-xl border border-rule bg-white shadow-[0_24px_64px_-16px_rgb(14_22_22/0.28)] outline-none"
+        /*
+         * Altura FIXA, não altura de conteúdo.
+         *
+         * Os três passos têm conteúdos de tamanhos diferentes, e com altura
+         * automática a janela crescia e encolhia a cada troca. O quadro inteiro
+         * saltava, e o passo seguinte chegava com o conteúdo já fora do lugar
+         * onde o olho estava — movimento que ninguém pediu e que não explica
+         * nada. Janela de aplicativo tem tamanho; é o conteúdo que rola dentro.
+         */
+        className="relative flex h-[660px] max-h-full w-full max-w-[1080px] flex-col overflow-hidden rounded-xl border border-rule bg-carta shadow-[0_24px_64px_-16px_rgb(35_43_38/0.3)] outline-none"
       >
         <header className="flex shrink-0 items-start justify-between gap-6 border-b border-rule px-8 py-5">
           <div className="flex min-w-0 flex-col gap-1">
@@ -102,16 +111,31 @@ function Conteudo({
                 {acao.nome} · {acao.setor}
               </span>
             </div>
-            {acao.preco !== null && (
-              <p className="flex items-baseline gap-2.5 font-mono text-[14px] tabular">
-                <span>{moeda(acao.preco)}</span>
-                {acao.variacaoDiaPct !== null && (
-                  <span className={corDelta(acao.variacaoDiaPct)}>
-                    {pctSinal(acao.variacaoDiaPct)} hoje
-                  </span>
-                )}
-              </p>
-            )}
+            {/*
+              A linha do preço é SEMPRE renderizada, mesmo sem cotação.
+
+              Escondê-la encurtava o cabeçalho nos papéis que a brapi não cobre
+              sem token, e aí a janela inteira subia ao passar de um papel com
+              preço para um sem. Trocar de papel com a seta fazia o conteúdo
+              saltar, que é o mesmo defeito de altura variável entre os passos.
+              Espaço reservado custa uma linha; salto custa a confiança na tela.
+            */}
+            <p className="flex h-5 items-baseline gap-2.5 font-mono text-[14px] tabular">
+              {acao.preco === null ? (
+                <span className="text-referencia" title="Esta cotação depende de BRAPI_TOKEN">
+                  sem cotação
+                </span>
+              ) : (
+                <>
+                  <span>{moeda(acao.preco)}</span>
+                  {acao.variacaoDiaPct !== null && (
+                    <span className={corDelta(acao.variacaoDiaPct)}>
+                      {pctSinal(acao.variacaoDiaPct)} hoje
+                    </span>
+                  )}
+                </>
+              )}
+            </p>
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5">
@@ -150,7 +174,7 @@ function Conteudo({
 
         <div className="min-h-0 flex-1 overflow-y-auto px-8 py-7">
           {passo === 0 && <PassoPreco serie={serie} acao={acao} />}
-          {passo === 1 && <PassoRisco acao={acao} />}
+          {passo === 1 && <PassoRisco acao={acao} serie={serie} />}
           {passo === 2 && <PassoContexto acao={acao} fatos={fatos} />}
         </div>
 
@@ -198,14 +222,20 @@ function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDe
           cor={corDelta(acao.acimaDoCdi)}
           nota="Mesmo período, mesma régua"
         />
-        {acao.probabilidade && (
-          <Destaque
-            rotulo={`Alta em ${acao.probabilidade.horizonteMeses} meses`}
-            valor={probabilidade(acao.probabilidade.pAlta)}
-            cor="text-modelo"
-            nota={`Nosso modelo · ${acao.probabilidade.modeloVersao}`}
-          />
-        )}
+        {/*
+          Também sempre presente. Sem previsão publicada mostra um traço, porque
+          o cartão sumindo deslocava os outros dois ao trocar de papel.
+        */}
+        <Destaque
+          rotulo={`Alta em ${acao.probabilidade?.horizonteMeses ?? 12} meses`}
+          valor={acao.probabilidade ? probabilidade(acao.probabilidade.pAlta) : "—"}
+          cor={acao.probabilidade ? "text-modelo" : "text-referencia"}
+          nota={
+            acao.probabilidade
+              ? `Nosso modelo · ${acao.probabilidade.modeloVersao}`
+              : "O modelo ainda não publicou para este papel"
+          }
+        />
       </div>
 
       <GraficoPreco serie={serie} />
@@ -213,7 +243,13 @@ function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDe
   );
 }
 
-function PassoRisco({ acao }: { acao: AcaoDetalhe["acao"] }) {
+function PassoRisco({
+  acao,
+  serie,
+}: {
+  acao: AcaoDetalhe["acao"];
+  serie: AcaoDetalhe["serie"];
+}) {
   return (
     <div className="flex flex-col gap-7">
       <div className="flex flex-wrap gap-x-12 gap-y-4">
@@ -234,16 +270,28 @@ function PassoRisco({ acao }: { acao: AcaoDetalhe["acao"] }) {
       </div>
 
       {/*
-        Texto em vez de mais um gráfico. O número de volatilidade não diz nada
-        sozinho para quem não é do mercado; a tradução para reais no bolso diz.
+        Texto e gráfico LADO A LADO, não empilhados: empilhado o passo
+        transbordava a altura fixa da janela e o gráfico ficava cortado ao meio.
+        Ao lado, o gráfico fica mais estreito e portanto mais baixo, e tudo cabe.
+
+        A divisão também lê melhor: à esquerda o número traduzido em palavras,
+        à direita o mesmo número desenhado. Volatilidade sozinha não diz nada a
+        quem não é do mercado; ver ONDE a queda aconteceu, e quanto durou, diz.
       */}
-      <p className="max-w-[62ch] text-[15px] leading-relaxed text-ink-soft">
-        Volatilidade de {num(acao.vol12m, 0)}% ao ano significa que, num ano comum, o preço passa
-        a maior parte do tempo dentro de uma faixa de mais ou menos {num(acao.vol12m, 0)}% em
-        torno de onde começou. No pior trecho dos últimos doze meses, quem comprou no topo viu{" "}
-        <span className="font-mono text-negativo tabular">{num(acao.piorQueda, 1)}%</span> do valor
-        sumir antes de qualquer recuperação.
-      </p>
+      <div className="grid gap-x-9 gap-y-6 lg:grid-cols-[minmax(0,290px)_minmax(0,1fr)]">
+        <p className="text-[14.5px] leading-relaxed text-ink-soft">
+          Volatilidade de {num(acao.vol12m, 0)}% ao ano significa que, num ano comum, o preço
+          passa a maior parte do tempo dentro de uma faixa de mais ou menos{" "}
+          {num(acao.vol12m, 0)}% em torno de onde começou. No pior trecho dos últimos doze meses,
+          quem comprou no topo viu{" "}
+          <span className="font-mono text-negativo tabular">{num(acao.piorQueda, 1)}%</span> do
+          valor sumir antes de qualquer recuperação.
+        </p>
+
+        <div className="min-w-0">
+          <GraficoPreco serie={serie} marcarQueda />
+        </div>
+      </div>
     </div>
   );
 }
