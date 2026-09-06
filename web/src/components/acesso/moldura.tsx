@@ -36,9 +36,11 @@ export function MolduraAcesso({
             qual site está é justamente a defesa contra página falsa. O bloco
             de cor sólida ficaria para o cabeçalho, onde a marca é presença.
           */}
-          <Link href="/" className="flex items-center gap-2.5 self-start">
-            <Marca tamanho={24} caixa={false} />
-            <span className="font-heading text-[22px] font-semibold tracking-tight">Nônio</span>
+          <Link href="/" className="flex items-center gap-3.5 self-start">
+            <Marca tamanho={38} caixa={false} />
+            <span className="font-heading text-[30px] font-semibold tracking-[-0.02em]">
+              Nônio
+            </span>
           </Link>
 
           <div className="my-auto w-full py-14">{children}</div>
