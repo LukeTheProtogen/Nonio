@@ -107,6 +107,23 @@ export function NuvemConsenso({
         pathLength={animado ? 1 : undefined}
         className={animado ? "desenha" : undefined}
       />
+      {/*
+        Segunda passada da MESMA curva, só para o brilho percorrer. Duplicar o
+        caminho é mais barato que animar um gradiente ao longo dele, e mantém a
+        linha de baixo intacta caso a animação não rode.
+      */}
+      {animado && (
+        <path
+          d={mod.linha}
+          fill="none"
+          stroke="var(--modelo)"
+          strokeWidth={3.4}
+          strokeLinecap="round"
+          pathLength={1}
+          className="percorre"
+          opacity={0}
+        />
+      )}
 
       {/* medianas */}
       <line
