@@ -118,19 +118,44 @@ function fonteCotacao(demo: boolean): string {
  */
 export async function acoes() {
   const demo = await emDemo();
-  const lista = await cotacoes(ACOES.map((a) => a.ticker), demo);
+  const porPrevisao = new Map(todasPrevisoes().map((p) => [p.ticker, p]));
+  // Universo: mock base + qualquer ticker publicado no spine que ainda não está no mock.
+  const basePorTicker = new Map(ACOES.map((a) => [a.ticker, a]));
+  for (const p of todasPrevisoes()) {
+    if (!basePorTicker.has(p.ticker)) {
+      basePorTicker.set(p.ticker, {
+        ticker: p.ticker,
+        nome: p.ticker,
+        setor: "—",
+        cotacaoLivre: false,
+        retorno12m: 0,
+        acimaDoCdi: 0,
+        vol12m: 30,
+        beta: 1,
+        sensJuros100bp: 0,
+        sensDolar1pct: 0,
+        sensBrent10pct: 0,
+        fatos30d: 0,
+      });
+    }
+  }
+  const universo = [...basePorTicker.values()].sort((a, b) => {
+    const pa = porPrevisao.get(a.ticker)?.probabilidade ?? -1;
+    const pb = porPrevisao.get(b.ticker)?.probabilidade ?? -1;
+    return pb - pa;
+  });
+  const lista = await cotacoes(universo.map((a) => a.ticker), demo);
   const porTicker = new Map(lista.map((c) => [c.ticker, c]));
 
   return {
     dados: {
-      acoes: ACOES.map((a) => montarAcao(a, porTicker.get(a.ticker))),
+      acoes: universo.map((a) => montarAcao(a, porTicker.get(a.ticker))),
       cdi12m: CDI_12M,
-      // Em demo o snapshot cobre todo mundo, então não há limitação a avisar.
       limitadoSemToken: demo ? false : !temToken(),
     },
     meta: meta({
       geradoEm: previsoesGeradasEm,
-      fontes: [fonteCotacao(demo), "pipeline nonio.probabilidade"],
+      fontes: [fonteCotacao(demo), "pipeline nonio.train (lowvol-spine)"],
       mock: true,
     }),
   };
@@ -138,10 +163,27 @@ export async function acoes() {
 
 
 export async function acao(ticker: string) {
-  const base = ACOES.find((a) => a.ticker === ticker);
+  const demo = await emDemo();
+  const base =
+    ACOES.find((a) => a.ticker === ticker) ??
+    (previsaoDe(ticker)
+      ? {
+          ticker,
+          nome: ticker,
+          setor: "—",
+          cotacaoLivre: false,
+          retorno12m: 0,
+          acimaDoCdi: 0,
+          vol12m: 30,
+          beta: 1,
+          sensJuros100bp: 0,
+          sensDolar1pct: 0,
+          sensBrent10pct: 0,
+          fatos30d: 0,
+        }
+      : null);
   if (!base) return null;
 
-  const demo = await emDemo();
   const [cotacao] = await cotacoes([ticker], demo);
 
   return {
@@ -152,7 +194,7 @@ export async function acao(ticker: string) {
     },
     meta: meta({
       geradoEm: previsoesGeradasEm,
-      fontes: [fonteCotacao(demo), "CVM — pacote IPE", "pipeline nonio.probabilidade"],
+      fontes: [fonteCotacao(demo), "CVM — pacote IPE", "pipeline nonio.train (lowvol-spine)"],
       mock: true,
     }),
   };

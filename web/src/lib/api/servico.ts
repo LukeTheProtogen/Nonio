@@ -30,7 +30,7 @@ import { mintApiAccessToken } from "./access-token";
 const BASE = process.env.NONIO_API_URL?.replace(/\/$/, "") ?? "";
 
 const RECURSOS_NO_BACKEND = new Set<"macro" | "acoes" | "historico" | "fontes">([
-  // "acoes",     ← liga quando /stocks tiver dado ingerido
+  "acoes", // GET /acoes — lowvol spine via previews parquet + DuckDB
   // "macro",     ← não existe no backend ainda
   // "historico", ← não existe no backend ainda
   // "fontes",    ← não existe no backend ainda
