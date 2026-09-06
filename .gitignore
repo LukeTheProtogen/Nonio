@@ -37,3 +37,6 @@ supabase/.env
 .DS_Store
 *.log
 .vercel
+
+# Textura gerada por marketing/carrossel/textura.html. 8 MB, se regera.
+marketing/carrossel/textura-papel.png

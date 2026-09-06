@@ -1,0 +1,69 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  *{margin:0;padding:0}
+  body{background:#000}
+  canvas{display:block}
+</style></head>
+<body>
+<canvas id="c" width="2160" height="2700"></canvas>
+<script>
+/*
+ * Textura de papel, gerada.
+ *
+ * Não é foto de scanner: é grão procedural. A vantagem é justamente essa, e não
+ * é preguiça. Scanner traz iluminação irregular, e canto escuro numa textura de
+ * sobreposição vira sombra falsa em cima do desenho. Aqui a iluminação é
+ * perfeitamente uniforme por construção, que era o requisito mais difícil de
+ * arrancar de um modelo de imagem.
+ *
+ * Três camadas, cada uma resolvendo uma coisa:
+ *   grão fino     o ruído por pixel, que é o que o olho lê como papel
+ *   fibras        traços curtos e claros, o que separa papel de ruído digital
+ *   manchas       variação lenta e larguíssima, para a superfície não ficar
+ *                 estatisticamente perfeita, que é o que denuncia textura falsa
+ */
+const c = document.getElementById("c");
+const x = c.getContext("2d");
+const L = c.width, A = c.height;
+
+// Base: o papel da paleta.
+x.fillStyle = "#F7F6F1";
+x.fillRect(0, 0, L, A);
+
+// --- manchas: ruído de baixa frequência, feito com poucos círculos enormes
+for (let i = 0; i < 60; i++) {
+  const cx = Math.random() * L, cy = Math.random() * A;
+  const r = 380 + Math.random() * 620;
+  const g = x.createRadialGradient(cx, cy, 0, cx, cy, r);
+  const claro = Math.random() > 0.5;
+  g.addColorStop(0, `rgba(${claro ? "255,255,252" : "222,217,205"},0.055)`);
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  x.fillStyle = g;
+  x.fillRect(cx - r, cy - r, r * 2, r * 2);
+}
+
+// --- fibras: traços curtos, claros e escuros, em ângulos aleatórios
+x.lineWidth = 1;
+for (let i = 0; i < 26000; i++) {
+  const px = Math.random() * L, py = Math.random() * A;
+  const ang = Math.random() * Math.PI * 2;
+  const comp = 2 + Math.random() * 9;
+  const claro = Math.random() > 0.42;
+  x.strokeStyle = claro ? "rgba(255,255,252,0.16)" : "rgba(160,152,132,0.10)";
+  x.beginPath();
+  x.moveTo(px, py);
+  x.lineTo(px + Math.cos(ang) * comp, py + Math.sin(ang) * comp);
+  x.stroke();
+}
+
+// --- grão fino: ruído por pixel, aplicado direto no buffer
+const img = x.getImageData(0, 0, L, A);
+const d = img.data;
+for (let i = 0; i < d.length; i += 4) {
+  // Mesmo delta nos três canais: ruído colorido vira chuvisco de televisão.
+  const n = (Math.random() - 0.5) * 13;
+  d[i] += n; d[i + 1] += n; d[i + 2] += n;
+}
+x.putImageData(img, 0, 0);
+</script>
+</body></html>
