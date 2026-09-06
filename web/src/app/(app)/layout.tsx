@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { sessaoAtual } from "@/lib/sessao";
+import { emDemo } from "@/lib/demo-acoes";
 import { BarraLateral } from "@/components/app/barra-lateral";
 import { FOCUS_COLETADO_EM } from "@/mock/macro";
 import { geradoEm as backtestGeradoEm } from "@/lib/backtest";
@@ -15,10 +16,13 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
   const sessao = await sessaoAtual();
   if (!sessao) redirect("/entrar");
 
+  const demo = await emDemo();
+
   return (
     <div className="flex min-h-0 w-full flex-1 overflow-hidden">
       <BarraLateral
         sessao={sessao}
+        demo={demo}
         fontes={[
           { rotulo: "Focus", em: FOCUS_COLETADO_EM },
           { rotulo: "Backtest", em: backtestGeradoEm },

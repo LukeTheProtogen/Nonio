@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Acao } from "@/lib/api/contratos";
 import { LENTES, type Lente } from "@/mock/acoes";
-import { num, pctSinal, moeda, probabilidade, corDelta } from "@/lib/formato";
+import { num, pctSinal, pp, moeda, probabilidade, corDelta } from "@/lib/formato";
 
 /**
  * O universo em três lentes.
@@ -16,10 +16,14 @@ import { num, pctSinal, moeda, probabilidade, corDelta } from "@/lib/formato";
  * diferença é o produto.
  */
 
-const COLUNAS: Record<Lente, { rotulo: string; dica?: string }[]> = {
+const COLUNAS: Record<Lente, { rotulo: string; dica?: string; largura?: string }[]> = {
   retorno: [
-    { rotulo: "12 meses" },
-    { rotulo: "Contra o CDI", dica: "Quanto rendeu além do CDI no mesmo período" },
+    {
+      rotulo: "Retorno em 12 meses, contra o CDI",
+      dica: "Barra é o papel, traço é o CDI no mesmo período",
+      largura: "w-[280px]",
+    },
+    { rotulo: "Acima do CDI", dica: "Diferença em pontos percentuais", largura: "w-[110px]" },
   ],
   risco: [
     { rotulo: "Volatilidade", dica: "Desvio anualizado dos retornos diários" },
@@ -44,6 +48,16 @@ export function TabelaAcoes({
   cdi12m: number;
   selecionado?: string;
 }) {
+  /*
+    Uma escala só para a coluna inteira. Se cada linha normalizasse pelo próprio
+    valor, todas as barras teriam o mesmo tamanho e a coluna não compararia
+    nada — que é o único motivo de a barra existir.
+  */
+  const escala = Math.max(
+    ...acoes.map((a) => Math.abs(a.retorno12m)),
+    Math.abs(cdi12m),
+  ) * 1.08;
+
   return (
     <div className="min-w-0 overflow-x-auto">
       <table className="w-full min-w-[860px] border-collapse text-[14px]">
@@ -52,7 +66,16 @@ export function TabelaAcoes({
             <Th className="w-[210px]">Papel</Th>
             <Th className="w-[110px] text-right">Preço</Th>
             {COLUNAS[lente].map((c) => (
-              <Th key={c.rotulo} className="text-right" title={c.dica}>
+              <Th
+                key={c.rotulo}
+                /*
+                  `whitespace-nowrap` e largura própria: "Contra o CDI" quebrava
+                  em duas linhas e a segunda saía cortada pela borda da célula.
+                  Cabeçalho de coluna não quebra — ou cabe, ou encurta.
+                */
+                className={`whitespace-nowrap text-right ${c.largura ?? ""}`}
+                title={c.dica}
+              >
                 {c.rotulo}
               </Th>
             ))}
@@ -107,8 +130,14 @@ export function TabelaAcoes({
 
               {lente === "retorno" && (
                 <>
-                  <Num v={a.retorno12m} formato={pctSinal} colorir />
-                  <Num v={a.acimaDoCdi} formato={pctSinal} colorir />
+                  <td className="py-2.5 pl-6">
+                    <BarraCdi retorno={a.retorno12m} cdi={cdi12m} escala={escala} />
+                  </td>
+                  <td
+                    className={`py-2.5 text-right font-mono tabular ${corDelta(a.acimaDoCdi)}`}
+                  >
+                    {pp(a.acimaDoCdi)}
+                  </td>
                 </>
               )}
 
@@ -157,10 +186,71 @@ export function TabelaAcoes({
 
       <p className="pt-3.5 text-[12.5px] leading-relaxed text-ink-soft">
         {LENTES[lente].descricao}
-        {lente === "retorno" && ` CDI de ${num(cdi12m)}% no período.`}
+        {lente === "retorno" && (
+          <>
+            {" "}
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block h-2 w-4 bg-ink" /> o papel
+            </span>
+            {"  "}
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block h-3.5 w-px bg-consenso" /> CDI no período,{" "}
+              {num(cdi12m)}%
+            </span>
+          </>
+        )}
         {lente === "contexto" &&
           " Sensibilidade estimada por regressão de fatores de três anos, não é previsão."}
       </p>
+    </div>
+  );
+}
+
+/**
+ * Retorno do papel contra o CDI, na mesma régua.
+ *
+ * A barra é o papel; o traço vertical é o CDI. Barra passando do traço quer
+ * dizer que rendeu mais que a renda fixa, e é a leitura que a coluna existe
+ * para dar em um relance — o número ao lado confirma, não substitui.
+ *
+ * O zero fica fixo no mesmo lugar em todas as linhas, senão papéis com retorno
+ * negativo desalinhariam a coluna e a comparação visual morreria.
+ */
+function BarraCdi({
+  retorno,
+  cdi,
+  escala,
+}: {
+  retorno: number;
+  cdi: number;
+  escala: number;
+}) {
+  // Metade da largura para cada lado do zero, para caber retorno negativo.
+  const meio = 50;
+  const larguraBarra = (Math.abs(retorno) / escala) * meio;
+  const positivo = retorno >= 0;
+  const posCdi = meio + (cdi / escala) * meio;
+
+  return (
+    <div className="relative h-4 w-full min-w-[180px]" title={`CDI no período: ${num(cdi)}%`}>
+      {/* zero */}
+      <span className="absolute inset-y-0 left-1/2 w-px bg-rule" />
+
+      <span
+        className="absolute top-1 h-2.5 rounded-[1px]"
+        style={{
+          left: positivo ? `${meio}%` : `${meio - larguraBarra}%`,
+          width: `${Math.max(larguraBarra, 0.6)}%`,
+          background: positivo ? "var(--ink)" : "var(--negativo)",
+        }}
+      />
+
+      {/* O CDI: traço fino e alto, para não ser lido como parte da barra. */}
+      <span
+        className="absolute -top-0.5 h-5 w-px bg-consenso"
+        style={{ left: `${posCdi}%` }}
+        aria-hidden
+      />
     </div>
   );
 }

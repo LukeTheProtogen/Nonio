@@ -1,5 +1,6 @@
 import { buscarCotacoes, temToken } from "@/lib/brapi";
-import { cotacoesCongeladas, ehDemo, snapshot } from "@/lib/demo";
+import { cotacoesCongeladas, snapshot } from "@/lib/demo";
+import { emDemo } from "@/lib/demo-acoes";
 import { previsaoDe, todasPrevisoes, geradoEm as previsoesGeradasEm } from "@/lib/previsoes";
 import * as backtest from "@/lib/backtest";
 import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
@@ -18,11 +19,14 @@ import type { Meta } from "./contratos";
  * Quando `nonio-api` subir, este arquivo some inteiro e nada mais muda —
  * é essa a razão de ele ser a única coisa que conhece os mocks.
  *
- * Modo demonstração (NONIO_DEMO=1) entra AQUI, e não em cada tela: é o único
- * ponto por onde cotação passa. Em demo nenhuma chamada externa acontece, nem
- * para falhar, e `meta.fontes` diz "snapshot congelado" — dado congelado
- * apresentado como ao vivo é a desonestidade que este produto existe para não
- * cometer.
+ * Modo demonstração entra AQUI, e não em cada tela: é o único ponto por onde
+ * cotação passa. Em demo nenhuma chamada externa acontece, nem para falhar, e
+ * `meta.fontes` diz "snapshot congelado" — dado congelado apresentado como ao
+ * vivo é a desonestidade que este produto existe para não cometer.
+ *
+ * O modo é lido por requisição (ambiente OU cookie), então as funções que
+ * dependem dele são assíncronas. Ler uma vez e guardar em módulo faria a chave
+ * da barra lateral parar de funcionar depois do primeiro carregamento.
  */
 
 function meta(p: {
@@ -87,9 +91,16 @@ export function macro() {
 // ------------------------------------------------------------------- ações
 
 /** Cotação: congelada em demo, ao vivo fora dela. Falha vira lista vazia. */
-async function cotacoes(tickers: string[]) {
-  if (ehDemo()) return cotacoesCongeladas(tickers);
+async function cotacoes(tickers: string[], demo: boolean) {
+  if (demo) return cotacoesCongeladas(tickers);
   return buscarCotacoes(tickers).catch(() => []);
+}
+
+/** O nome da origem da cotação vai para a tela, e muda em demo. */
+function fonteCotacao(demo: boolean): string {
+  return demo
+    ? `snapshot congelado em ${snapshot.capturadoEm.slice(0, 10)}`
+    : "B3, via brapi.dev";
 }
 
 /**
@@ -103,7 +114,8 @@ async function cotacoes(tickers: string[]) {
  * justamente sobre as colunas inventadas.
  */
 export async function acoes() {
-  const lista = await cotacoes(ACOES.map((a) => a.ticker));
+  const demo = await emDemo();
+  const lista = await cotacoes(ACOES.map((a) => a.ticker), demo);
   const porTicker = new Map(lista.map((c) => [c.ticker, c]));
 
   return {
@@ -111,26 +123,23 @@ export async function acoes() {
       acoes: ACOES.map((a) => montarAcao(a, porTicker.get(a.ticker))),
       cdi12m: CDI_12M,
       // Em demo o snapshot cobre todo mundo, então não há limitação a avisar.
-      limitadoSemToken: ehDemo() ? false : !temToken(),
+      limitadoSemToken: demo ? false : !temToken(),
     },
     meta: meta({
       geradoEm: previsoesGeradasEm,
-      fontes: [fonteCotacao(), "pipeline nonio.probabilidade"],
+      fontes: [fonteCotacao(demo), "pipeline nonio.probabilidade"],
       mock: true,
     }),
   };
 }
 
-/** O nome da origem da cotação vai para a tela, e muda em demo. */
-function fonteCotacao(): string {
-  return ehDemo() ? `snapshot congelado em ${snapshot.capturadoEm.slice(0, 10)}` : "B3, via brapi.dev";
-}
 
 export async function acao(ticker: string) {
   const base = ACOES.find((a) => a.ticker === ticker);
   if (!base) return null;
 
-  const [cotacao] = await cotacoes([ticker]);
+  const demo = await emDemo();
+  const [cotacao] = await cotacoes([ticker], demo);
 
   return {
     dados: {
@@ -140,7 +149,7 @@ export async function acao(ticker: string) {
     },
     meta: meta({
       geradoEm: previsoesGeradasEm,
-      fontes: [fonteCotacao(), "CVM — pacote IPE", "pipeline nonio.probabilidade"],
+      fontes: [fonteCotacao(demo), "CVM — pacote IPE", "pipeline nonio.probabilidade"],
       mock: true,
     }),
   };
@@ -235,7 +244,8 @@ export function historico() {
  * próprio arquivo que o pipeline escreveu. O resto é mock até `nonio.ingest`
  * publicar um manifesto de coleta.
  */
-export function fontes() {
+export async function fontes() {
+  const demo = await emDemo();
   const agora = Date.now();
   const diasDesde = (iso: string) => (agora - new Date(iso).getTime()) / 86_400_000;
 
@@ -276,14 +286,14 @@ export function fontes() {
         {
           slug: "brapi",
           nome: "Cotações",
-          orgao: ehDemo() ? "Snapshot congelado, sobre dados da B3" : "brapi.dev, sobre dados da B3",
+          orgao: demo ? "Snapshot congelado, sobre dados da B3" : "brapi.dev, sobre dados da B3",
           descricao: "Preço de fechamento e variação do dia.",
           url: "https://brapi.dev",
-          cadencia: ehDemo() ? "Congelada para demonstração" : "A cada 15 minutos",
-          coletadoEm: ehDemo() ? snapshot.capturadoEm : new Date().toISOString(),
+          cadencia: demo ? "Congelada para demonstração" : "A cada 15 minutos",
+          coletadoEm: demo ? snapshot.capturadoEm : new Date().toISOString(),
           estado: "ok" as const,
-          registros: ehDemo() ? snapshot.cotacoes.length : temToken() ? ACOES.length : 4,
-          observacao: ehDemo()
+          registros: demo ? snapshot.cotacoes.length : temToken() ? ACOES.length : 4,
+          observacao: demo
             ? "Modo demonstração ligado: nenhuma cotação é buscada, tudo vem do snapshot versionado."
             : temToken()
               ? null
