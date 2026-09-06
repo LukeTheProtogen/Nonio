@@ -5,6 +5,7 @@ import { obterMacro } from "@/lib/api/servico";
 import type { Indicador } from "@/lib/api/contratos";
 import { fotoAtual } from "@/lib/backtest";
 import { dataLonga, num, probabilidade } from "@/lib/formato";
+import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 export const metadata: Metadata = { title: "Macro" };
 
@@ -20,7 +21,8 @@ export default async function Macro() {
   const { indicadores, citacoes, coletadoEm, baseCalculo } = await obterMacro();
 
   const foco = indicadores[0]!;
-  const citacao = citacoes[0]!;
+  // Pode não existir: as 280 atas ainda não foram processadas.
+  const citacao = citacoes[0];
   const real = fotoAtual.linhas[0]!;
 
   return (
@@ -64,12 +66,16 @@ export default async function Macro() {
 
               <div className="grid grid-cols-2 gap-3.5">
                 <Numero
-                  valor={probabilidade(ind.modelo.pEvento)}
-                  rotulo={`modelo · ${num(ind.modelo.mediana)}${ind.unidade === "pct" ? "%" : ""}`}
-                  cor="text-modelo"
+                  valor={ind.modelo ? probabilidade(ind.modelo.pEvento) : "—"}
+                  rotulo={
+                    ind.modelo
+                      ? `modelo · ${num(ind.modelo.mediana)}${ind.unidade === "pct" ? "%" : ""}`
+                      : "modelo · ainda não existe para macro"
+                  }
+                  cor={ind.modelo ? "text-modelo" : "text-ink-soft"}
                 />
                 <Numero
-                  valor={probabilidade(ind.consenso.pEvento)}
+                  valor={ind.consenso.pEvento === null ? "—" : probabilidade(ind.consenso.pEvento)}
                   rotulo={`consenso · ${num(ind.consenso.mediana)}${ind.unidade === "pct" ? "%" : ""}`}
                   cor="text-consenso"
                 />
@@ -95,8 +101,10 @@ export default async function Macro() {
               <Legenda cor="bg-consenso">
                 uma instituição por ponto, mediana em {num(foco.consenso.mediana)}%
               </Legenda>
-              <Legenda cor="bg-modelo">
-                nosso modelo em {num(foco.modelo.mediana)}%, com a faixa de 80%
+              <Legenda cor={foco.modelo ? "bg-modelo" : "bg-ink-soft"}>
+                {foco.modelo
+                  ? `nosso modelo em ${num(foco.modelo.mediana)}%, com a faixa de 80%`
+                  : "modelo próprio para macro ainda não existe"}
               </Legenda>
             </div>
 
@@ -113,18 +121,27 @@ export default async function Macro() {
 
           <aside className="flex min-w-0 flex-col gap-3.5 border-l border-rule pl-7">
             <span className="eyebrow">Por que divergimos</span>
-            <blockquote className="font-heading text-base italic leading-relaxed">
-              “{citacao.trecho}”
-            </blockquote>
-            <a
-              href={citacao.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-[13px] text-modelo hover:text-modelo-forte"
-            >
-              <IconeExterno />
-              Ata do Copom {citacao.ata} · parágrafo {citacao.paragrafo}
-            </a>
+            {citacao ? (
+              <>
+                <blockquote className="font-heading text-base italic leading-relaxed">
+                  “{citacao.trecho}”
+                </blockquote>
+                <a
+                  href={citacao.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-[13px] text-modelo hover:text-modelo-forte"
+                >
+                  <IconeExterno />
+                  Ata do Copom {citacao.ata} · parágrafo {citacao.paragrafo}
+                </a>
+              </>
+            ) : (
+              <p className="text-[13px] leading-relaxed text-ink-soft">
+                Nenhuma citação publicada ainda — as 280 atas do Copom não foram processadas.
+                Preferimos a lacuna a uma citação não verificada.
+              </p>
+            )}
 
             <div className="mt-3 flex flex-col gap-2 border-t border-rule-soft pt-3.5">
               <span className="eyebrow">Consenso medido</span>
@@ -139,10 +156,7 @@ export default async function Macro() {
         </section>
 
         <footer className="mt-auto flex justify-between gap-8 border-t border-rule py-3.5 text-xs text-ink-soft">
-          <span>
-            Probabilidade com fonte rastreável. Não é recomendação de investimento (Res. CVM 19 e
-            20).
-          </span>
+          <span>{DISCLAIMER_MEDIO}</span>
           <span className="font-mono">Focus de {dataLonga(coletadoEm)}</span>
         </footer>
       </div>

@@ -16,7 +16,15 @@ export function FormularioRedefinir({ email }: { email: string }) {
       <input type="hidden" name="email" value={email} />
 
       <Campo rotulo="Código do e-mail" erro={erro}>
-        <CampoTexto nome="codigo" autoComplete="one-time-code" placeholder="000000" autoFocus />
+        <CampoTexto
+          nome="codigo"
+          autoComplete="one-time-code"
+          placeholder="000000"
+          maxLength={6}
+          inputMode="numeric"
+          pattern="[0-9]{6}"
+          autoFocus
+        />
       </Campo>
 
       <CampoSenha nome="senha" rotulo="Nova senha" erro={erro} />

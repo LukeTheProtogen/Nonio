@@ -1,5 +1,5 @@
 import { caminhoNormal, dispersao, emX, tiques, type Escala } from "@/lib/curvas";
-import { reconstruirNuvem } from "@/mock/macro";
+import { reconstruirNuvem } from "@/lib/macro";
 import type { Indicador } from "@/lib/api/contratos";
 import { num } from "@/lib/formato";
 
@@ -28,13 +28,21 @@ export function NuvemConsenso({
   /** Só no herói da landing. Ver o comentário do topo. */
   animado?: boolean;
 }) {
-  const { consenso: c, modelo: m } = indicador;
+  const c = indicador.consenso;
+  // Null enquanto não houver modelo macro. Todo traço do modelo fica atrás
+  // desta guarda: a curva deixa de ser desenhada, em vez de ser inventada.
+  const m = indicador.modelo;
+
+  // O Focus não publica mínimo e máximo em toda linha; quando faltam, o
+  // domínio vem da própria dispersão.
+  const cMin = c.min ?? c.mediana - 3 * c.dp;
+  const cMax = c.max ?? c.mediana + 3 * c.dp;
 
   // Domínio com folga de 2,5 desvios para as caudas não serem cortadas.
-  const margem = Math.max(c.dp, (m.q90 - m.q10) / 2) * 2.6;
+  const margem = Math.max(c.dp, m ? (m.q90 - m.q10) / 2 : 0) * 2.6;
   const escala: Escala = {
-    x0: Math.min(c.min, m.q10) - margem,
-    x1: Math.max(c.max, m.q90) + margem,
+    x0: Math.min(cMin, m?.q10 ?? cMin) - margem,
+    x1: Math.max(cMax, m?.q90 ?? cMax) + margem,
     px0: 40,
     px1: larguraViewBox - 40,
   };
@@ -48,9 +56,9 @@ export function NuvemConsenso({
   const cons = caminhoNormal(c.mediana, c.dp, escala, base, altura, { picoRef: pico });
   // Sem assimetria de propósito: com skew o pico visual sai do lugar da mediana,
   // e o leitor passa a ler o topo da curva como se fosse o nosso número.
-  const mod = caminhoNormal(m.mediana, (m.q90 - m.q10) / 2.56, escala, base, altura, {
-    picoRef: pico,
-  });
+  const mod = m
+    ? caminhoNormal(m.mediana, (m.q90 - m.q10) / 2.56, escala, base, altura, { picoRef: pico })
+    : null;
 
   // O limiar do evento, extraído do texto ("acima de 4,5%" → 4.5).
   const limiar = Number(indicador.evento.replace(/[^\d,.]/g, "").replace(",", ".")) || null;
@@ -68,7 +76,11 @@ export function NuvemConsenso({
       preserveAspectRatio={compacto ? "none" : "xMidYMid meet"}
       className="block h-full w-full"
       role="img"
-      aria-label={`Distribuição das projeções para ${indicador.nome}. Consenso em ${num(c.mediana)}, nosso modelo em ${num(m.mediana)}.`}
+      aria-label={
+        m
+          ? `Distribuição das projeções para ${indicador.nome}. Consenso em ${num(c.mediana)}, nosso modelo em ${num(m.mediana)}.`
+          : `Distribuição das projeções para ${indicador.nome}. Consenso em ${num(c.mediana)}. Ainda não há modelo próprio para macro.`
+      }
     >
       {/* faixa até o limiar do evento */}
       {pxLimiar !== null && !compacto && (
@@ -96,7 +108,8 @@ export function NuvemConsenso({
 
       {/* consenso: área */}
       <path d={cons.area} fill="var(--consenso)" fillOpacity={0.13} />
-      {/* modelo: linha */}
+      {/* modelo: linha — só existe quando existe modelo */}
+      {mod && (
       <path
         d={mod.linha}
         fill="none"
@@ -107,12 +120,13 @@ export function NuvemConsenso({
         pathLength={animado ? 1 : undefined}
         className={animado ? "desenha" : undefined}
       />
+      )}
       {/*
         Segunda passada da MESMA curva, só para o brilho percorrer. Duplicar o
         caminho é mais barato que animar um gradiente ao longo dele, e mantém a
         linha de baixo intacta caso a animação não rode.
       */}
-      {animado && (
+      {animado && mod && (
         <path
           d={mod.linha}
           fill="none"
@@ -134,23 +148,27 @@ export function NuvemConsenso({
         stroke="var(--consenso)"
         strokeWidth={1.4}
       />
-      <line
-        x1={emX(m.mediana, escala)}
-        y1={compacto ? 14 : 56}
-        x2={emX(m.mediana, escala)}
-        y2={base}
-        stroke="var(--modelo)"
-        strokeWidth={1.6}
-      />
-      {/* faixa de 80% do modelo */}
-      <line
-        x1={emX(m.q10, escala)}
-        y1={base + 2}
-        x2={emX(m.q90, escala)}
-        y2={base + 2}
-        stroke="var(--modelo)"
-        strokeWidth={2.5}
-      />
+      {m && (
+        <>
+          <line
+            x1={emX(m.mediana, escala)}
+            y1={compacto ? 14 : 56}
+            x2={emX(m.mediana, escala)}
+            y2={base}
+            stroke="var(--modelo)"
+            strokeWidth={1.6}
+          />
+          {/* faixa de 80% do modelo */}
+          <line
+            x1={emX(m.q10, escala)}
+            y1={base + 2}
+            x2={emX(m.q90, escala)}
+            y2={base + 2}
+            stroke="var(--modelo)"
+            strokeWidth={2.5}
+          />
+        </>
+      )}
 
       <line x1={40} y1={base} x2={larguraViewBox - 40} y2={base} stroke="var(--rule)" />
 

@@ -3,60 +3,79 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { verificarCodigo, type ResultadoEntrada } from "@/lib/sessao";
 import { botaoPrimario, caixaCodigo } from "@/components/acesso/estilos";
+import { CASAS, apagar, completo, preencher, proximoFoco, vazio } from "./digitos";
 
 const inicial: ResultadoEntrada = undefined;
-const CASAS = 6;
 
 export function FormularioCodigo({ email, de }: { email: string; de: string }) {
   const [estado, acao, pendente] = useActionState(verificarCodigo, inicial);
-  const [digitos, setDigitos] = useState<string[]>(Array(CASAS).fill(""));
+  const [digitos, setDigitos] = useState(vazio);
+  const [tocado, setTocado] = useState(false);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
-  const jaEnviado = useRef("");
-  const erro = Boolean(estado?.erro);
+  const ultimoEnviado = useRef("");
+
   const codigo = digitos.join("");
+  const cheio = completo(digitos);
+  // O erro some assim que a pessoa mexe: manter o vermelho enquanto ela corrige
+  // faz parecer que a correção não surtiu efeito.
+  const erro = Boolean(estado?.erro) && !tocado;
 
   /*
-   * Envio automático ao completar as seis casas.
+   * Envio automático ao completar as seis casas — comportamento esperado de
+   * campo de código. A trava por referência impede reenviar o MESMO código em
+   * laço quando a resposta volta com erro e os dígitos continuam na tela.
    *
-   * Precisa ser efeito, e não chamada dentro do onChange: ali o `setDigitos`
-   * ainda não renderizou, o campo oculto continua com o valor anterior, e o
-   * servidor recebe um código incompleto. O sintoma era colar o código certo e
-   * receber "não confere".
-   *
-   * A trava por referência evita reenviar o mesmo código em laço quando a
-   * resposta volta com erro e os dígitos continuam na tela.
+   * O botão continua funcionando de forma independente: ele nunca fica
+   * desabilitado com o código completo, então clicar sempre reenvia.
    */
   useEffect(() => {
-    if (codigo.length === CASAS && jaEnviado.current !== codigo) {
-      jaEnviado.current = codigo;
+    if (cheio && !pendente && ultimoEnviado.current !== codigo) {
+      ultimoEnviado.current = codigo;
       formRef.current?.requestSubmit();
     }
-  }, [codigo]);
+  }, [codigo, cheio, pendente]);
 
   function escrever(i: number, valor: string) {
-    const limpo = valor.replace(/\D/g, "");
-    if (!limpo) {
-      setDigitos((d) => d.map((v, k) => (k === i ? "" : v)));
-      return;
-    }
-    // Colar os seis dígitos preenche todas as caixas e envia sozinho.
-    const proximos = [...digitos];
-    for (let k = 0; k < limpo.length && i + k < CASAS; k++) proximos[i + k] = limpo[k];
-    setDigitos(proximos);
+    // Só o último caractere: cada caixa guarda UM dígito. Colar tem tratador
+    // próprio, porque maxLength=1 faria o navegador truncar a colagem.
+    const texto = valor.slice(-1);
+    setDigitos((d) => preencher(d, i, texto));
+    setTocado(true);
+    refs.current[proximoFoco(i, texto)]?.focus();
+  }
 
-    const destino = Math.min(i + limpo.length, CASAS - 1);
-    refs.current[destino]?.focus();
+  function colar(i: number, e: React.ClipboardEvent<HTMLInputElement>) {
+    const texto = e.clipboardData.getData("text");
+    if (!/\d/.test(texto)) return;
+    e.preventDefault();
+    setDigitos((d) => preencher(d, i, texto));
+    setTocado(true);
+    refs.current[proximoFoco(i, texto)]?.focus();
   }
 
   function tecla(i: number, e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace" && !digitos[i] && i > 0) refs.current[i - 1]?.focus();
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      setDigitos((d) => {
+        const { estado: proximo, foco } = apagar(d, i);
+        refs.current[foco]?.focus();
+        return proximo;
+      });
+      setTocado(true);
+      return;
+    }
     if (e.key === "ArrowLeft" && i > 0) refs.current[i - 1]?.focus();
     if (e.key === "ArrowRight" && i < CASAS - 1) refs.current[i + 1]?.focus();
   }
 
   return (
-    <form ref={formRef} action={acao} className="flex flex-col gap-6">
+    <form
+      ref={formRef}
+      action={acao}
+      onSubmit={() => setTocado(false)}
+      className="flex flex-col gap-6"
+    >
       <input type="hidden" name="email" value={email} />
       <input type="hidden" name="de" value={de} />
       <input type="hidden" name="codigo" value={codigo} />
@@ -71,9 +90,12 @@ export function FormularioCodigo({ email, de }: { email: string; de: string }) {
             value={d}
             onChange={(e) => escrever(i, e.target.value)}
             onKeyDown={(e) => tecla(i, e)}
+            onPaste={(e) => colar(i, e)}
+            onFocus={(e) => e.currentTarget.select()}
             inputMode="numeric"
+            pattern="[0-9]*"
             autoComplete={i === 0 ? "one-time-code" : "off"}
-            maxLength={CASAS}
+            maxLength={1}
             aria-label={`Dígito ${i + 1}`}
             autoFocus={i === 0}
             className={caixaCodigo(erro)}
@@ -81,13 +103,15 @@ export function FormularioCodigo({ email, de }: { email: string; de: string }) {
         ))}
       </div>
 
-      {estado?.erro ? (
+      {erro ? (
         <p role="alert" className="text-[12.5px] text-negativo">
-          {estado.erro}
+          {estado?.erro}
         </p>
       ) : null}
 
-      <button type="submit" disabled={pendente || codigo.length < CASAS} className={botaoPrimario}>
+      {/* Nunca desabilitado com o código completo — era isso que fazia o clique
+          em "Entrar" parecer não ter efeito. */}
+      <button type="submit" disabled={pendente || !cheio} className={botaoPrimario}>
         {pendente ? "Verificando…" : "Entrar"}
       </button>
     </form>

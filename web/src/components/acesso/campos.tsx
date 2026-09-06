@@ -37,6 +37,9 @@ export function CampoTexto({
   autoComplete,
   erro,
   autoFocus,
+  maxLength,
+  inputMode,
+  pattern,
 }: {
   nome: string;
   tipo?: string;
@@ -44,6 +47,10 @@ export function CampoTexto({
   autoComplete?: string;
   erro?: boolean;
   autoFocus?: boolean;
+  /** Campos de formato fixo (código, CPF) precisam limitar na origem. */
+  maxLength?: number;
+  inputMode?: "numeric" | "text" | "email" | "tel";
+  pattern?: string;
 }) {
   return (
     <input
@@ -52,6 +59,9 @@ export function CampoTexto({
       placeholder={placeholder}
       autoComplete={autoComplete}
       autoFocus={autoFocus}
+      maxLength={maxLength}
+      inputMode={inputMode}
+      pattern={pattern}
       required
       className={entrada(erro)}
     />

@@ -147,7 +147,11 @@ export default async function Landing() {
             {
               titulo: "A probabilidade, com limiar",
               texto: `A chance de o IPCA fechar ${ipca.evento}, calculada, não estimada no olho.`,
-              numero: probabilidade(ipca.modelo.pEvento),
+              numero: ipca.modelo
+                ? probabilidade(ipca.modelo.pEvento)
+                : ipca.consenso.pEvento === null
+                  ? "—"
+                  : probabilidade(ipca.consenso.pEvento),
               rodape: ipca.evento,
             },
             {

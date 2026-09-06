@@ -6,6 +6,7 @@ import { BarrasErro } from "@/components/app/barras";
 import { CurvaCalibracao } from "@/components/marketing/curva-calibracao";
 import { porHorizonte } from "@/lib/backtest";
 import { num, probabilidade } from "@/lib/formato";
+import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 export const metadata: Metadata = { title: "Histórico" };
 
@@ -207,6 +208,10 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
             </div>
           </div>
         </section>
+
+        <footer className="mt-auto flex justify-between gap-8 border-t border-rule py-3.5 text-xs text-ink-soft">
+          <span>{DISCLAIMER_MEDIO}</span>
+        </footer>
       </div>
     </>
   );
