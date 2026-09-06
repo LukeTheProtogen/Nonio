@@ -18,7 +18,6 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-0 w-full flex-1 overflow-hidden">
       <BarraLateral
-        ativa="/macro"
         sessao={sessao}
         fontes={[
           { rotulo: "Focus", em: FOCUS_COLETADO_EM },

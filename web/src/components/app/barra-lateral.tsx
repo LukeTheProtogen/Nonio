@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { sair, type Sessao } from "@/lib/sessao";
 import { dataCurta, hora } from "@/lib/formato";
 
@@ -12,23 +15,28 @@ import { dataCurta, hora } from "@/lib/formato";
  *
  * A conta mora no pé, nunca no topo. O topo é do produto; a conta é acessório,
  * e a hierarquia visual precisa dizer isso.
+ *
+ * Cliente por causa do `usePathname`. Layout de servidor não conhece a rota
+ * atual, e antes disto a barra marcava "Macro" como ativa em todas as telas —
+ * a navegação inteira mentia sobre onde a pessoa estava.
  */
 
 type Rota = { href: string; rotulo: string; icone: React.ReactNode; pronta: boolean };
 
 export function BarraLateral({
-  ativa,
   sessao,
   fontes,
 }: {
-  ativa: string;
   sessao: Sessao;
   fontes: { rotulo: string; em: string; hora?: boolean }[];
 }) {
+  const caminho = usePathname();
+  const ativa = (href: string) => caminho === href || caminho.startsWith(`${href}/`);
+
   const rotas: Rota[] = [
     { href: "/macro", rotulo: "Macro", icone: <IconeMacro />, pronta: true },
-    { href: "/acoes", rotulo: "Ações", icone: <IconeAcoes />, pronta: false },
-    { href: "/historico", rotulo: "Histórico", icone: <IconeHistorico />, pronta: false },
+    { href: "/acoes", rotulo: "Ações", icone: <IconeAcoes />, pronta: true },
+    { href: "/historico", rotulo: "Histórico", icone: <IconeHistorico />, pronta: true },
   ];
 
   return (
@@ -42,7 +50,7 @@ export function BarraLateral({
 
       <nav className="flex flex-col gap-0.5">
         {rotas.map((r) => (
-          <ItemNav key={r.href} rota={r} ativa={ativa === r.href} />
+          <ItemNav key={r.href} rota={r} ativa={ativa(r.href)} />
         ))}
       </nav>
 
@@ -50,8 +58,8 @@ export function BarraLateral({
 
       <nav className="flex flex-col gap-0.5">
         <ItemNav
-          rota={{ href: "/fontes", rotulo: "Fontes", icone: <IconeFontes />, pronta: false }}
-          ativa={ativa === "/fontes"}
+          rota={{ href: "/fontes", rotulo: "Fontes", icone: <IconeFontes />, pronta: true }}
+          ativa={ativa("/fontes")}
         />
       </nav>
 
@@ -72,21 +80,33 @@ export function BarraLateral({
       </div>
 
       <div className="mx-3.5 mt-3.5 border-t border-rule px-2.5 pt-2.5">
-        <form action={sair} className="flex items-center gap-2.5">
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-rule bg-modelo-lavado text-xs font-semibold text-modelo">
-            {sessao.nome.charAt(0).toUpperCase()}
-          </span>
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate text-[12.5px] font-medium">{sessao.nome}</span>
-            <span className="text-[11px] text-ink-soft">{sessao.plano}</span>
-          </span>
-          <button
-            type="submit"
-            className="ml-auto rounded-sm px-1.5 py-1 text-[11px] text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/conta"
+            className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-sm py-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo ${
+              ativa("/conta") ? "text-modelo" : ""
+            }`}
           >
-            Sair
-          </button>
-        </form>
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-full border border-rule bg-modelo-lavado text-xs font-semibold text-modelo">
+              {sessao.nome.charAt(0).toUpperCase()}
+            </span>
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-[12.5px] font-medium">{sessao.nome}</span>
+              <span className="text-[11px] text-ink-soft">{sessao.plano}</span>
+            </span>
+          </Link>
+
+          {/* Sair é POST, nunca link: um GET que encerra sessão é derrubado pelo
+              pré-carregamento do próprio navegador. */}
+          <form action={sair}>
+            <button
+              type="submit"
+              className="rounded-sm px-1.5 py-1 text-[11px] text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+            >
+              Sair
+            </button>
+          </form>
+        </div>
       </div>
 
       <p className="mx-5 mt-3.5 text-[11px] leading-snug text-ink-soft">
