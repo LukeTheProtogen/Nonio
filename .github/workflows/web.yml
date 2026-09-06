@@ -37,9 +37,10 @@ jobs:
       - name: Fronteira linguistica
         run: node scripts/conformidade.mjs
 
-      - name: Tipos
-        run: npx tsc --noEmit
-
+      # NÃO rodar `tsc --noEmit` como passo separado: o Next 16 GERA tipos
+      # (LayoutProps, PageProps) em .next/types durante o build. Rodar tsc antes
+      # falha com "Cannot find name 'LayoutProps'" — erro do workflow, não do
+      # código. O próprio `next build` já faz a checagem de tipos.
       - name: Build de producao
         # Sem BRAPI_TOKEN de proposito: o build precisa passar sem chave, que e
         # a garantia de que a degradacao para os 4 tickers gratuitos funciona.
