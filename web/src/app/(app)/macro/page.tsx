@@ -143,7 +143,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
               Os pontos são reconstrução a partir dos agregados, não instituições
               nomeadas. Dizer isso na tela é o que separa dado de invenção.
             */}
-            <p className="text-xs leading-relaxed text-ink-soft">
+            <p className="pb-6 text-xs leading-relaxed text-ink-soft">
               O Focus publica estatística agregada, nunca as projeções individuais. Os pontos
               são uma reconstrução a partir da média, do desvio e dos extremos publicados, e
               representam a forma da discordância, não instituições específicas.
@@ -186,7 +186,9 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
           </aside>
         </section>
 
-        <footer className="mt-auto flex justify-between gap-8 border-t border-rule py-3.5 text-xs text-ink-soft">
+        {/* `shrink-0` e margem acima: sem eles o rodapé era comprimido pelo flex e
+            passava POR CIMA do parágrafo anterior quando a tela era baixa. */}
+        <footer className="mt-auto flex shrink-0 justify-between gap-8 border-t border-rule pt-3.5 pb-4 text-xs text-ink-soft">
           <span>{DISCLAIMER_MEDIO}</span>
           <span className="font-mono">Focus de {dataLonga(coletadoEm)}</span>
         </footer>
