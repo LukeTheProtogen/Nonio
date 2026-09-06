@@ -25,6 +25,21 @@ ilustrativo.
 | Citações das atas do Copom | o módulo `nonio.llm` existe mas o acervo ainda não foi processado | o Batch das 280 atas rodar |
 | Risco e sensibilidade macro por papel | não há regressão de fatores publicada | o pipeline publicar `acoes.json` |
 | Fatos relevantes por papel | o pacote IPE da CVM ainda não é cruzado com ticker | o cruzamento CNPJ→ticker entrar |
+| Planos e preços (`planos.ts`) | não há cobrança, gateway nem contrato | existir produto de assinatura de verdade |
+| Identificação da empresa (`empresa.ts`) | não há pessoa jurídica constituída | houver razão social, CNPJ, endereço e encarregado |
+
+## Bloqueio de publicação
+
+`empresa.ts` não é um mock comum. Os valores são colchetes literais
+(`[RAZÃO SOCIAL]`, `[CNPJ]`) e aparecem assim na tela em **termos**,
+**privacidade** e **contato**.
+
+Isso é proposital. Sem identificação do controlador, esses documentos
+descumprem o art. 41 da LGPD e o art. 7º do Marco Civil. Os colchetes garantem
+que ninguém publique em domínio próprio sem notar.
+
+**Nada disso vai ao ar antes de `empresa.ts` estar preenchido**, e os termos
+merecem revisão de advogado antes da primeira cobrança.
 
 ## Decisões travadas que estes mocks respeitam
 
