@@ -7,6 +7,7 @@ import { botaoNeutro, AVISO_EMAIL_UNICO } from "@/components/acesso/estilos";
 import { destinoSeguro } from "@/lib/destino";
 import { entrarComGoogle, sessaoAtual } from "@/lib/sessao";
 import { supabaseConfigured } from "@/lib/supabase/env";
+import { authLocalLigada } from "@/lib/auth-local";
 
 export const metadata: Metadata = { title: "Entrar" };
 
@@ -19,6 +20,8 @@ export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
   const googleOk =
     supabaseConfigured() &&
     Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
+
+  const local = authLocalLigada();
 
   if (await sessaoAtual()) redirect(destino);
 
@@ -74,6 +77,18 @@ export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
             {avisoOauth}
           </p>
         ) : null}
+
+        {/*
+          O aviso é obrigatório neste modo. Sem ele, alguém digita uma senha
+          qualquer, entra, e conclui que a autenticação valida a senha — que é
+          exatamente o oposto do que acontece aqui.
+        */}
+        {local && (
+          <p className="rounded-md border border-atencao-borda bg-atencao-fundo px-4 py-3 text-[13px] leading-relaxed text-atencao">
+            Modo local de desenvolvimento: qualquer e-mail e senha entram, e nada é
+            verificado. Este modo não existe em produção.
+          </p>
+        )}
 
         <FormularioEntrar de={destino} />
 

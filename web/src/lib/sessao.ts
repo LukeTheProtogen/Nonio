@@ -6,6 +6,12 @@ import { destinoSeguro } from "@/lib/destino";
 import { emailPlausivel, senhaValida } from "@/lib/senha";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+import {
+  abrirSessaoLocal,
+  authLocalLigada,
+  fecharSessaoLocal,
+  sessaoLocal,
+} from "@/lib/auth-local";
 
 const COOKIE_OAUTH_NEXT = "nonio_oauth_next";
 
@@ -75,6 +81,13 @@ function sessaoDeUser(user: {
 }
 
 export async function sessaoAtual(): Promise<Sessao | null> {
+  /*
+    O modo local vem primeiro, e a guarda que o protege está em `auth-local`:
+    NODE_ENV diferente de production E a variável ligada de propósito. Em
+    produção `authLocalLigada()` é sempre falso, então esta linha não existe.
+  */
+  if (authLocalLigada()) return sessaoLocal();
+
   if (!supabaseConfigured()) return null;
 
   const supabase = await createClient();
@@ -130,6 +143,17 @@ export async function pedirCodigo(
   if (!email || !senha) {
     return { erro: "E-mail ou senha não conferem." };
   }
+
+  /*
+    Em desenvolvimento, qualquer par entra. Não há o que verificar: não existe
+    banco de usuários local, e o objetivo é destravar quem mexe em UI.
+    A senha ainda é exigida acima, para o formulário ser exercitado inteiro.
+  */
+  if (authLocalLigada()) {
+    await abrirSessaoLocal(nomeDoEmail(email), email);
+    redirect(de);
+  }
+
   if (!supabaseConfigured()) {
     return {
       erro: "Supabase não configurado (NEXT_PUBLIC_SUPABASE_URL e chave).",
@@ -158,6 +182,10 @@ export async function verificarCodigo(
 }
 
 export async function sair(): Promise<void> {
+  // Sempre limpa o cookie local: resíduo de um modo desligado confunde mais
+  // que custa apagar.
+  await fecharSessaoLocal();
+
   if (supabaseConfigured()) {
     const supabase = await createClient();
     await supabase.auth.signOut();
@@ -180,6 +208,17 @@ export async function criarConta(
   if (!senhaValida(senha)) {
     return { erro: "A senha ainda não cumpre as três regras." };
   }
+
+  /*
+    Em desenvolvimento a conta é criada e já entra. As validações acima rodam
+    todas, porque elas são regra de produto e precisam ser exercitadas — o que
+    o modo local dispensa é o provedor de identidade, não as regras.
+  */
+  if (authLocalLigada()) {
+    await abrirSessaoLocal(nome, email);
+    redirect(de);
+  }
+
   if (!supabaseConfigured()) {
     return {
       erro: "Supabase não configurado (NEXT_PUBLIC_SUPABASE_URL e chave).",
