@@ -59,6 +59,8 @@ export function macro() {
       indicadores: INDICADORES.map((i) => ({
         slug: i.slug,
         nome: i.nome,
+        ano: i.ano,
+        familia: i.indicador,
         evento: i.evento,
         unidade: i.unidade,
         consenso: {

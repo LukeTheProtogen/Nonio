@@ -75,6 +75,15 @@ const zDistribuicao = z.object({
 export const zIndicador = z.object({
   slug: z.string(),
   nome: z.string(),
+  /**
+   * Ano e família vêm explícitos, e não são extraídos do slug.
+   *
+   * A tela agrupa por ano e compara dentro da família. Ler isso de
+   * `"pib-total-2026".split("-")` funcionaria hoje e quebraria no primeiro
+   * indicador com número no nome. Contrato existe justamente para isso.
+   */
+  ano: z.number().int(),
+  familia: z.string(),
   /** O evento sobre o qual a probabilidade é calculada, em português. */
   evento: z.string(),
   unidade: z.enum(["pct", "brl"]),
