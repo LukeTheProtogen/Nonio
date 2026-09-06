@@ -39,9 +39,10 @@
      printa o slide do número que surpreendeu, e esse print precisa dizer de
      quem é. */
   .marca{
-    position:absolute;left:96px;bottom:88px;display:flex;align-items:center;gap:14px;
-    font-family:"Zilla Slab",serif;font-weight:600;font-size:28px;letter-spacing:-.02em;
+    position:absolute;left:96px;bottom:88px;display:flex;align-items:center;gap:18px;
+    font-family:"Zilla Slab",serif;font-weight:600;font-size:40px;letter-spacing:-.022em;
   }
+  .marca svg{width:44px;height:44px}
   .marca svg{fill:currentColor}
 
   /* ── SLIDE 1 ─────────────────────────────────────────────────────────── */
@@ -123,16 +124,30 @@
   <img class="foto" src="maos.png" alt="">
   <div class="veu"></div>
 
-  <div style="position:absolute;left:96px;top:96px;display:flex;align-items:center;gap:18px">
-    <svg width="42" height="42" viewBox="0 0 100 100">
+  <!-- Uma marca só no slide 1. Havia duas, topo e rodapé, e a repetida no
+       mesmo quadro não reforça nada: só ocupa a banda que a origem do dado
+       precisava. -->
+  <div style="position:absolute;left:96px;top:88px;display:flex;align-items:center;gap:20px">
+    <svg width="60" height="60" viewBox="0 0 100 100">
       <path d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z" fill="#F7F6F1"/>
       <path d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z" fill="#F7F6F1" opacity=".6"/>
     </svg>
-    <span style="font-family:'Zilla Slab',serif;font-weight:600;font-size:34px;letter-spacing:-.02em">Nônio</span>
+    <span style="font-family:'Zilla Slab',serif;font-weight:700;font-size:50px;letter-spacing:-.028em">Nônio</span>
   </div>
 
-  <div style="position:absolute;left:96px;top:330px;right:96px">
-    <p class="etiqueta" style="color:var(--salvia);margin-bottom:34px">Boletim Focus · 2000 a 2024</p>
+  <div style="position:absolute;left:96px;top:300px;right:96px">
+    <!--
+      A origem do dado é a CREDENCIAL da peça: sem ela, "1,59" é um número que
+      alguém inventou na internet. Estava do tamanho de uma legenda de rodapé.
+      Agora tem moldura, corpo e uma régua acima, e lê-se antes do número.
+    -->
+    <div style="display:inline-flex;flex-direction:column;gap:18px;margin-bottom:44px">
+      <span style="display:block;width:104px;height:3px;background:var(--salvia);opacity:.8"></span>
+      <span class="mono" style="font-size:30px;font-weight:500;letter-spacing:.075em;text-transform:uppercase;color:#F7F6F1;line-height:1.35">
+        Boletim Focus<br>
+        <span style="color:var(--salvia)">2000 a 2024</span>
+      </span>
+    </div>
     <div style="display:flex;align-items:flex-end;gap:28px">
       <span class="numero">1,59</span>
       <span class="mono" style="font-size:36px;color:rgba(247,246,241,.72);padding-bottom:46px">p.p.</span>
@@ -145,7 +160,7 @@
   <p class="mono" style="position:absolute;left:96px;top:1058px;font-size:24px;color:rgba(247,246,241,.72);text-shadow:0 1px 12px rgba(12,59,52,.75)">
     529 observações · dado público do Banco Central
   </p>
-  <div class="marca" style="color:var(--papel);opacity:.9"></div>
+
 
   <div class="regua" id="r1"><div class="linha" style="background:var(--salvia);opacity:.4"></div></div>
 </section>
@@ -199,7 +214,7 @@
   <!-- O bloco verde carrega a frase que fecha o carrossel, centrada na altura
        dele: encostada no canto ela ficava espremida e quebrava em duas linhas
        tortas. -->
-  <div style="position:absolute;right:0;top:0;bottom:0;width:452px;display:flex;flex-direction:column;justify-content:center;padding:0 56px;color:var(--papel)">
+  <div style="position:absolute;right:0;top:0;bottom:0;width:452px;display:flex;flex-direction:column;justify-content:center;padding:0 56px 180px;color:var(--papel)">
     <p class="titulo" style="font-size:64px;line-height:1.06">A decisão<br>é sua.</p>
     <p class="etiqueta" style="color:var(--salvia);margin-top:38px;line-height:1.7;opacity:.85">
       Fonte pública<br>em cada número
@@ -215,7 +230,30 @@
     </p>
   </div>
 
-  <div class="marca" style="color:var(--papel);left:auto;right:56px;top:96px;bottom:auto;opacity:.92"></div>
+  <!--
+    O fecho do carrossel é a marca, não a chamada. Quem chega até aqui já
+    decidiu se interessa; o que precisa ficar é de QUEM era. Por isso ela fecha
+    o bloco verde, grande, com a régua do nônio embaixo.
+  -->
+  <div style="position:absolute;right:0;bottom:88px;width:452px;display:flex;flex-direction:column;align-items:center;gap:20px;color:var(--papel)">
+    <div style="display:flex;align-items:center;gap:18px">
+      <svg width="52" height="52" viewBox="0 0 100 100">
+        <path d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z" fill="#F7F6F1"/>
+        <path d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z" fill="#F7F6F1" opacity=".6"/>
+      </svg>
+      <span style="font-family:'Zilla Slab',serif;font-weight:700;font-size:46px;letter-spacing:-.026em">Nônio</span>
+    </div>
+    <svg width="180" height="16" viewBox="0 0 180 16" aria-hidden>
+      <line x1="0" y1="4" x2="180" y2="4" stroke="#9DBAA7" stroke-width="1.4" opacity=".55"/>
+      <g stroke="#9DBAA7" stroke-width="1.2" opacity=".55">
+        <line x1="6"   y1="4" x2="6"   y2="11"/><line x1="30"  y1="4" x2="30"  y2="9"/>
+        <line x1="54"  y1="4" x2="54"  y2="9"/><line x1="78"  y1="4" x2="78"  y2="11"/>
+        <line x1="102" y1="4" x2="102" y2="9"/><line x1="126" y1="4" x2="126" y2="9"/>
+        <line x1="150" y1="4" x2="150" y2="11"/><line x1="174" y1="4" x2="174" y2="9"/>
+      </g>
+      <line x1="78" y1="4" x2="78" y2="14" stroke="#F7F6F1" stroke-width="2.4"/>
+    </svg>
+  </div>
 
   <div class="regua" id="r3"><div class="linha"></div></div>
 </section>
