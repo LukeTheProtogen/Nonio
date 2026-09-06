@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { Acao } from "@/lib/api/contratos";
 import { LENTES, type Lente } from "@/mock/acoes";
 import { num, pctSinal, pp, moeda, probabilidade, corDelta } from "@/lib/formato";
@@ -56,6 +59,8 @@ export function TabelaAcoes({
   cdi12m: number;
   selecionado?: string;
 }) {
+  const router = useRouter();
+
   /*
     Uma escala só para a coluna inteira. Se cada linha normalizasse pelo próprio
     valor, todas as barras teriam o mesmo tamanho e a coluna não compararia
@@ -67,7 +72,25 @@ export function TabelaAcoes({
   ) * 1.08;
 
   return (
-    <div className="min-w-0 overflow-x-auto">
+    <div className="min-w-0">
+      {/*
+        No celular a tabela vira LISTA DE CARTÕES.
+
+        Doze colunas em 390px não cabem, e rolar de lado numa tabela é o pior
+        dos dois mundos: some o papel ao ver o número, some o número ao ver o
+        papel. O cartão põe ticker e valores da lente na vertical, e cada linha
+        vira uma unidade que se lê sem mover a tela.
+
+        A tabela continua a partir de `md`, onde comparar coluna a coluna é o
+        gesto certo e há largura para isso.
+      */}
+      <ul className="flex flex-col md:hidden">
+        {acoes.map((a) => (
+          <CartaoAcao key={a.ticker} acao={a} lente={lente} selecionado={selecionado === a.ticker} />
+        ))}
+      </ul>
+
+      <div className="hidden min-w-0 overflow-x-auto md:block">
       <table className="w-full min-w-[860px] border-collapse text-[14px]">
         <thead>
           <tr className="border-y border-rule text-left">
@@ -97,7 +120,25 @@ export function TabelaAcoes({
           {acoes.map((a) => (
             <tr
               key={a.ticker}
-              className={`border-b border-rule-soft transition-colors hover:bg-surface-2 ${
+              /*
+                A LINHA INTEIRA abre a janela, do ticker até a probabilidade.
+
+                Antes só o ticker era clicável: quem estava lendo a coluna de
+                risco tinha que voltar o mouse quinze centímetros para a
+                esquerda só para abrir o papel que já estava olhando. Alvo de
+                clique tem que ficar onde o olho está.
+              */
+              onClick={(e) => {
+                /*
+                  Clique com modificador é "abrir em outra aba", e quem trata
+                  isso é o link do ticker, com href de verdade. Empurrar a rota
+                  aqui roubaria o gesto e abriria na mesma aba.
+                */
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                if ((e.target as HTMLElement).closest("a")) return;
+                router.push(`/acoes?lente=${lente}&papel=${a.ticker}`, { scroll: false });
+              }}
+              className={`cursor-pointer border-b border-rule-soft transition-colors hover:bg-surface-2 ${
                 selecionado === a.ticker ? "bg-modelo-lavado" : ""
               }`}
             >
@@ -195,6 +236,7 @@ export function TabelaAcoes({
           ))}
         </tbody>
       </table>
+      </div>
 
       <p className="pt-3.5 text-[12.5px] leading-relaxed text-ink-soft">
         {LENTES[lente].descricao}
@@ -265,6 +307,124 @@ function BarraCdi({
       />
     </div>
   );
+}
+
+/**
+ * Um papel, no celular.
+ *
+ * O que aparece é decidido pela lente, igual à tabela: mesma informação, outra
+ * disposição. A probabilidade fica sempre à direita do ticker porque é a coluna
+ * que não pertence a lente nenhuma — é o nosso modelo, e ela acompanha o papel
+ * em qualquer vista.
+ *
+ * O cartão inteiro é link. Alvo de toque de 44px é o mínimo do iOS, e uma
+ * linha de tabela com 20px de altura não é tocável com o polegar.
+ */
+function CartaoAcao({
+  acao: a,
+  lente,
+  selecionado,
+}: {
+  acao: Acao;
+  lente: Lente;
+  selecionado: boolean;
+}) {
+  const campos: { rotulo: string; valor: React.ReactNode }[] =
+    lente === "retorno"
+      ? [
+          { rotulo: "12 meses", valor: <Cor v={a.retorno12m}>{pctSinal(a.retorno12m)}</Cor> },
+          { rotulo: "Acima do CDI", valor: <Cor v={a.acimaDoCdi}>{pp(a.acimaDoCdi)}</Cor> },
+        ]
+      : lente === "risco"
+        ? [
+            { rotulo: "Volatilidade", valor: `${num(a.vol12m, 0)}%` },
+            { rotulo: "Pior queda", valor: <Cor v={a.piorQueda}>{num(a.piorQueda, 1)}%</Cor> },
+            {
+              rotulo: "Recuperou em",
+              valor:
+                a.diasAteOPico === 0 ? (
+                  <span className="text-negativo">ainda não</span>
+                ) : (
+                  `${a.diasAteOPico} pregões`
+                ),
+            },
+          ]
+        : [
+            { rotulo: "Juros +1 p.p.", valor: <Cor v={a.sensJuros100bp}>{num(a.sensJuros100bp, 1)}%</Cor> },
+            { rotulo: "Dólar +1%", valor: <Cor v={a.sensDolar1pct}>{num(a.sensDolar1pct, 1)}%</Cor> },
+            {
+              rotulo: "Fatos em 30d",
+              valor: a.fatos30d === 0 ? <span className="text-referencia">—</span> : a.fatos30d,
+            },
+          ];
+
+  return (
+    <li>
+      <Link
+        href={`/acoes?lente=${lente}&papel=${a.ticker}`}
+        scroll={false}
+        className={`flex flex-col gap-3 border-b border-rule-soft py-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-modelo ${
+          selecionado ? "bg-modelo-lavado" : ""
+        }`}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <span className="flex min-w-0 flex-col">
+            <span className="font-mono text-[15px] font-medium">{a.ticker}</span>
+            <span className="truncate text-[12.5px] text-ink-soft">
+              {a.nome} · {a.setor}
+            </span>
+          </span>
+
+          <span className="flex shrink-0 flex-col items-end">
+            <span className="font-mono text-[15px] font-medium text-modelo tabular">
+              {a.probabilidade ? (
+                probabilidade(a.probabilidade.pAlta)
+              ) : (
+                <span className="font-normal text-referencia">—</span>
+              )}
+            </span>
+            <span className="text-[11px] text-ink-soft">probabilidade</span>
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2">
+          <Campo rotulo="Preço">
+            {a.preco === null ? (
+              <span className="text-referencia">—</span>
+            ) : (
+              <>
+                {moeda(a.preco)}
+                {a.variacaoDiaPct !== null && (
+                  <span className={`pl-1.5 text-[12px] ${corDelta(a.variacaoDiaPct)}`}>
+                    {pctSinal(a.variacaoDiaPct)}
+                  </span>
+                )}
+              </>
+            )}
+          </Campo>
+          {campos.map((c) => (
+            <Campo key={c.rotulo} rotulo={c.rotulo}>
+              {c.valor}
+            </Campo>
+          ))}
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
+  return (
+    <span className="flex flex-col gap-0.5">
+      <span className="text-[10.5px] tracking-[0.06em] text-ink-soft uppercase">{rotulo}</span>
+      <span className="font-mono text-[13.5px] tabular">{children}</span>
+    </span>
+  );
+}
+
+/** Verde e vermelho só onde o sinal significa alguma coisa. */
+function Cor({ v, children }: { v: number; children: React.ReactNode }) {
+  return <span className={corDelta(v)}>{children}</span>;
 }
 
 function Th({

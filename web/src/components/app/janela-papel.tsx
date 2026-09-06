@@ -117,9 +117,14 @@ function Conteudo({
       >
         <header className="flex shrink-0 items-start justify-between gap-4 border-b border-rule px-5 py-4 md:gap-6 md:px-8 md:py-5">
           <div className="flex min-w-0 flex-col gap-1">
-            <div className="flex items-baseline gap-3">
+            {/*
+              No celular o nome desce para a própria linha. Ao lado do ticker
+              sobravam uns quarenta pixels, e "Ambev · Bebidas" saía como "A." —
+              reticências que ocupam espaço e não informam nada.
+            */}
+            <div className="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-3">
               <h2 className="t-tela">{acao.ticker}</h2>
-              <span className="truncate text-[15px] text-ink-soft">
+              <span className="truncate text-[13.5px] text-ink-soft sm:text-[15px]">
                 {acao.nome} · {acao.setor}
               </span>
             </div>
@@ -166,32 +171,53 @@ function Conteudo({
           </div>
         </header>
 
-        <nav className="flex shrink-0 items-center justify-between gap-4 overflow-x-auto border-b border-rule px-5 md:gap-6 md:px-8">
-          <div className="flex shrink-0 gap-0.5">
-          {PASSOS.map((p, i) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPasso(i)}
-              aria-current={passo === i}
-              className={`-mb-px border-b-2 px-4 py-3 text-[14px] font-medium transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-modelo ${
-                passo === i
-                  ? "border-modelo text-modelo"
-                  : "border-transparent text-ink-soft hover:text-ink"
-              }`}
-            >
-              {p}
-            </button>
-          ))}
-          </div>
+        {/*
+          Passos e período dividem a mesma linha quando cabem, e viram DUAS
+          linhas no celular.
 
-          {/*
-            O seletor só aparece nos passos que TÊM gráfico. Em "Contexto" não
-            há série desenhada, e um controle de período ali seria um botão que
-            não muda nada na tela.
-          */}
-          {passo < 2 && <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />}
-        </nav>
+          Lado a lado em 390px o seletor saía inteiro da tela: os sete botões
+          existiam, mas ninguém chegava neles sem descobrir que aquela barra
+          rolava de lado. Controle que só aparece se a pessoa adivinhar não
+          está na tela.
+        */}
+        <div className="shrink-0">
+          <nav className="flex items-center justify-between gap-4 border-b border-rule px-5 md:gap-6 md:px-8">
+            <div className="flex shrink-0 gap-0.5">
+            {PASSOS.map((p, i) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPasso(i)}
+                aria-current={passo === i}
+                className={`-mb-px border-b-2 px-3 py-3 text-[14px] font-medium transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-modelo sm:px-4 ${
+                  passo === i
+                    ? "border-modelo text-modelo"
+                    : "border-transparent text-ink-soft hover:text-ink"
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+            </div>
+
+            {/*
+              O seletor só aparece nos passos que TÊM gráfico. Em "Contexto" não
+              há série desenhada, e um controle de período ali seria um botão que
+              não muda nada na tela.
+            */}
+            {passo < 2 && (
+              <div className="hidden sm:block">
+                <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />
+              </div>
+            )}
+          </nav>
+
+          {passo < 2 && (
+            <div className="flex justify-center border-b border-rule px-5 py-2 sm:hidden">
+              <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />
+            </div>
+          )}
+        </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 md:px-8 md:py-7">
           {passo === 0 && <PassoPreco serie={recortar(serie, periodo)} acao={acao} />}
@@ -230,7 +256,7 @@ function Conteudo({
 function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDetalhe["acao"] }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap gap-x-12 gap-y-4">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:flex sm:flex-wrap sm:gap-x-12 sm:gap-y-4">
         <Destaque
           rotulo="Retorno em 12 meses"
           valor={pctSinal(acao.retorno12m)}
@@ -277,7 +303,7 @@ function PassoRisco({
 }) {
   return (
     <div className="flex flex-col gap-7">
-      <div className="flex flex-wrap gap-x-12 gap-y-4">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:flex sm:flex-wrap sm:gap-x-12 sm:gap-y-4">
         <Destaque rotulo="Volatilidade anual" valor={`${num(acao.vol12m, 0)}%`} nota="Desvio dos retornos diários" />
         <Destaque
           rotulo="Pior queda"
@@ -456,7 +482,7 @@ function Destaque({
   return (
     <div className="flex flex-col gap-0.5">
       <span className="eyebrow">{rotulo}</span>
-      <span className={`t-numero text-[34px] ${cor}`}>
+      <span className={`t-numero text-[26px] sm:text-[34px] ${cor}`}>
         {valor}
       </span>
       <span className="pt-1 text-[12px] text-ink-soft">{nota}</span>

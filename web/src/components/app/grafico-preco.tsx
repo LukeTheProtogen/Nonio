@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { moeda, dataLonga, pctSinal } from "@/lib/formato";
 
 /**
@@ -19,9 +19,23 @@ import { moeda, dataLonga, pctSinal } from "@/lib/formato";
 
 type Ponto = { data: string; fechamento: number };
 
-const L = 1000;
-const A = 260;
 const MARGEM = { topo: 16, base: 30, esq: 8, dir: 62 };
+
+/**
+ * O viewBox acompanha a largura real, e isso não é detalhe.
+ *
+ * Com viewBox fixo em 1000, o SVG escala junto com a caixa: num celular de
+ * 390px o desenho inteiro sai por 0,34 do tamanho, e `fontSize={13}` vira
+ * quatro pixels e meio na tela. O eixo continua lá, ilegível, o que é pior do
+ * que não estar.
+ *
+ * Medindo a caixa, uma unidade do viewBox volta a valer um pixel: o texto é
+ * desenhado no tamanho em que vai ser lido, em qualquer largura. A altura
+ * baixa junto no celular porque 260 de altura sobre 340 de largura é quase um
+ * quadrado, e série de preço se lê deitada.
+ */
+const LARGURA_PADRAO = 1000;
+const ESTREITO = 620;
 
 export function GraficoPreco({
   serie,
@@ -39,14 +53,45 @@ export function GraficoPreco({
   marcarQueda?: boolean;
 }) {
   const [i, setI] = useState<number | null>(null);
+  const [largura, setLargura] = useState(LARGURA_PADRAO);
+  const caixa = useRef<HTMLElement>(null);
 
-  const g = useMemo(() => calcular(serie), [serie]);
+  useEffect(() => {
+    const el = caixa.current;
+    if (!el) return;
+
+    /*
+      A primeira medida vem do `getBoundingClientRect`, NÃO do observador.
+
+      O ResizeObserver promete uma chamada inicial, mas ela chega no ciclo de
+      pintura seguinte — e em aba em segundo plano esse ciclo pode não vir. O
+      gráfico então ficava com o viewBox de desktop no celular, que é
+      exatamente o defeito que este código existe para corrigir. Medir na hora
+      resolve o primeiro quadro; o observador cuida do resto.
+    */
+    const medir = (w: number) => {
+      if (w > 0) setLargura(w);
+    };
+    medir(el.getBoundingClientRect().width);
+
+    const observador = new ResizeObserver(([entrada]) => {
+      medir(entrada?.contentRect.width ?? 0);
+    });
+    observador.observe(el);
+    return () => observador.disconnect();
+  }, []);
+
+  const L = Math.max(largura, 240);
+  // Deitado no celular, mais alto no desktop, onde há largura de sobra.
+  const A = L < ESTREITO ? 190 : 260;
+
+  const g = useMemo(() => calcular(serie, L, A), [serie, L, A]);
   if (!g) return null;
 
   const foco = i === null ? null : serie[i];
 
   return (
-    <figure className="flex flex-col gap-2">
+    <figure ref={caixa} className="flex min-w-0 flex-col gap-2">
       <svg
         viewBox={`0 0 ${L} ${A}`}
         className="w-full touch-none"
@@ -147,10 +192,16 @@ export function GraficoPreco({
       </svg>
 
       {/*
-        A legenda tem altura fixa e mostra o fechamento quando não há cursor.
-        Sem isso a página pula alguns pixels toda vez que o mouse entra e sai.
+        A legenda tem altura MÍNIMA e mostra o fechamento quando não há cursor.
+        Sem a altura reservada a página pulava alguns pixels toda vez que o
+        mouse entrava e saía; com altura fixa, no celular a frase quebrava em
+        duas linhas e a segunda ficava cortada. Mínima resolve os dois.
+
+        "Percorra", e não "passe o cursor": no celular não há cursor nenhum, e
+        o gesto é arrastar o dedo. Uma frase que serve aos dois é melhor que
+        duas frases atrás de uma media query.
       */}
-      <figcaption className="flex h-6 items-baseline gap-4 text-[13px] text-ink-soft">
+      <figcaption className="flex min-h-6 flex-wrap items-baseline gap-x-4 gap-y-1 text-[13px] text-ink-soft">
         {foco ? (
           <>
             <span className="font-mono text-ink tabular">{moeda(foco.fechamento)}</span>
@@ -162,8 +213,8 @@ export function GraficoPreco({
         ) : (
           <span>
             {marcarQueda
-              ? "A faixa sombreada é a pior queda. Passe o cursor para ler qualquer pregão."
-              : "Passe o cursor para ler qualquer pregão."}
+              ? "A faixa sombreada é a pior queda. Percorra o gráfico para ler qualquer pregão."
+              : "Percorra o gráfico para ler qualquer pregão."}
           </span>
         )}
       </figcaption>
@@ -171,7 +222,7 @@ export function GraficoPreco({
   );
 }
 
-function calcular(serie: Ponto[]) {
+function calcular(serie: Ponto[], L: number, A: number) {
   if (serie.length < 2) return null;
 
   const valores = serie.map((p) => p.fechamento);

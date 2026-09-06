@@ -239,7 +239,7 @@ function ItemNav({ rota, ativa }: { rota: Rota; ativa: boolean }) {
         title="Ainda não construída"
         className={`${base} border-transparent text-referencia`}
       >
-        {rota.icone}
+        <Icone>{rota.icone}</Icone>
         <span>{rota.rotulo}</span>
         <span className="ml-auto text-[10px] font-normal">em breve</span>
       </span>
@@ -253,9 +253,24 @@ function ItemNav({ rota, ativa }: { rota: Rota; ativa: boolean }) {
         ativa ? "border-modelo text-modelo" : "border-transparent text-ink-soft hover:text-ink"
       }`}
     >
-      {rota.icone}
+      <Icone>{rota.icone}</Icone>
       <span>{rota.rotulo}</span>
     </Link>
+  );
+}
+
+/**
+ * O ícone do item de navegação, que some em tela muito estreita.
+ *
+ * Abaixo de 380px os quatro itens com ícone somam mais que a largura da tela e
+ * a faixa passa a rolar de lado, escondendo "Fontes". Entre o ícone e o rótulo,
+ * quem sai é o ícone: ele decora, o rótulo é que diz para onde o toque leva.
+ */
+function Icone({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="hidden min-[380px]:inline-flex lg:inline-flex" aria-hidden>
+      {children}
+    </span>
   );
 }
 

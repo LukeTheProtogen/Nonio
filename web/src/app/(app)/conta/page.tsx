@@ -103,12 +103,20 @@ export default async function Conta() {
           <Bloco titulo="Onde a conta está aberta">
             <ul className="flex flex-col">
               {conta.sessoes.map((s) => (
+                /*
+                  Empilhado no celular, lado a lado a partir de `sm`.
+
+                  Em 323px as duas colunas dividiam a largura em três com o
+                  selo no meio, e "Este navegador" quebrava em duas linhas
+                  passando por baixo do selo. Duas colunas só valem a pena
+                  quando as duas cabem.
+                */
                 <li
                   key={s.id}
-                  className="flex items-baseline justify-between gap-6 border-b border-rule-soft py-3 last:border-0"
+                  className="flex flex-col gap-1 border-b border-rule-soft py-3 last:border-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6"
                 >
                   <span className="flex min-w-0 flex-col">
-                    <span className="flex items-baseline gap-2.5 text-[14.5px]">
+                    <span className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 text-[14.5px]">
                       {s.dispositivo}
                       {s.atual && (
                         <span className="rounded-full border border-modelo/30 bg-modelo-lavado px-2 py-0.5 font-mono text-[10.5px] text-modelo">
@@ -118,10 +126,12 @@ export default async function Conta() {
                     </span>
                     <span className="text-[12.5px] text-ink-soft">{s.local}</span>
                   </span>
-                  <span className="shrink-0 text-right font-mono text-[12.5px] text-ink-soft tabular">
+                  <span className="shrink-0 font-mono text-[12.5px] text-ink-soft tabular sm:text-right">
                     {dataLonga(s.ultimoAcesso)} {hora(s.ultimoAcesso)}
-                    <br />
-                    <span className="text-[11.5px]">
+                    <span className="hidden sm:inline">
+                      <br />
+                    </span>
+                    <span className="pl-2 text-[11.5px] sm:pl-0">
                       {idadeEmDias(s.ultimoAcesso) === 0
                         ? "hoje"
                         : `há ${idadeEmDias(s.ultimoAcesso)} dias`}
