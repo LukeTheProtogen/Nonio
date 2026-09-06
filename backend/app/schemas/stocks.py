@@ -41,3 +41,20 @@ class StockPage(BaseModel):
     page: int
     page_size: int
     total: int
+
+
+class HistoryBar(BaseModel):
+    date: Date
+    open: float | None = None
+    high: float | None = None
+    low: float | None = None
+    close: float | None = None
+    volume: float | None = None
+    source: str | None = None
+    extracted_at: DateTime | None = None
+
+
+class StockDetailOut(StockOut):
+    """Lookup + série histórica completa (Parquet). Preferência: source=yahoo."""
+
+    history: list[HistoryBar] = Field(default_factory=list)
