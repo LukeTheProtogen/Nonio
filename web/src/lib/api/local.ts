@@ -1,4 +1,5 @@
 import { buscarCotacoes, temToken } from "@/lib/brapi";
+import { cotacoesCongeladas, ehDemo, snapshot } from "@/lib/demo";
 import { previsaoDe, todasPrevisoes, geradoEm as previsoesGeradasEm } from "@/lib/previsoes";
 import * as backtest from "@/lib/backtest";
 import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
@@ -16,6 +17,12 @@ import type { Meta } from "./contratos";
  *
  * Quando `nonio-api` subir, este arquivo some inteiro e nada mais muda —
  * é essa a razão de ele ser a única coisa que conhece os mocks.
+ *
+ * Modo demonstração (NONIO_DEMO=1) entra AQUI, e não em cada tela: é o único
+ * ponto por onde cotação passa. Em demo nenhuma chamada externa acontece, nem
+ * para falhar, e `meta.fontes` diz "snapshot congelado" — dado congelado
+ * apresentado como ao vivo é a desonestidade que este produto existe para não
+ * cometer.
  */
 
 function meta(p: {
@@ -61,6 +68,12 @@ export function macro() {
 
 // ------------------------------------------------------------------- ações
 
+/** Cotação: congelada em demo, ao vivo fora dela. Falha vira lista vazia. */
+async function cotacoes(tickers: string[]) {
+  if (ehDemo()) return cotacoesCongeladas(tickers);
+  return buscarCotacoes(tickers).catch(() => []);
+}
+
 /**
  * Meio real, meio mock.
  *
@@ -72,28 +85,34 @@ export function macro() {
  * justamente sobre as colunas inventadas.
  */
 export async function acoes() {
-  const cotacoes = await buscarCotacoes(ACOES.map((a) => a.ticker)).catch(() => []);
-  const porTicker = new Map(cotacoes.map((c) => [c.ticker, c]));
+  const lista = await cotacoes(ACOES.map((a) => a.ticker));
+  const porTicker = new Map(lista.map((c) => [c.ticker, c]));
 
   return {
     dados: {
       acoes: ACOES.map((a) => montarAcao(a, porTicker.get(a.ticker))),
       cdi12m: CDI_12M,
-      limitadoSemToken: !temToken(),
+      // Em demo o snapshot cobre todo mundo, então não há limitação a avisar.
+      limitadoSemToken: ehDemo() ? false : !temToken(),
     },
     meta: meta({
       geradoEm: previsoesGeradasEm,
-      fontes: ["B3, via brapi.dev", "pipeline nonio.probabilidade"],
+      fontes: [fonteCotacao(), "pipeline nonio.probabilidade"],
       mock: true,
     }),
   };
+}
+
+/** O nome da origem da cotação vai para a tela, e muda em demo. */
+function fonteCotacao(): string {
+  return ehDemo() ? `snapshot congelado em ${snapshot.capturadoEm.slice(0, 10)}` : "B3, via brapi.dev";
 }
 
 export async function acao(ticker: string) {
   const base = ACOES.find((a) => a.ticker === ticker);
   if (!base) return null;
 
-  const [cotacao] = await buscarCotacoes([ticker]).catch(() => []);
+  const [cotacao] = await cotacoes([ticker]);
 
   return {
     dados: {
@@ -103,7 +122,7 @@ export async function acao(ticker: string) {
     },
     meta: meta({
       geradoEm: previsoesGeradasEm,
-      fontes: ["B3, via brapi.dev", "CVM — pacote IPE", "pipeline nonio.probabilidade"],
+      fontes: [fonteCotacao(), "CVM — pacote IPE", "pipeline nonio.probabilidade"],
       mock: true,
     }),
   };
@@ -239,16 +258,18 @@ export function fontes() {
         {
           slug: "brapi",
           nome: "Cotações",
-          orgao: "brapi.dev, sobre dados da B3",
+          orgao: ehDemo() ? "Snapshot congelado, sobre dados da B3" : "brapi.dev, sobre dados da B3",
           descricao: "Preço de fechamento e variação do dia.",
           url: "https://brapi.dev",
-          cadencia: "A cada 15 minutos",
-          coletadoEm: new Date().toISOString(),
+          cadencia: ehDemo() ? "Congelada para demonstração" : "A cada 15 minutos",
+          coletadoEm: ehDemo() ? snapshot.capturadoEm : new Date().toISOString(),
           estado: "ok" as const,
-          registros: temToken() ? ACOES.length : 4,
-          observacao: temToken()
-            ? null
-            : "Sem BRAPI_TOKEN: só PETR4, VALE3, ITUB4 e MGLU3 têm preço. Os demais aparecem sem cotação.",
+          registros: ehDemo() ? snapshot.cotacoes.length : temToken() ? ACOES.length : 4,
+          observacao: ehDemo()
+            ? "Modo demonstração ligado: nenhuma cotação é buscada, tudo vem do snapshot versionado."
+            : temToken()
+              ? null
+              : "Sem BRAPI_TOKEN: só PETR4, VALE3, ITUB4 e MGLU3 têm preço. Os demais aparecem sem cotação.",
         },
         {
           slug: "ipca",
