@@ -16,7 +16,6 @@ export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
   const codigo =
     (typeof erro === "string" && erro) || (typeof error === "string" && error) || "";
   const avisoOauth = avisoErroOauth(codigo);
-  // Google no Supabase local/cloud; UI só habilita se as chaves OAuth existem.
   const googleOk =
     supabaseConfigured() &&
     Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);

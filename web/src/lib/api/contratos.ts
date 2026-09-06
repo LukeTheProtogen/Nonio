@@ -301,9 +301,26 @@ export const zConta = envelope(
   z.object({
     nome: z.string(),
     email: z.email(),
-    plano: z.string(),
-    criadaEm: z.iso.datetime({ offset: true }),
-    /** Sessões abertas. A pessoa precisa ver de onde a conta está sendo usada. */
+    /** Nulo enquanto não houver cobrança. Vem do backend, não do front. */
+    plano: z.string().nullable(),
+    /** E-mail confirmado. O backend expõe; o mock não sabe e manda null. */
+    verificado: z.boolean().nullable(),
+    /**
+     * NULO quando não se sabe.
+     *
+     * O fastapi-users não guarda data de criação, e o mock inventava uma. Data
+     * inventada na tela de conta é pior que campo ausente: a pessoa acredita
+     * nela, e é sobre a própria conta dela.
+     */
+    criadaEm: z.iso.datetime({ offset: true }).nullable(),
+    /**
+     * Sessões abertas. VAZIO enquanto não houver de onde tirar.
+     *
+     * O mock listava "Chrome no Windows, Porto Alegre" para todo mundo. Isso
+     * não é dado ilustrativo como um gráfico de exemplo: é alarme falso de
+     * segurança. Alguém vê um acesso que não reconhece, acha que foi invadido,
+     * e troca a senha correndo por causa de uma linha inventada.
+     */
     sessoes: z.array(
       z.object({
         id: z.string(),

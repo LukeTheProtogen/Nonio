@@ -9,13 +9,21 @@ import { createClient } from "@/lib/supabase/server";
 
 /**
  * Sessão = Supabase Auth (e-mail/senha ou Google).
- * Sem SQLite e sem NextAuth. FastAPI só vê o JWT curto mintado depois.
+ * FastAPI só vê o JWT curto mintado depois da sessão Supabase.
  */
 
 export type Sessao = {
   nome: string;
   email: string;
-  plano: string;
+  /**
+   * Plano da assinatura. NULO enquanto não houver cobrança.
+   * Sem inventar rótulo fixo na tela de conta.
+   */
+  plano: string | null;
+  /**
+   * E-mail confirmado no provedor de auth. `null` se não soubermos.
+   */
+  verificado: boolean | null;
 };
 
 export type ResultadoEntrada = { erro: string } | undefined;
@@ -34,7 +42,7 @@ function nomeDoEmail(email: string): string {
 function msgErroAuth(mensagem: string | undefined): string {
   const m = (mensagem ?? "").toLowerCase();
   if (m.includes("already") || m.includes("registered") || m.includes("exists")) {
-    return "Este e-mail já tem conta. Entre com e-mail e senha ou use Continuar com Google.";
+    return "Este e-mail já tem conta. Entre com o método que você usou (e-mail e senha ou Google).";
   }
   if (m.includes("invalid login") || m.includes("invalid credentials")) {
     return "E-mail ou senha não conferem.";
@@ -45,51 +53,32 @@ function msgErroAuth(mensagem: string | undefined): string {
   return "Não deu para entrar agora. Tente de novo.";
 }
 
+function sessaoDeUser(user: {
+  email?: string | null;
+  user_metadata?: Record<string, unknown> | null;
+  email_confirmed_at?: string | null;
+  confirmed_at?: string | null;
+}): Sessao | null {
+  const email = user.email?.trim();
+  if (!email) return null;
+  const nomeMeta =
+    typeof user.user_metadata?.name === "string" ? user.user_metadata.name : null;
+  const verificado = Boolean(user.email_confirmed_at || user.confirmed_at);
+  return {
+    nome: nomeMeta?.trim() || nomeDoEmail(email),
+    email,
+    plano: null,
+    verificado,
+  };
+}
+
 export async function sessaoAtual(): Promise<Sessao | null> {
   if (!supabaseConfigured()) return null;
 
   const supabase = await createClient();
-  const { data: claimsData } = await supabase.auth.getClaims();
-  const claims = claimsData?.claims;
-  if (!claims?.sub) return null;
-
-  const email =
-    typeof claims.email === "string"
-      ? claims.email
-      : typeof claims.user_metadata === "object" &&
-          claims.user_metadata &&
-          "email" in claims.user_metadata &&
-          typeof (claims.user_metadata as { email?: unknown }).email === "string"
-        ? (claims.user_metadata as { email: string }).email
-        : null;
-
-  if (!email) {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user?.email) return null;
-    const nomeMeta =
-      typeof data.user.user_metadata?.name === "string"
-        ? data.user.user_metadata.name
-        : null;
-    return {
-      nome: nomeMeta?.trim() || nomeDoEmail(data.user.email),
-      email: data.user.email,
-      plano: "Assinatura",
-    };
-  }
-
-  const nomeMeta =
-    typeof claims.user_metadata === "object" &&
-    claims.user_metadata &&
-    "name" in claims.user_metadata &&
-    typeof (claims.user_metadata as { name?: unknown }).name === "string"
-      ? (claims.user_metadata as { name: string }).name
-      : null;
-
-  return {
-    nome: nomeMeta?.trim() || nomeDoEmail(email),
-    email,
-    plano: "Assinatura",
-  };
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return null;
+  return sessaoDeUser(data.user);
 }
 
 export async function entrarComGoogle(form: FormData): Promise<void> {
@@ -117,9 +106,7 @@ export async function entrarComGoogle(form: FormData): Promise<void> {
   redirect(data.url);
 }
 
-/**
- * E-mail + senha → sessão Supabase (sem OTP mock).
- */
+/** E-mail + senha → sessão Supabase. */
 export async function pedirCodigo(
   _anterior: ResultadoEntrada,
   form: FormData,
@@ -150,7 +137,7 @@ export async function pedirCodigo(
   redirect(de);
 }
 
-/** Mantido para a rota /entrar/codigo legada — redireciona ao login. */
+/** Rota /entrar/codigo legada — pede login de novo. */
 export async function verificarCodigo(
   _anterior: ResultadoEntrada,
   _form: FormData,
@@ -166,9 +153,7 @@ export async function sair(): Promise<void> {
   redirect("/entrar");
 }
 
-/**
- * Cria conta no Supabase Auth (e-mail único no projeto).
- */
+/** Cria conta no Supabase Auth (e-mail único no projeto). */
 export async function criarConta(
   _anterior: ResultadoEntrada,
   form: FormData,
@@ -203,7 +188,6 @@ export async function criarConta(
   if (error) {
     const m = error.message.toLowerCase();
     if (m.includes("already") || m.includes("registered") || m.includes("exists")) {
-      // Mensagem única de propósito: não revelar se a conta é Google ou senha.
       return {
         erro: "Este e-mail já tem conta. Entre com o método que você usou (e-mail e senha ou Google).",
       };
@@ -211,7 +195,6 @@ export async function criarConta(
     return { erro: "Não deu para criar a conta agora. Tente de novo." };
   }
 
-  // Supabase às vezes devolve user sem identities em e-mail já cadastrado.
   if (data.user && (data.user.identities?.length ?? 0) === 0) {
     return {
       erro: "Este e-mail já tem conta. Entre com o método que você usou (e-mail e senha ou Google).",
@@ -222,10 +205,7 @@ export async function criarConta(
     redirect(de);
   }
 
-  // Confirmação de e-mail ligada no projeto Supabase.
-  redirect(
-    `/entrar?de=${encodeURIComponent(de)}&erro=confirme-email`,
-  );
+  redirect(`/entrar?de=${encodeURIComponent(de)}&erro=confirme-email`);
 }
 
 export async function pedirRecuperacao(

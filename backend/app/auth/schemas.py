@@ -7,6 +7,8 @@ from pydantic import Field
 class UserRead(schemas.BaseUser[uuid.UUID]):
     name: str
     avatar_url: str | None = None
+    # Nulo enquanto não houver cobrança. O front mostra a ausência.
+    plan: str | None = None
 
 
 class UserCreate(schemas.BaseUserCreate):

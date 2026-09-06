@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Marca } from "@/components/marketing/marca";
 import { DISCLAIMER_MEDIO } from "@/lib/conformidade";
 
 /**
@@ -29,11 +30,17 @@ export function MolduraAcesso({
     <div className="flex w-full flex-1">
       <div className="flex flex-1 justify-center px-8 py-12 md:px-20">
         <div className="flex w-full max-w-[560px] flex-col">
-          <Link
-            href="/"
-            className="self-start font-heading text-[22px] font-semibold tracking-tight"
-          >
-            Nônio
+          {/*
+            Glifo ao lado do nome, sem caixa. Aqui a marca é assinatura de uma
+            tela onde a pessoa vai digitar senha — e reconhecer de relance em
+            qual site está é justamente a defesa contra página falsa. O bloco
+            de cor sólida ficaria para o cabeçalho, onde a marca é presença.
+          */}
+          <Link href="/" className="flex items-center gap-3.5 self-start">
+            <Marca tamanho={38} caixa={false} />
+            <span className="font-heading text-[30px] font-semibold tracking-[-0.02em]">
+              Nônio
+            </span>
           </Link>
 
           <div className="my-auto w-full py-14">{children}</div>

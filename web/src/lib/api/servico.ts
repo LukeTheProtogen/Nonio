@@ -22,9 +22,23 @@ import { mintApiAccessToken } from "./access-token";
  *   NONIO_API_URL definida  →  FastAPI, com JWT mintado após Supabase Auth
  *   NONIO_API_URL vazia     →  mock / pipeline local
  *   Backend ligado mas sem sessão → cai no local (ex.: landing deslogada)
+ *
+ * `NONIO_API_URL` não significa "o backend tem tudo". Lista explícita abaixo:
+ * ligar um recurso é acrescentar uma linha, sem fallback silencioso em 404.
  */
 
 const BASE = process.env.NONIO_API_URL?.replace(/\/$/, "") ?? "";
+
+const RECURSOS_NO_BACKEND = new Set<"macro" | "acoes" | "historico" | "fontes">([
+  // "acoes",     ← liga quando /stocks tiver dado ingerido
+  // "macro",     ← não existe no backend ainda
+  // "historico", ← não existe no backend ainda
+  // "fontes",    ← não existe no backend ainda
+]);
+
+function noBackend(recurso: "macro" | "acoes" | "historico" | "fontes"): boolean {
+  return BASE.length > 0 && RECURSOS_NO_BACKEND.has(recurso);
+}
 
 const CACHE = {
   macro: 900,
@@ -33,6 +47,7 @@ const CACHE = {
   fontes: 300,
 } as const;
 
+/** Há backend configurado. Não implica que ele sirva todos os recursos. */
 export const usandoBackend = BASE.length > 0;
 
 class ErroApi extends Error {
@@ -71,40 +86,24 @@ async function doBackend<T extends z.ZodType>(
   return schema.parse(await resposta.json());
 }
 
-async function doBackendOuLocal<T extends z.ZodType>(
-  rota: string,
-  schema: T,
-  revalidate: number,
-  localFn: () => unknown | Promise<unknown>,
-): Promise<z.infer<T>> {
-  if (!usandoBackend) {
-    return schema.parse(await localFn());
-  }
-  try {
-    return await doBackend(rota, schema, revalidate);
-  } catch (erro) {
-    // 401: sem NextAuth. 404: rota ainda não existe na API (/macro, /acoes…).
-    if (erro instanceof ErroApi && (erro.status === 401 || erro.status === 404)) {
-      return schema.parse(await localFn());
-    }
-    throw erro;
-  }
-}
-
 export async function obterMacro(): Promise<Macro> {
-  const r = await doBackendOuLocal("/macro", zMacro, CACHE.macro, () => local.macro());
+  const r = noBackend("macro")
+    ? await doBackend("/macro", zMacro, CACHE.macro)
+    : zMacro.parse(local.macro());
   return r.dados;
 }
 
 export async function obterAcoes(): Promise<Acoes> {
-  const r = await doBackendOuLocal("/acoes", zAcoes, CACHE.acoes, () => local.acoes());
+  const r = noBackend("acoes")
+    ? await doBackend("/acoes", zAcoes, CACHE.acoes)
+    : zAcoes.parse(await local.acoes());
   return r.dados;
 }
 
 export async function obterAcao(ticker: string): Promise<AcaoDetalhe | null> {
   const t = ticker.toUpperCase();
 
-  if (usandoBackend) {
+  if (noBackend("acoes")) {
     try {
       const r = await doBackend(`/acoes/${t}`, zAcaoDetalhe, CACHE.acoes);
       return r.dados;
@@ -122,17 +121,30 @@ export async function obterAcao(ticker: string): Promise<AcaoDetalhe | null> {
 }
 
 export async function obterHistorico(): Promise<Historico> {
-  const r = await doBackendOuLocal("/historico", zHistorico, CACHE.historico, () =>
-    local.historico(),
-  );
+  const r = noBackend("historico")
+    ? await doBackend("/historico", zHistorico, CACHE.historico)
+    : zHistorico.parse(local.historico());
   return r.dados;
 }
 
 export async function obterFontes(): Promise<Fontes> {
-  const r = await doBackendOuLocal("/fontes", zFontes, CACHE.fontes, () => local.fontes());
+  const r = noBackend("fontes")
+    ? await doBackend("/fontes", zFontes, CACHE.fontes)
+    : zFontes.parse(await local.fontes());
   return r.dados;
 }
 
-export async function obterConta(nome: string, plano: string): Promise<Conta> {
-  return zConta.parse(local.conta(nome, plano)).dados;
+/**
+ * A conta.
+ *
+ * Recebe o que a sessão já resolveu (Supabase). O que não se sabe chega como
+ * null e a tela mostra a ausência.
+ */
+export async function obterConta(p: {
+  nome: string;
+  email: string;
+  plano: string | null;
+  verificado: boolean | null;
+}): Promise<Conta> {
+  return zConta.parse(local.conta(p)).dados;
 }

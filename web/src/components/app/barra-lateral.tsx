@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { sair, type Sessao } from "@/lib/sessao";
+import { Marca } from "@/components/marketing/marca";
+import { type Sessao } from "@/lib/sessao";
+import { ConfirmarSaida } from "./confirmar-saida";
 import { alternarDemo } from "@/lib/demo-acoes";
 import { dataCurta, hora } from "@/lib/formato";
 
@@ -57,8 +59,11 @@ export function BarraLateral({
     */
     <aside className="flex w-58 shrink-0 flex-col overflow-y-auto border-r border-rule py-5.5">
       <div className="flex flex-col gap-0.5 px-5 pb-4.5">
-        <Link href="/macro" className="font-heading text-[21px] font-semibold tracking-tight">
-          Nônio
+        <Link href="/macro" className="flex items-center gap-2.5">
+          {/* Sem caixa aqui: ao lado do nome, um bloco de cor sólida competiria
+              com o próprio nome em vez de assiná-lo. */}
+          <Marca tamanho={22} caixa={false} />
+          <span className="font-heading text-[21px] font-semibold tracking-tight">Nônio</span>
         </Link>
         <span className="eyebrow">pesquisa · probabilidade</span>
       </div>
@@ -111,20 +116,16 @@ export function BarraLateral({
             </span>
             <span className="flex min-w-0 flex-col">
               <span className="truncate text-[12.5px] font-medium">{sessao.nome}</span>
-              <span className="text-[11px] text-ink-soft">{sessao.plano}</span>
+              {/* Sem plano, mostra o e-mail: a linha existe para identificar de quem é
+                a conta, e o e-mail faz isso melhor que um rótulo vazio. */}
+            <span className="truncate text-[11px] text-ink-soft">
+              {sessao.plano ?? sessao.email}
+            </span>
             </span>
           </Link>
 
-          {/* Sair é POST, nunca link: um GET que encerra sessão é derrubado pelo
-              pré-carregamento do próprio navegador. */}
-          <form action={sair}>
-            <button
-              type="submit"
-              className="rounded-sm px-1.5 py-1 text-[11px] text-ink-soft hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
-            >
-              Sair
-            </button>
-          </form>
+          {/* A ação de servidor mora dentro do diálogo de confirmação. */}
+          <ConfirmarSaida>Sair</ConfirmarSaida>
         </div>
       </div>
 
