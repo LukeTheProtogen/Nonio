@@ -15,7 +15,10 @@
 
 export type Periodo = {
   id: string;
+  /** Curto, para caber na barra de passos: "3M" e não "3 meses". */
   rotulo: string;
+  /** O nome inteiro, para o title e para leitor de tela. */
+  nome: string;
   /** Pregões a manter, contados do fim da série. */
   pregoes: number;
 };
@@ -24,11 +27,11 @@ export type Periodo = {
 const ANO = 252;
 
 export const PERIODOS: Periodo[] = [
-  { id: "1m", rotulo: "1 mês", pregoes: 21 },
-  { id: "3m", rotulo: "3 meses", pregoes: 63 },
-  { id: "6m", rotulo: "6 meses", pregoes: 126 },
-  { id: "9m", rotulo: "9 meses", pregoes: 189 },
-  { id: "1a", rotulo: "1 ano", pregoes: ANO },
+  { id: "1m", rotulo: "1M", nome: "1 mês", pregoes: 21 },
+  { id: "3m", rotulo: "3M", nome: "3 meses", pregoes: 63 },
+  { id: "6m", rotulo: "6M", nome: "6 meses", pregoes: 126 },
+  { id: "9m", rotulo: "9M", nome: "9 meses", pregoes: 189 },
+  { id: "1a", rotulo: "1A", nome: "1 ano", pregoes: ANO },
 ];
 
 /**
@@ -38,8 +41,8 @@ export const PERIODOS: Periodo[] = [
  * o que não foi medido, que é exatamente o que este produto não faz.
  */
 export const PERIODOS_INDISPONIVEIS = [
-  { id: "3a", rotulo: "3 anos" },
-  { id: "5a", rotulo: "5 anos" },
+  { id: "3a", rotulo: "3A", nome: "3 anos" },
+  { id: "5a", rotulo: "5A", nome: "5 anos" },
 ] as const;
 
 export const PERIODO_PADRAO = "1a";

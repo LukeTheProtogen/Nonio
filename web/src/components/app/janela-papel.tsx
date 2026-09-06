@@ -56,6 +56,12 @@ function Conteudo({
 }) {
   const router = useRouter();
   const [passo, setPasso] = useState(0);
+  /*
+    O período mora AQUI e não dentro do passo de preço: o seletor passou para a
+    barra de passos, e ela é irmã dos dois passos que desenham gráfico. Manter o
+    estado embaixo obrigaria a levantar por contexto para chegar na barra.
+  */
+  const [periodo, setPeriodo] = useState(PERIODO_PADRAO);
   const caixa = useRef<HTMLDivElement>(null);
   const { acao, serie, fatos } = detalhe;
 
@@ -160,7 +166,8 @@ function Conteudo({
           </div>
         </header>
 
-        <nav className="flex shrink-0 gap-0.5 border-b border-rule px-8">
+        <nav className="flex shrink-0 items-center justify-between gap-6 border-b border-rule px-8">
+          <div className="flex gap-0.5">
           {PASSOS.map((p, i) => (
             <button
               key={p}
@@ -176,11 +183,19 @@ function Conteudo({
               {p}
             </button>
           ))}
+          </div>
+
+          {/*
+            O seletor só aparece nos passos que TÊM gráfico. Em "Contexto" não
+            há série desenhada, e um controle de período ali seria um botão que
+            não muda nada na tela.
+          */}
+          {passo < 2 && <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />}
         </nav>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-8 py-7">
-          {passo === 0 && <PassoPreco serie={serie} acao={acao} />}
-          {passo === 1 && <PassoRisco acao={acao} serie={serie} />}
+          {passo === 0 && <PassoPreco serie={recortar(serie, periodo)} acao={acao} />}
+          {passo === 1 && <PassoRisco acao={acao} serie={recortar(serie, periodo)} />}
           {passo === 2 && <PassoContexto acao={acao} fatos={fatos} />}
         </div>
 
@@ -213,9 +228,6 @@ function Conteudo({
 // ------------------------------------------------------------------- passos
 
 function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDetalhe["acao"] }) {
-  const [periodo, setPeriodo] = useState(PERIODO_PADRAO);
-  const recorte = recortar(serie, periodo);
-
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap gap-x-12 gap-y-4">
@@ -251,8 +263,7 @@ function PassoPreco({ serie, acao }: { serie: AcaoDetalhe["serie"]; acao: AcaoDe
         />
       </div>
 
-      <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />
-      <GraficoPreco serie={recorte} />
+      <GraficoPreco serie={serie} />
     </div>
   );
 }
@@ -393,37 +404,40 @@ function SeletorPeriodo({
   aoEscolher: (id: string) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
-      <span className="eyebrow pr-3">Período do gráfico</span>
+    <div
+      className="flex shrink-0 items-center gap-0.5 rounded-full border border-rule bg-surface-2 p-0.5"
+      role="group"
+      aria-label="Período do gráfico"
+    >
+      {PERIODOS.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          onClick={() => aoEscolher(p.id)}
+          aria-pressed={escolhido === p.id}
+          title={p.nome}
+          className={`inline-flex h-6 cursor-pointer items-center rounded-full px-2.5 font-mono text-[11.5px] tabular transition-colors ${
+            escolhido === p.id
+              ? "bg-modelo text-white"
+              : "text-ink-soft hover:bg-carta hover:text-ink"
+          }`}
+        >
+          {p.rotulo}
+        </button>
+      ))}
 
-      <div className="flex gap-1 rounded-full border border-rule bg-surface-2 p-1">
-        {PERIODOS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => aoEscolher(p.id)}
-            aria-pressed={escolhido === p.id}
-            className={`inline-flex h-7 cursor-pointer items-center rounded-full px-3 font-mono text-[12.5px] tabular transition-colors ${
-              escolhido === p.id
-                ? "bg-modelo text-white"
-                : "text-ink-soft hover:bg-carta hover:text-ink"
-            }`}
-          >
-            {p.rotulo}
-          </button>
-        ))}
-
-        {PERIODOS_INDISPONIVEIS.map((p) => (
-          <span
-            key={p.id}
-            aria-disabled
-            title="A série publicada cobre um ano. Períodos mais longos entram quando o histórico entrar."
-            className="inline-flex h-7 cursor-default items-center rounded-full px-3 font-mono text-[12.5px] text-referencia tabular"
-          >
-            {p.rotulo}
-          </span>
-        ))}
-      </div>
+      {/* Apagados, não escondidos: a lacuna é de dado, e some quando o
+          histórico longo entrar. Mesmo tratamento das rotas "em breve". */}
+      {PERIODOS_INDISPONIVEIS.map((p) => (
+        <span
+          key={p.id}
+          aria-disabled
+          title={`${p.nome}: a série publicada cobre um ano`}
+          className="inline-flex h-6 cursor-default items-center rounded-full px-2.5 font-mono text-[11.5px] text-referencia tabular"
+        >
+          {p.rotulo}
+        </span>
+      ))}
     </div>
   );
 }
