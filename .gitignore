@@ -22,7 +22,12 @@ data/cache/
 data/models/
 data/*.duckdb
 data/*.duckdb.wal
+data/*.sqlite
+data/*.sqlite-*
 *.parquet.tmp
+# notas locais (não versionar)
+local/
+
 # sistema
 .DS_Store
 *.log

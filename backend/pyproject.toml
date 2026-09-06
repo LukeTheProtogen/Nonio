@@ -12,6 +12,8 @@ dependencies = [
     "pyarrow>=25.0.1",
     "sqlalchemy>=2.0.40",
     "uvicorn[standard]>=0.34.0",
+    "fastapi-users[oauth,sqlalchemy]>=15.0.5",
+    "aiosqlite>=0.22.1",
 ]
 
 [build-system]
