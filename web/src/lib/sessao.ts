@@ -3,17 +3,35 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { emailPlausivel, senhaValida } from "@/lib/senha";
+import {
+  criarContaNaApi,
+  entrarNaApi,
+  temBackendDeAuth,
+  usuarioDaApi,
+} from "@/lib/auth-api";
 
 /**
- * Sessão — MOCK.
+ * Sessão.
  *
- * Não existe backend de autenticação ainda. Este módulo grava um cookie e
- * pronto: não valida senha de verdade, não cifra nada, não expira do lado do
- * servidor. Serve para a interface poder ser construída e navegada.
+ * Dois caminhos, decididos por `NONIO_API_URL`:
  *
- * O código de e-mail está fixo em CODIGO_MOCK. Quando o envio real existir,
- * trocar `verificarCodigo` por uma chamada ao serviço e apagar a constante — o
- * resto da interface não muda, porque só depende de `sessaoAtual()`.
+ *   definida  autenticação REAL no nonio-api (fastapi-users, JWT de 7 dias).
+ *             O cookie guarda o token, e `sessaoAtual` pergunta ao servidor
+ *             quem é o dono dele.
+ *   vazia     mock. O cookie guarda o próprio objeto de sessão e o código de
+ *             e-mail é CODIGO_MOCK.
+ *
+ * O mock não foi apagado de propósito: sem ele, ninguém consegue mexer no front
+ * sem subir o backend, e a landing e as telas públicas deixariam de rodar
+ * sozinhas.
+ *
+ * O TOKEN NUNCA CHEGA AO NAVEGADOR como valor legível: mora em cookie
+ * httpOnly, e todo uso acontece no servidor. Token que o JavaScript lê é token
+ * que um script injetado rouba.
+ *
+ * O passo do código de seis dígitos só existe no mock. O fastapi-users
+ * autentica com e-mail e senha direto; um código intermediário seria uma tela
+ * pedindo algo que ninguém enviou.
  *
  * Duas regras de segurança que valem desde já, e que estão implementadas aqui
  * porque são decisão de produto e não de infraestrutura:
@@ -33,10 +51,22 @@ export type Sessao = {
   plano: string;
 };
 
-/** Lê a sessão do cookie. `null` quando não há ninguém logado. */
+/** Lê a sessão. `null` quando não há ninguém logado. */
 export async function sessaoAtual(): Promise<Sessao | null> {
   const bruto = (await cookies()).get(COOKIE)?.value;
   if (!bruto) return null;
+
+  if (temBackendDeAuth) {
+    /*
+     * O cookie guarda o TOKEN, e quem diz quem é o dono é o servidor. Confiar
+     * no que estivesse escrito no cookie faria da sessão um campo editável:
+     * o cookie é httpOnly contra script, não contra o dono da máquina.
+     */
+    const usuario = await usuarioDaApi(bruto);
+    if (!usuario) return null;
+    return { nome: usuario.name, email: usuario.email, plano: "Assinatura" };
+  }
+
   try {
     return JSON.parse(decodeURIComponent(bruto)) as Sessao;
   } catch {
@@ -78,7 +108,32 @@ export async function pedirCodigo(
   }
 
   const de = destino(form.get("de"));
+
+  if (temBackendDeAuth) {
+    const r = await entrarNaApi(email, senha);
+    if ("motivo" in r) return { erro: r.mensagem };
+    await gravarToken(r.token);
+    redirect(de);
+  }
+
   redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&de=${encodeURIComponent(de)}`);
+}
+
+/**
+ * Guarda o token JWT.
+ *
+ * `maxAge` casa com `jwt_lifetime_seconds` do backend (7 dias). Cookie que dura
+ * mais que o token deixa a pessoa "logada" numa sessão que o servidor já
+ * recusa, e o sintoma é uma tela que pisca e volta para o login.
+ */
+async function gravarToken(token: string): Promise<void> {
+  (await cookies()).set(COOKIE, token, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 60 * 24 * 7,
+  });
 }
 
 /**
@@ -152,7 +207,21 @@ export async function criarConta(
   if (!emailPlausivel(email)) return { erro: "Esse e-mail não parece válido." };
   if (!senhaValida(senha)) return { erro: "A senha ainda não cumpre as três regras." };
 
-  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&novo=1&de=${encodeURIComponent(destino(form.get("de")))}`);
+  const de = destino(form.get("de"));
+
+  if (temBackendDeAuth) {
+    const criada = await criarContaNaApi(nome, email, senha);
+    if ("motivo" in criada) return { erro: criada.mensagem };
+
+    // Cadastrou e já entra: mandar para a tela de login logo depois de criar a
+    // conta é pedir a mesma senha duas vezes seguidas, sem ganho nenhum.
+    const entrada = await entrarNaApi(email, senha);
+    if ("motivo" in entrada) return { erro: entrada.mensagem };
+    await gravarToken(entrada.token);
+    redirect(de);
+  }
+
+  redirect(`/entrar/codigo?email=${encodeURIComponent(email)}&novo=1&de=${encodeURIComponent(de)}`);
 }
 
 /**
