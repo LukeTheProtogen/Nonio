@@ -38,7 +38,7 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
         </span>
       </BarraSuperior>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-9 py-7">
+      <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto px-5 py-6 md:px-9 md:py-7">
         <header className="flex flex-col gap-2">
           <h1 className="t-tela max-w-[26ch]">
             O consenso erra, e dá para medir quanto
@@ -91,7 +91,7 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
               A {foco.horizonteMeses} {foco.horizonteMeses === 1 ? "mês" : "meses"} do fechamento
             </h2>
 
-            <nav className="flex gap-1 rounded-full border border-rule bg-surface-2 p-1">
+            <nav className="flex max-w-full gap-1 overflow-x-auto rounded-full border border-rule bg-surface-2 p-1">
               {horizontes.map((h) => (
                 <Link
                   key={h.horizonteMeses}
@@ -110,7 +110,7 @@ export default async function Historico({ searchParams }: PageProps<"/historico"
             </nav>
           </div>
 
-          <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 lg:grid-cols-4 lg:gap-x-10">
             <Metrica
               rotulo="Erro médio"
               valor={num(foco.consenso.mae)}

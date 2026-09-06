@@ -53,12 +53,12 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
         </span>
       </BarraSuperior>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-7">
-        <header className="flex items-end justify-between gap-8 pb-6.5">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-6 md:px-9 md:pt-7">
+        <header className="flex flex-col items-start justify-between gap-5 pb-6.5 md:flex-row md:items-end md:gap-8">
           <h1 className="t-tela">
             Onde o mercado discorda, e onde estamos dentro
           </h1>
-          <nav className="flex shrink-0 gap-1 rounded-full border border-rule bg-surface-2 p-1">
+          <nav className="flex max-w-full shrink-0 gap-1 overflow-x-auto rounded-full border border-rule bg-surface-2 p-1">
             {anos.map((a) => (
               <Chip key={a} href={`/macro?ano=${a}`} ativo={a === ano}>
                 {a}
@@ -67,7 +67,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
           </nav>
         </header>
 
-        <section className="grid grid-cols-4 border-y border-rule">
+        <section className="grid grid-cols-1 border-y border-rule sm:grid-cols-2 xl:grid-cols-4">
           {doAno.map((ind, i) => (
             /*
               O cartão é link: clicar troca o indicador do gráfico abaixo. Antes
@@ -80,10 +80,12 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
               aria-current={ind.slug === foco.slug}
               className={[
                 "flex flex-col gap-3 px-6 py-5 transition-colors hover:bg-surface-2",
-                i > 0 && "border-l border-rule",
-                i === 0 && "pl-0",
+                i > 0 && "border-t border-rule sm:border-t-0",
+                i % 2 === 1 && "sm:border-l sm:border-rule",
+                "xl:border-l xl:border-rule",
+                i === 0 && "xl:pl-0",
                 ind.slug === foco.slug && "shadow-[inset_0_2px_0_var(--modelo)]",
-                i === doAno.length - 1 && "pr-0",
+                i === doAno.length - 1 && "xl:pr-0",
               ]
                 .filter(Boolean)
                 .join(" ")}
@@ -115,7 +117,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
           ))}
         </section>
 
-        <section className="grid min-h-0 grid-cols-[minmax(0,1fr)_320px] gap-12 pt-7">
+        <section className="grid min-h-0 gap-10 pt-7 xl:grid-cols-[minmax(0,1fr)_320px] xl:gap-12">
           <div className="flex min-w-0 flex-col gap-3.5">
             <div className="flex items-baseline justify-between gap-6">
               <h2 className="t-sub">
@@ -150,7 +152,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
             </p>
           </div>
 
-          <aside className="flex min-w-0 flex-col gap-3.5 border-l border-rule pl-7">
+          <aside className="flex min-w-0 flex-col gap-3.5 border-t border-rule pt-6 xl:border-t-0 xl:border-l xl:pt-0 xl:pl-7">
             <span className="eyebrow">Por que divergimos</span>
             {citacao ? (
               <>
@@ -188,7 +190,7 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
 
         {/* `shrink-0` e margem acima: sem eles o rodapé era comprimido pelo flex e
             passava POR CIMA do parágrafo anterior quando a tela era baixa. */}
-        <footer className="mt-auto flex shrink-0 justify-between gap-8 border-t border-rule pt-3.5 pb-4 text-xs text-ink-soft">
+        <footer className="mt-auto flex shrink-0 flex-col justify-between gap-2 border-t border-rule pt-3.5 pb-4 text-xs text-ink-soft md:flex-row md:gap-8">
           <span>{DISCLAIMER_MEDIO}</span>
           <span className="font-mono">Focus de {dataLonga(coletadoEm)}</span>
         </footer>

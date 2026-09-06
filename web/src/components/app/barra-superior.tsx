@@ -44,7 +44,7 @@ export function BarraSuperior({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="flex h-14 shrink-0 items-center justify-between gap-6 border-b border-rule px-9">
+    <div className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-rule px-5 md:gap-6 md:px-9">
       <span className="shrink-0 text-[13px] font-medium">{titulo}</span>
       <div className="flex min-w-0 items-center gap-3">
         {mock && (
@@ -56,7 +56,11 @@ export function BarraSuperior({
           </span>
         )}
         {children}
-        <Busca alvos={ALVOS} />
+        {/* A busca some abaixo de md: 290px de campo não cabem ao lado do
+            título e do carimbo, e espremida ela vira caixa de 60px. */}
+        <span className="hidden md:block">
+          <Busca alvos={ALVOS} />
+        </span>
       </div>
     </div>
   );

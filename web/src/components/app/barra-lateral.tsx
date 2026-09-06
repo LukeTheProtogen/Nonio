@@ -57,35 +57,49 @@ export function BarraLateral({
       O pai é `display:flex` em linha, e `align-items: stretch` é o padrão: a
       barra estica sozinha, sem precisar de altura nenhuma.
     */
-    <aside className="flex w-58 shrink-0 flex-col overflow-y-auto border-r border-rule py-5.5">
-      <div className="flex flex-col gap-0.5 px-5 pb-4.5">
+    <aside className="flex shrink-0 flex-col overflow-y-auto border-b border-rule py-3 lg:w-58 lg:border-r lg:border-b-0 lg:py-5.5">
+      <div className="flex items-center justify-between gap-4 px-5 pb-3 lg:flex-col lg:items-stretch lg:gap-0.5 lg:pb-4.5">
         <Link href="/macro" className="flex items-center gap-2.5">
           {/* Sem caixa aqui: ao lado do nome, um bloco de cor sólida competiria
               com o próprio nome em vez de assiná-lo. */}
           <Marca tamanho={22} caixa={false} />
           <span className="font-heading text-[21px] font-semibold tracking-tight">Nônio</span>
         </Link>
-        <span className="eyebrow">pesquisa · probabilidade</span>
+        <span className="eyebrow hidden lg:block">pesquisa · probabilidade</span>
+
+        {/* Sair só aparece aqui em tela estreita: o bloco de conta do pé some,
+            e sem isto não haveria como encerrar a sessão no celular. */}
+        <span className="lg:hidden">
+          <ConfirmarSaida>Sair</ConfirmarSaida>
+        </span>
       </div>
 
-      <nav className="flex flex-col gap-0.5">
+      <nav className="flex gap-0.5 overflow-x-auto lg:flex-col">
         {rotas.map((r) => (
           <ItemNav key={r.href} rota={r} ativa={ativa(r.href)} />
         ))}
+        {/* Em tela estreita, Fontes entra na mesma fileira: separá-la exigiria
+            uma segunda linha para um item só. */}
+        <span className="lg:hidden">
+          <ItemNav
+            rota={{ href: "/fontes", rotulo: "Fontes", icone: <IconeFontes />, pronta: true }}
+            ativa={ativa("/fontes")}
+          />
+        </span>
       </nav>
 
-      <div className="mx-5 my-3.5 h-px bg-rule" />
+      <div className="mx-5 my-3.5 hidden h-px bg-rule lg:block" />
 
-      <nav className="flex flex-col gap-0.5">
+      <nav className="hidden flex-col gap-0.5 lg:flex">
         <ItemNav
           rota={{ href: "/fontes", rotulo: "Fontes", icone: <IconeFontes />, pronta: true }}
           ativa={ativa("/fontes")}
         />
       </nav>
 
-      <div className="grow" />
+      <div className="hidden grow lg:block" />
 
-      <div className="flex flex-col gap-2.5 px-5">
+      <div className="hidden flex-col gap-2.5 px-5 lg:flex">
         <span className="eyebrow">Fontes</span>
         <div className="flex flex-col gap-1.5 text-xs">
           {fontes.map((f) => (
@@ -99,11 +113,11 @@ export function BarraLateral({
         </div>
       </div>
 
-      <div className="mx-5 mt-3.5 border-t border-rule pt-3">
+      <div className="mx-5 mt-3.5 hidden border-t border-rule pt-3 lg:block">
         <ChaveDemo ligado={demo} />
       </div>
 
-      <div className="mx-3.5 mt-3 border-t border-rule px-2.5 pt-2.5">
+      <div className="mx-3.5 mt-3 hidden border-t border-rule px-2.5 pt-2.5 lg:block">
         <div className="flex items-center gap-2.5">
           <Link
             href="/conta"
@@ -129,7 +143,7 @@ export function BarraLateral({
         </div>
       </div>
 
-      <p className="mx-5 mt-3.5 text-[11px] leading-snug text-ink-soft">
+      <p className="mx-5 mt-3.5 hidden text-[11px] leading-snug text-ink-soft lg:block">
         Ferramenta de pesquisa. Não é recomendação de investimento. Res. CVM 19 e 20.
       </p>
     </aside>

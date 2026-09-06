@@ -30,7 +30,16 @@ export default async function LayoutApp({ children }: LayoutProps<"/">) {
 
       `svh` porque no celular a barra de endereço aparece e some.
     */
-    <div className="flex h-[100svh] w-full overflow-hidden">
+    /*
+      Abaixo de `lg` a casca EMPILHA: a barra vira faixa horizontal no topo e o
+      conteúdo ocupa o resto. Em coluna, uma barra de 232px comia metade de um
+      celular e o painel ficava ilegível.
+
+      `flex-col lg:flex-row` e nada de gaveta com estado: gaveta exige botão,
+      animação e trava de foco, e o ganho sobre uma faixa fixa é pequeno num
+      produto com quatro rotas.
+    */
+    <div className="flex h-[100svh] w-full flex-col overflow-hidden lg:flex-row">
       <BarraLateral
         sessao={sessao}
         demo={demo}

@@ -29,7 +29,7 @@ export default async function Fontes() {
         </span>
       </BarraSuperior>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto px-9 py-7">
+      <div className="flex min-h-0 flex-1 flex-col gap-7 overflow-y-auto px-5 py-6 md:px-9 md:py-7">
         <header className="flex flex-col gap-2">
           <h1 className="t-tela">
             Tudo que entra, e quando entrou
@@ -65,7 +65,7 @@ export default async function Fontes() {
 
 function Linha({ fonte: f }: { fonte: Fonte }) {
   return (
-    <article className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-8 gap-y-2 border-b border-rule py-5 first:border-t">
+    <article className="grid grid-cols-1 items-start gap-x-8 gap-y-4 border-b border-rule py-5 first:border-t md:grid-cols-[minmax(0,1fr)_auto]">
       <div className="flex min-w-0 flex-col gap-1.5">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <h2 className="t-cartao">{f.nome}</h2>
@@ -94,7 +94,7 @@ function Linha({ fonte: f }: { fonte: Fonte }) {
         </a>
       </div>
 
-      <dl className="flex shrink-0 flex-col items-end gap-1.5 text-right">
+      <dl className="flex shrink-0 flex-row flex-wrap items-start gap-x-8 gap-y-1.5 text-left md:flex-col md:items-end md:gap-1.5 md:text-right">
         <div>
           <dt className="eyebrow">Última coleta</dt>
           <dd className="font-mono text-[13.5px] tabular">

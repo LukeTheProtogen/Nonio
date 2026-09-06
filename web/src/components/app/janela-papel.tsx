@@ -87,7 +87,7 @@ function Conteudo({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-6 md:p-10"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 md:p-10"
       role="dialog"
       aria-modal
       aria-label={`${acao.ticker}, ${acao.nome}`}
@@ -115,7 +115,7 @@ function Conteudo({
          */
         className="relative flex h-[660px] max-h-full w-full max-w-[1080px] flex-col overflow-hidden rounded-xl border border-rule bg-carta shadow-[0_24px_64px_-16px_rgb(35_43_38/0.3)] outline-none"
       >
-        <header className="flex shrink-0 items-start justify-between gap-6 border-b border-rule px-8 py-5">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-rule px-5 py-4 md:gap-6 md:px-8 md:py-5">
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex items-baseline gap-3">
               <h2 className="t-tela">{acao.ticker}</h2>
@@ -166,8 +166,8 @@ function Conteudo({
           </div>
         </header>
 
-        <nav className="flex shrink-0 items-center justify-between gap-6 border-b border-rule px-8">
-          <div className="flex gap-0.5">
+        <nav className="flex shrink-0 items-center justify-between gap-4 overflow-x-auto border-b border-rule px-5 md:gap-6 md:px-8">
+          <div className="flex shrink-0 gap-0.5">
           {PASSOS.map((p, i) => (
             <button
               key={p}
@@ -193,18 +193,18 @@ function Conteudo({
           {passo < 2 && <SeletorPeriodo escolhido={periodo} aoEscolher={setPeriodo} />}
         </nav>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-8 py-7">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-6 md:px-8 md:py-7">
           {passo === 0 && <PassoPreco serie={recortar(serie, periodo)} acao={acao} />}
           {passo === 1 && <PassoRisco acao={acao} serie={recortar(serie, periodo)} />}
           {passo === 2 && <PassoContexto acao={acao} fatos={fatos} />}
         </div>
 
-        <footer className="flex shrink-0 items-center justify-between gap-6 border-t border-rule px-8 py-4">
-          <p className="text-[12px] text-ink-soft">
+        <footer className="flex shrink-0 items-center justify-between gap-4 border-t border-rule px-5 py-3.5 md:gap-6 md:px-8 md:py-4">
+          <p className="hidden text-[12px] text-ink-soft sm:block">
             Não é recomendação de investimento. Res. CVM 19 e 20.
           </p>
           <div className="flex items-center gap-2.5">
-            <span className="font-mono text-[11.5px] text-ink-soft tabular">
+            <span className="shrink-0 font-mono text-[11.5px] whitespace-nowrap text-ink-soft tabular">
               {passo + 1} de {PASSOS.length}
             </span>
             <button

@@ -43,7 +43,7 @@ export default async function Acoes({ searchParams }: PageProps<"/acoes">) {
         </span>
       </BarraSuperior>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-9 pt-7">
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-6 md:px-9 md:pt-7">
         <header className="flex flex-wrap items-end justify-between gap-6 pb-6">
           <div className="flex flex-col gap-2">
             <h1 className="t-tela">
@@ -84,7 +84,7 @@ export default async function Acoes({ searchParams }: PageProps<"/acoes">) {
 
         <TabelaAcoes acoes={acoes} lente={lente} cdi12m={cdi12m} selecionado={papel ?? undefined} />
 
-        <footer className="mt-auto flex justify-between gap-8 border-t border-rule py-3.5 text-xs text-ink-soft">
+        <footer className="mt-auto flex shrink-0 flex-col justify-between gap-2 border-t border-rule py-3.5 text-xs text-ink-soft md:flex-row md:gap-8">
           <span>{DISCLAIMER_MEDIO}</span>
           <span className="font-mono">CDI 12m {num(cdi12m)}%</span>
         </footer>
