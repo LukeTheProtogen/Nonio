@@ -9,7 +9,8 @@ import { num } from "@/lib/formato";
  * Consenso é área ocre, modelo é linha petróleo, faixa da meta é surface-2 e a
  * linha do teto é tracejada cinza. Nenhuma cor aqui é decoração.
  *
- * Com `animado`, a curva do modelo se desenha e os pontos surgem um a um. O
+ * Com `animado`, a curva do CONSENSO se desenha, a área varre da esquerda para
+ * a direita, a mediana cresce do eixo e os pontos surgem um a um. O
  * movimento não é enfeite: cada ponto é uma instituição respondendo, e vê-los
  * entrar diz o que "118 projeções" não diz sozinho. No painel `/macro` fica
  * desligado, porque lá o gráfico é ferramenta de consulta e quem volta cinco
@@ -93,6 +94,8 @@ export function NuvemConsenso({
             y2={base}
             stroke="var(--referencia)"
             strokeDasharray="3 5"
+            className={animado ? "cresce" : undefined}
+            style={animado ? { ["--atraso" as string]: "1.15s" } : undefined}
           />
           <text
             x={pxLimiar}
@@ -106,8 +109,29 @@ export function NuvemConsenso({
         </>
       )}
 
-      {/* consenso: área */}
-      <path d={cons.area} fill="var(--consenso)" fillOpacity={0.13} />
+      {/*
+        Consenso: área preenchida mais o contorno.
+
+        O contorno é novo. Sem modelo macro, a área chapada era a única forma no
+        gráfico e não tinha borda para o olho seguir — parecia mancha, não
+        distribuição. Com traço, ela vira curva outra vez.
+
+        Os dois animam juntos: a área varre da esquerda para a direita e o
+        contorno se desenha no mesmo sentido, então a distribuição se CONSTRÓI
+        em vez de aparecer por transparência.
+      */}
+      <g className={animado ? "revela-area" : undefined}>
+        <path d={cons.area} fill="var(--consenso)" fillOpacity={0.13} />
+      </g>
+      <path
+        d={cons.linha}
+        fill="none"
+        stroke="var(--consenso)"
+        strokeWidth={compacto ? 1.4 : 1.8}
+        strokeOpacity={0.85}
+        pathLength={animado ? 1 : undefined}
+        className={animado ? "desenha" : undefined}
+      />
       {/* modelo: linha — só existe quando existe modelo */}
       {mod && (
       <path
@@ -147,7 +171,43 @@ export function NuvemConsenso({
         y2={base}
         stroke="var(--consenso)"
         strokeWidth={1.4}
+        className={animado ? "cresce" : undefined}
+        style={animado ? { ["--atraso" as string]: "1s" } : undefined}
       />
+
+      {/*
+        A faixa onde o consenso se concentra, no lugar que era da faixa de 80%
+        do modelo.
+
+        NÃO é a nossa previsão, e o rótulo diz isso: é o intervalo interquartil
+        do próprio Focus — metade das instituições projeta dentro dele. Deixar o
+        espaço vazio porque o modelo não existe desperdiçaria informação que já
+        está publicada; preenchê-lo com algo nosso seria invenção. Isto é o
+        consenso descrevendo a si mesmo.
+      */}
+      {!compacto && c.quantis && (
+        <g className={animado ? "surge" : undefined} style={animado ? { ["--atraso" as string]: "1.3s" } : undefined}>
+          {/* 90% das projeções: traço fino */}
+          <line
+            x1={emX(c.quantis.q05, escala)}
+            y1={base + 3}
+            x2={emX(c.quantis.q95, escala)}
+            y2={base + 3}
+            stroke="var(--consenso)"
+            strokeOpacity={0.4}
+            strokeWidth={1.5}
+          />
+          {/* metade central: traço grosso */}
+          <line
+            x1={emX(c.quantis.q25, escala)}
+            y1={base + 3}
+            x2={emX(c.quantis.q75, escala)}
+            y2={base + 3}
+            stroke="var(--consenso)"
+            strokeWidth={4}
+          />
+        </g>
+      )}
       {m && (
         <>
           <line
