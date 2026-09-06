@@ -47,8 +47,13 @@ export function CurvaCalibracao({
       aria-label="Diagrama de confiabilidade do consenso: probabilidade implícita contra frequência observada."
     >
       {/*
-        A diagonal se desenha primeiro: é a régua contra a qual tudo é lido, e
-        precisa existir antes de os pontos aparecerem ao lado dela.
+        A diagonal fica SEMPRE tracejada e SEMPRE parada.
+        
+        Cheguei a animá-la, e foi erro: a técnica de desenhar um traço usa o
+        próprio `stroke-dasharray`, então a linha terminava sólida. E sólida ela
+        mente — tracejado é o que distingue o ideal teórico dos pontos medidos.
+        Estilo que carrega significado não pode ser gasto como mecanismo de
+        animação. Quem anima aqui são os pontos, que são o dado.
       */}
       <line
         x1={m}
@@ -56,9 +61,7 @@ export function CurvaCalibracao({
         x2={fim}
         y2={m}
         stroke="var(--referencia)"
-        strokeDasharray={animado ? undefined : "4 6"}
-        pathLength={animado ? 1 : undefined}
-        className={animado ? "desenha-rolagem" : undefined}
+        strokeDasharray="4 6"
       />
       <line x1={m} y1={fim} x2={fim} y2={fim} stroke="var(--rule)" />
       <line x1={m} y1={m} x2={m} y2={fim} stroke="var(--rule)" />
