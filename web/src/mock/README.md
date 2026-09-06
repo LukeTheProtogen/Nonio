@@ -24,9 +24,26 @@ ilustrativo.
 | Nuvem de dispersão reconstruída | depende de `numeroRespondentes`, nulo em 36,5% da base e ausente antes de 02-01-2014 | a reconstrução entrar no pipeline |
 | Citações das atas do Copom | o módulo `nonio.llm` existe mas o acervo ainda não foi processado | o Batch das 280 atas rodar |
 | Risco e sensibilidade macro por papel | não há regressão de fatores publicada | o pipeline publicar `acoes.json` |
+| Série de preços e fatos por papel (`serie.ts`) | a brapi só devolve cotação do dia, sem histórico | o pipeline publicar o histórico ajustado |
 | Fatos relevantes por papel | o pacote IPE da CVM ainda não é cruzado com ticker | o cruzamento CNPJ→ticker entrar |
 | Planos e preços (`planos.ts`) | não há cobrança, gateway nem contrato | existir produto de assinatura de verdade |
 | Identificação da empresa (`empresa.ts`) | não há pessoa jurídica constituída | houver razão social, CNPJ, endereço e encarregado |
+
+## Como o mock chega na tela
+
+Nada importa mock direto. Tudo passa por `src/lib/api/`:
+
+| Arquivo | Papel |
+|---|---|
+| `contratos.ts` | schemas Zod: a forma que o `nonio-api` vai ter que devolver |
+| `local.ts` | monta a resposta com mock + o que o pipeline já publica |
+| `servico.ts` | a chave: `NONIO_API_URL` definida busca no backend, vazia usa `local` |
+
+Os dois caminhos passam pelo mesmo schema. É isso que impede o mock de derivar:
+se ele deixar de caber no contrato, quebra o build, não a integração.
+
+As rotas em `src/app/api/` expõem o mesmo contrato por HTTP, para inspecionar
+com curl e para um front separado consumir. As páginas não passam por elas.
 
 ## Bloqueio de publicação
 
