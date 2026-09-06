@@ -97,7 +97,12 @@ export default async function Macro({ searchParams }: PageProps<"/macro">) {
 
               <MiniDistribuicao indicador={ind} />
 
-              <div className="grid grid-cols-2 gap-3.5">
+              {/*
+                Empilha no celular. Num cartão de 390px, duas colunas dão 150px
+                por número, e o rótulo "modelo · ainda não existe para macro"
+                quebra em cinco linhas ao lado de um número de 40px.
+              */}
+              <div className="grid grid-cols-1 gap-3.5 min-[420px]:grid-cols-2">
                 <Numero
                   valor={ind.modelo ? probabilidade(ind.modelo.pEvento) : "—"}
                   rotulo={
