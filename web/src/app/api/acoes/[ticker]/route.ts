@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { zAcaoDetalhe } from "@/lib/api/contratos";
-import * as local from "@/lib/api/local";
+import { envelopeAcao } from "@/lib/api/servico";
 
 /**
  * GET /api/acoes/PETR4
  *
- * Papel fora do universo devolve 404, não 200 com corpo vazio: quem consome
- * precisa distinguir "não existe" de "existe e está sem dado".
+ * Mesma porta que as páginas (servico → backend lowvol / fallback local).
+ * Papel fora do universo → 404.
  */
 export const dynamic = "force-dynamic";
 
@@ -14,14 +13,14 @@ export async function GET(_req: Request, { params }: RouteContext<"/api/acoes/[t
   const { ticker } = await params;
 
   try {
-    const bruto = await local.acao(ticker.toUpperCase());
-    if (!bruto) {
+    const env = await envelopeAcao(ticker);
+    if (!env) {
       return NextResponse.json(
         { erro: `${ticker.toUpperCase()} não está no universo coberto` },
         { status: 404 },
       );
     }
-    return NextResponse.json(zAcaoDetalhe.parse(bruto));
+    return NextResponse.json(env);
   } catch (erro) {
     return NextResponse.json(
       { erro: erro instanceof Error ? erro.message : "falha desconhecida" },

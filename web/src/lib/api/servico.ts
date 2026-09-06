@@ -93,31 +93,47 @@ export async function obterMacro(): Promise<Macro> {
   return r.dados;
 }
 
+export async function envelopeAcoes(): Promise<z.infer<typeof zAcoes>> {
+  if (!noBackend("acoes")) {
+    return zAcoes.parse(await local.acoes());
+  }
+  try {
+    return await doBackend("/acoes", zAcoes, CACHE.acoes);
+  } catch (erro) {
+    // BFF / páginas sem JWT: ainda servem o spine publicado em previsoes.json
+    if (erro instanceof ErroApi && erro.status === 401) {
+      return zAcoes.parse(await local.acoes());
+    }
+    throw erro;
+  }
+}
+
+export async function envelopeAcao(
+  ticker: string,
+): Promise<z.infer<typeof zAcaoDetalhe> | null> {
+  const t = ticker.toUpperCase();
+  if (!noBackend("acoes")) {
+    const bruto = await local.acao(t);
+    return bruto ? zAcaoDetalhe.parse(bruto) : null;
+  }
+  try {
+    return await doBackend(`/acoes/${t}`, zAcaoDetalhe, CACHE.acoes);
+  } catch (erro) {
+    if (erro instanceof ErroApi && (erro.status === 401 || erro.status === 404)) {
+      const bruto = await local.acao(t);
+      return bruto ? zAcaoDetalhe.parse(bruto) : null;
+    }
+    throw erro;
+  }
+}
+
 export async function obterAcoes(): Promise<Acoes> {
-  const r = noBackend("acoes")
-    ? await doBackend("/acoes", zAcoes, CACHE.acoes)
-    : zAcoes.parse(await local.acoes());
-  return r.dados;
+  return (await envelopeAcoes()).dados;
 }
 
 export async function obterAcao(ticker: string): Promise<AcaoDetalhe | null> {
-  const t = ticker.toUpperCase();
-
-  if (noBackend("acoes")) {
-    try {
-      const r = await doBackend(`/acoes/${t}`, zAcaoDetalhe, CACHE.acoes);
-      return r.dados;
-    } catch (erro) {
-      if (erro instanceof ErroApi && (erro.status === 401 || erro.status === 404)) {
-        const bruto = await local.acao(t);
-        return bruto ? zAcaoDetalhe.parse(bruto).dados : null;
-      }
-      throw erro;
-    }
-  }
-
-  const bruto = await local.acao(t);
-  return bruto ? zAcaoDetalhe.parse(bruto).dados : null;
+  const env = await envelopeAcao(ticker);
+  return env?.dados ?? null;
 }
 
 export async function obterHistorico(): Promise<Historico> {
