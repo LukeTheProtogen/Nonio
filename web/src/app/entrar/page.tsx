@@ -4,11 +4,13 @@ import { redirect } from "next/navigation";
 import { MolduraAcesso, ItemLateral } from "@/components/acesso/moldura";
 import { FormularioEntrar } from "./formulario";
 import { botaoNeutro } from "@/components/acesso/estilos";
+import { estadoGoogle, recadoGoogle } from "@/lib/google-auth";
 import { sessaoAtual } from "@/lib/sessao";
 
 export const metadata: Metadata = { title: "Entrar" };
 
 export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
+  const google = await estadoGoogle();
   const { de } = await searchParams;
   const destino = typeof de === "string" && de.startsWith("/") ? de : "/macro";
 
@@ -70,14 +72,29 @@ export default async function Entrar({ searchParams }: PageProps<"/entrar">) {
         </div>
 
         <div className="flex flex-col gap-2.5">
-          {/* Sem backend de OAuth ainda: desabilitado, e a tela diz por quê. */}
-          <button type="button" disabled className={`${botaoNeutro} opacity-45`}>
-            <IconeGoogle />
-            Continuar com Google
-          </button>
-          <p className="text-center text-[12px] text-ink-soft">
-            Entrada por Google chega junto com o envio de e-mail.
-          </p>
+          {/*
+            Link e não botão com onClick: OAuth é uma NAVEGAÇÃO para outro
+            domínio. Como link, funciona sem JavaScript, abre em nova aba com
+            ctrl-clique, e o navegador mostra o destino na barra de status —
+            que é justamente o que a pessoa deveria conferir antes de entregar
+            a conta do Google a alguém.
+          */}
+          {google.disponivel ? (
+            <a href={google.url} className={botaoNeutro}>
+              <IconeGoogle />
+              Continuar com Google
+            </a>
+          ) : (
+            <button type="button" disabled className={`${botaoNeutro} opacity-45`}>
+              <IconeGoogle />
+              Continuar com Google
+            </button>
+          )}
+          {!google.disponivel && (
+            <p className="text-center text-[12px] text-ink-soft">
+              {recadoGoogle(google.motivo)}
+            </p>
+          )}
         </div>
 
         <p className="text-[13.5px] text-ink-soft">

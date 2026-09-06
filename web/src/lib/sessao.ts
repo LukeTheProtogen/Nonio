@@ -64,7 +64,17 @@ export async function sessaoAtual(): Promise<Sessao | null> {
      */
     const usuario = await usuarioDaApi(bruto);
     if (!usuario) return null;
-    return { nome: usuario.name, email: usuario.email, plano: "Assinatura" };
+
+    /*
+      `name` é o que a pessoa digitou no cadastro, e é sempre melhor que qualquer
+      coisa deduzida — ninguém acerta apelido a partir de endereço de e-mail.
+      
+      Mas ele pode chegar vazio: `UserCreate` exige o campo, e o cadastro por
+      Google não passa por esse schema. Sem a rede de segurança, a barra lateral
+      mostraria um nome em branco e uma inicial vazia dentro do círculo.
+    */
+    const nome = usuario.name.trim() || nomeDoEmail(usuario.email);
+    return { nome, email: usuario.email, plano: "Assinatura" };
   }
 
   try {
