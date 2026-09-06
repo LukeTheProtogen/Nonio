@@ -28,12 +28,20 @@ const COLUNAS: Record<Lente, { rotulo: string; dica?: string; largura?: string }
   risco: [
     { rotulo: "Volatilidade", dica: "Desvio anualizado dos retornos diários" },
     { rotulo: "Pior queda", dica: "Do topo ao fundo, no período" },
-    { rotulo: "Recuperou em", dica: "Pregões até voltar ao topo anterior" },
+    {
+      rotulo: "Recuperou em",
+      dica: "Pregões até voltar ao topo anterior",
+      largura: "w-[130px] pr-6",
+    },
   ],
   contexto: [
     { rotulo: "Juros +1 p.p.", dica: "Resposta estimada a uma alta de 100 pontos-base" },
     { rotulo: "Dólar +1%", dica: "Resposta estimada a uma alta de 1% no câmbio" },
-    { rotulo: "Fatos em 30d", dica: "Comunicados obrigatórios no último mês" },
+    {
+      rotulo: "Fatos em 30d",
+      dica: "Comunicados obrigatórios no último mês",
+      largura: "w-[110px] pr-6",
+    },
   ],
 };
 
@@ -147,7 +155,9 @@ export function TabelaAcoes({
                 <>
                   <Num v={a.vol12m} formato={(v) => `${num(v, 0)}%`} />
                   <Num v={a.piorQueda} formato={(v) => `${num(v, 1)}%`} colorir />
-                  <td className="py-2.5 text-right font-mono tabular">
+                  {/* `pr-6` na última célula da lente: sem ele o texto encosta
+                      na régua da coluna seguinte e fica ilegível. */}
+                  <td className="py-2.5 pr-6 text-right font-mono tabular">
                     {a.diasAteOPico === 0 ? (
                       <span className="text-negativo" title="Ainda abaixo do topo anterior">
                         ainda não
@@ -163,7 +173,7 @@ export function TabelaAcoes({
                 <>
                   <Num v={a.sensJuros100bp} formato={(v) => `${num(v, 1)}%`} colorir />
                   <Num v={a.sensDolar1pct} formato={(v) => `${num(v, 1)}%`} colorir />
-                  <td className="py-2.5 text-right font-mono tabular">
+                  <td className="py-2.5 pr-6 text-right font-mono tabular">
                     {a.fatos30d === 0 ? <span className="text-referencia">—</span> : a.fatos30d}
                   </td>
                 </>
