@@ -24,11 +24,22 @@ export default async function Conta() {
   const sessao = await sessaoAtual();
   if (!sessao) redirect("/entrar");
 
-  const conta = await obterConta(sessao.nome, sessao.plano);
+  const conta = await obterConta({
+    nome: sessao.nome,
+    email: sessao.email,
+    plano: sessao.plano,
+    verificado: sessao.verificado,
+  });
 
   return (
     <>
-      <BarraSuperior titulo="Conta" mock />
+      {/*
+        Sem carimbo de demonstração: depois que os campos inventados saíram,
+        tudo nesta tela é verdade ou está ausente. Carimbo em tela honesta
+        ensina a ignorar o carimbo, e aí ele não serve mais nas telas onde
+        realmente há dado ilustrativo.
+      */}
+      <BarraSuperior titulo="Conta" />
 
       <div className="flex min-h-0 flex-1 justify-center overflow-y-auto px-9 py-9">
         <div className="flex w-full max-w-[760px] flex-col gap-9">
@@ -44,7 +55,20 @@ export default async function Conta() {
 
           <Bloco titulo="Plano">
             <Par rotulo="Assinatura" valor={conta.plano} />
-            <Par rotulo="Conta criada em" valor={dataLonga(conta.criadaEm)} />
+            {/*
+              A data de criação só aparece quando existe. O fastapi-users não a
+              guarda, e a versão anterior inventava uma — data inventada na tela
+              de conta é pior que campo ausente, porque a pessoa acredita nela.
+            */}
+            {conta.criadaEm ? (
+              <Par rotulo="Conta criada em" valor={dataLonga(conta.criadaEm)} />
+            ) : null}
+            {conta.verificado !== null ? (
+              <Par
+                rotulo="E-mail"
+                valor={conta.verificado ? "confirmado" : "ainda não confirmado"}
+              />
+            ) : null}
             <p className="pt-1 text-[13.5px] leading-relaxed text-ink-soft">
               Não há cobrança ativa: o produto ainda está em desenvolvimento. Quando começar, você
               é avisado antes.{" "}
@@ -86,8 +110,9 @@ export default async function Conta() {
               ))}
             </ul>
             <p className="pt-1 text-[13px] leading-relaxed text-ink-soft">
-              Encerrar as outras sessões vem junto com a autenticação de verdade. Hoje a sessão é
-              um cookie neste navegador, e sair já o apaga.
+              Só listamos o que sabemos. Registrar dispositivo, lugar e horário de cada acesso, e
+              encerrar sessão à distância, depende do servidor guardar isso — e ele ainda não
+              guarda. Sair apaga a sessão deste navegador.
             </p>
           </Bloco>
 

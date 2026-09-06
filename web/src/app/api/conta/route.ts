@@ -18,7 +18,14 @@ export async function GET() {
   }
 
   try {
-    return NextResponse.json(zConta.parse(local.conta(sessao.nome, sessao.plano)));
+    return NextResponse.json(zConta.parse(
+        local.conta({
+          nome: sessao.nome,
+          email: sessao.email,
+          plano: sessao.plano,
+          verificado: sessao.verificado,
+        }),
+      ));
   } catch (erro) {
     return NextResponse.json(
       { erro: erro instanceof Error ? erro.message : "falha desconhecida" },

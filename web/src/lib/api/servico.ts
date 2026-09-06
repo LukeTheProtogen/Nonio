@@ -151,9 +151,17 @@ export async function obterFontes(): Promise<Fontes> {
 }
 
 /**
- * A conta é a única que não tem versão de backend por enquanto: enquanto a
- * autenticação for mock, não existe usuário do outro lado para consultar.
+ * A conta.
+ *
+ * Recebe o que a sessão já resolveu — com backend, isso veio do /users/me; sem
+ * backend, do cookie. Em nenhum dos dois casos há campo inventado: o que não se
+ * sabe chega como null e a tela mostra a ausência.
  */
-export async function obterConta(nome: string, plano: string): Promise<Conta> {
-  return zConta.parse(local.conta(nome, plano)).dados;
+export async function obterConta(p: {
+  nome: string;
+  email: string;
+  plano: string;
+  verificado: boolean | null;
+}): Promise<Conta> {
+  return zConta.parse(local.conta(p)).dados;
 }

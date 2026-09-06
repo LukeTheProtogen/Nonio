@@ -352,38 +352,57 @@ export async function fontes() {
 
 // ------------------------------------------------------------------- conta
 
-/** MOCK. Não existe banco de usuários: a sessão inteira é cookie assinado. */
-export function conta(nome: string, plano: string) {
-  const agora = new Date();
-  const criada = new Date(agora.getTime() - 41 * 86_400_000);
-
+/**
+ * A conta.
+ *
+ * Aqui NADA é inventado, e essa é a diferença desta função para as outras deste
+ * arquivo. Um gráfico com dado ilustrativo é honesto quando a tela avisa; a
+ * tela de conta mostra os dados DA PRÓPRIA PESSOA, e ali dado ilustrativo é
+ * simplesmente errado.
+ *
+ * O que a versão anterior fabricava, e por que cada um saiu:
+ *
+ *   e-mail    montado a partir do nome ("Guilherme" virava
+ *             guilherme@exemplo.com.br). A pessoa entrou com o e-mail dela e
+ *             a tela mostrava outro.
+ *   criadaEm  data de 41 dias atrás, fixa. Agora é null quando não se sabe.
+ *   sessões   "Chrome no Windows, Porto Alegre" para todo mundo. Isso é alarme
+ *             falso de segurança: alguém vê um acesso que não reconhece, acha
+ *             que foi invadido e troca a senha correndo por causa de uma linha
+ *             inventada.
+ *
+ * A sessão atual continua na lista porque ela É verdade: quem está lendo a tela
+ * está, por definição, com uma sessão aberta neste navegador. O que sumiu foi o
+ * lugar e as outras sessões, que ninguém tem como saber.
+ */
+export function conta(p: {
+  nome: string;
+  email: string;
+  plano: string;
+  verificado: boolean | null;
+}) {
   return {
     dados: {
-      nome,
-      email: `${nome.toLowerCase().replace(/[^a-z0-9]+/g, ".")}@exemplo.com.br`,
-      plano,
-      criadaEm: criada.toISOString(),
+      nome: p.nome,
+      email: p.email,
+      plano: p.plano,
+      verificado: p.verificado,
+      criadaEm: null,
       sessoes: [
         {
           id: "atual",
           dispositivo: "Este navegador",
-          local: "São Paulo, BR",
-          ultimoAcesso: agora.toISOString(),
+          local: "sessão atual",
+          ultimoAcesso: new Date().toISOString(),
           atual: true,
-        },
-        {
-          id: "s2",
-          dispositivo: "Chrome no Windows",
-          local: "Porto Alegre, BR",
-          ultimoAcesso: new Date(agora.getTime() - 3 * 86_400_000).toISOString(),
-          atual: false,
         },
       ],
     },
     meta: meta({
-      geradoEm: agora.toISOString(),
-      fontes: ["Sessão local"],
-      mock: true,
+      geradoEm: new Date().toISOString(),
+      fontes: ["Sessão atual"],
+      // Deixou de ser mock: cada campo aqui é verdade ou é null.
+      mock: false,
     }),
   };
 }

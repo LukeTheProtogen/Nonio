@@ -49,6 +49,13 @@ export type Sessao = {
   nome: string;
   email: string;
   plano: string;
+  /**
+   * E-mail confirmado. `null` no mock, que não tem como saber.
+   *
+   * Vem do backend e vai para a tela de conta. Distinguir "não confirmado" de
+   * "não sabemos" importa: um pede ação da pessoa, o outro não pede nada.
+   */
+  verificado: boolean | null;
 };
 
 /** Lê a sessão. `null` quando não há ninguém logado. */
@@ -74,7 +81,12 @@ export async function sessaoAtual(): Promise<Sessao | null> {
       mostraria um nome em branco e uma inicial vazia dentro do círculo.
     */
     const nome = usuario.name.trim() || nomeDoEmail(usuario.email);
-    return { nome, email: usuario.email, plano: "Assinatura" };
+    return {
+      nome,
+      email: usuario.email,
+      plano: "Assinatura",
+      verificado: usuario.is_verified,
+    };
   }
 
   try {
@@ -174,6 +186,7 @@ export async function verificarCodigo(
     nome: nomeDoEmail(email),
     email: email || "voce@exemplo.com.br",
     plano: "Assinatura",
+    verificado: null,
   };
 
   (await cookies()).set(COOKIE, encodeURIComponent(JSON.stringify(sessao)), {
@@ -289,6 +302,7 @@ async function abrirSessao(email: string): Promise<void> {
     nome: nomeDoEmail(email),
     email: email || "voce@exemplo.com.br",
     plano: "Assinatura",
+    verificado: null,
   };
   (await cookies()).set(COOKIE, encodeURIComponent(JSON.stringify(sessao)), {
     httpOnly: true,
