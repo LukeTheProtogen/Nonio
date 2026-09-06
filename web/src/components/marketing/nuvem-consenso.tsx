@@ -1,5 +1,6 @@
 import { caminhoNormal, dispersao, emX, tiques, type Escala } from "@/lib/curvas";
-import { reconstruirNuvem, type Indicador } from "@/mock/macro";
+import { reconstruirNuvem } from "@/mock/macro";
+import type { Indicador } from "@/lib/api/contratos";
 import { num } from "@/lib/formato";
 
 /**
@@ -7,16 +8,25 @@ import { num } from "@/lib/formato";
  *
  * Consenso é área ocre, modelo é linha petróleo, faixa da meta é surface-2 e a
  * linha do teto é tracejada cinza. Nenhuma cor aqui é decoração.
+ *
+ * Com `animado`, a curva do modelo se desenha e os pontos surgem um a um. O
+ * movimento não é enfeite: cada ponto é uma instituição respondendo, e vê-los
+ * entrar diz o que "118 projeções" não diz sozinho. No painel `/macro` fica
+ * desligado, porque lá o gráfico é ferramenta de consulta e quem volta cinco
+ * vezes por dia não quer esperar animação nenhuma.
  */
 export function NuvemConsenso({
   indicador,
   larguraViewBox = 1040,
   compacto = false,
+  animado = false,
 }: {
   indicador: Indicador;
   larguraViewBox?: number;
   /** Versão de cartão: sem eixo, sem nuvem, sem rótulos. Só as duas curvas. */
   compacto?: boolean;
+  /** Só no herói da landing. Ver o comentário do topo. */
+  animado?: boolean;
 }) {
   const { consenso: c, modelo: m } = indicador;
 
@@ -87,7 +97,16 @@ export function NuvemConsenso({
       {/* consenso: área */}
       <path d={cons.area} fill="var(--consenso)" fillOpacity={0.13} />
       {/* modelo: linha */}
-      <path d={mod.linha} fill="none" stroke="var(--modelo)" strokeWidth={2.6} />
+      <path
+        d={mod.linha}
+        fill="none"
+        stroke="var(--modelo)"
+        strokeWidth={2.6}
+        /* pathLength=1 normaliza o traço: o dasharray da classe .desenha vale
+           para qualquer curva, sem medir comprimento em JavaScript. */
+        pathLength={animado ? 1 : undefined}
+        className={animado ? "desenha" : undefined}
+      />
 
       {/* medianas */}
       <line
@@ -119,7 +138,18 @@ export function NuvemConsenso({
       <line x1={40} y1={base} x2={larguraViewBox - 40} y2={base} stroke="var(--rule)" />
 
       {pontos.map((p, i) => (
-        <circle key={i} cx={p.cx} cy={p.cy} r={3} fill="var(--consenso)" fillOpacity={0.5} />
+        <circle
+          key={i}
+          cx={p.cx}
+          cy={p.cy}
+          r={3}
+          fill="var(--consenso)"
+          fillOpacity={0.5}
+          className={animado ? "surge" : undefined}
+          /* Escalonado pelo índice, com teto: 118 pontos a 12ms levariam
+             1,4s só para terminar de aparecer, e ninguém espera isso. */
+          style={animado ? { ["--atraso" as string]: `${Math.min(i * 9, 900)}ms` } : undefined}
+        />
       ))}
 
       {!compacto &&

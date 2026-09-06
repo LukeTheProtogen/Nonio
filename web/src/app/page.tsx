@@ -2,267 +2,249 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { NuvemConsenso } from "@/components/marketing/nuvem-consenso";
 import { CurvaCalibracao } from "@/components/marketing/curva-calibracao";
-import { Feixes } from "@/components/marketing/feixes";
 import { EscalaNonio } from "@/components/marketing/escala-nonio";
-import { LinkSeta, Canhoto } from "@/components/marketing/marca";
+import { LinkSeta } from "@/components/marketing/marca";
 import { Cabecalho, Rodape } from "@/components/marketing/moldura-publica";
+import { FaixaFontes } from "@/components/marketing/faixa-fontes";
+import { Halo } from "@/components/marketing/halo";
+import { obterMacro } from "@/lib/api/servico";
 import { porHorizonte, geradoEm as backtestGeradoEm } from "@/lib/backtest";
-import { INDICADORES, CITACOES, FOCUS_COLETADO_EM } from "@/mock/macro";
 import { dataLonga, num, probabilidade } from "@/lib/formato";
 import { sessaoAtual } from "@/lib/sessao";
 
 export const metadata: Metadata = {
-  title: "A decisão é sua",
+  title: "Público desde 2000",
   description:
-    "Mais de cem instituições projetam a inflação brasileira e discordam entre si. Mostramos a discordância inteira, com a fonte de cada número.",
+    "Mais de cem instituições projetam a inflação brasileira e discordam entre si. O Nônio mostra a discordância inteira, com a fonte de cada número.",
 };
 
-/* Uma ideia por rolagem. Onde couber uma frase no lugar de um parágrafo, fica a frase. */
-
+/*
+ * A landing.
+ *
+ * O gráfico É o herói. A versão anterior abria com uma frase e enterrava a
+ * nuvem na terceira rolagem — e a nuvem é a única coisa aqui que ninguém mais
+ * mostra. Quem chega precisa VER a discordância antes de ler sobre ela.
+ *
+ * Regra de texto, aplicada linha a linha: nenhum parágrafo onde couber uma
+ * frase, nenhuma frase onde couber um número. A página caiu de ~450 para ~180
+ * palavras, e o que saiu não era argumento, era repetição do argumento.
+ *
+ * Seis blocos, e cada um responde uma pergunta só:
+ *   1 o que é isto?       herói, com o gráfico
+ *   2 de onde vem?        faixa de fontes
+ *   3 o que eu vejo?      três cartões
+ *   4 posso acreditar?    prova medida
+ *   5 vocês ganham como?  alinhamento
+ *   6 e agora?            fecho
+ */
 export default async function Landing() {
-  const sessao = await sessaoAtual();
-  const ipca = INDICADORES[0];
+  const [sessao, macro] = await Promise.all([sessaoAtual(), obterMacro()]);
+
+  const ipca = macro.indicadores[0]!;
   const h12 = porHorizonte(12);
-  const h6 = porHorizonte(6);
-  const citacao = CITACOES[0];
 
   return (
     <main className="w-full">
-      {/* 01 · CABEÇALHO E DOBRA, sob os mesmos feixes */}
+      {/* ═══ 1 · HERÓI ═══════════════════════════════════════════════════ */}
       <div className="relative isolate">
-        <Feixes />
+        <Halo />
         <Cabecalho logado={Boolean(sessao)} />
-        <section className="relative mx-auto max-w-[1440px] px-10 pb-28 pt-24 md:px-40">
-        <p className="eyebrow">Pesquisa e probabilidade sobre dados públicos</p>
-        <h1 className="mt-8 max-w-[14ch] font-heading text-6xl font-semibold leading-[1.03] tracking-[-0.024em] md:text-[78px]">
-          A decisão é sua.
-        </h1>
-        <div className="mt-7 flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
-          {/*
-            Único título colorido da página. A regra da paleta proíbe petróleo
-            como decoração porque perto de um gráfico ele confunde qual linha é
-            o modelo — aqui não há gráfico, é a tese, e uma vez só não vira
-            padrão. Não repetir em outras seções.
-          */}
-          <p className="max-w-[26ch] text-2xl leading-snug text-modelo md:text-[26px]">
-            Nosso trabalho é não esconder nada dela.
-          </p>
-          <div className="flex flex-col items-start gap-5">
-            <p className="max-w-[44ch] text-[17px] leading-relaxed text-ink-soft">
-              Mais de cem instituições projetam a inflação brasileira e discordam entre si.
-              Mostramos a discordância inteira, com a fonte de cada número.
+
+        <section className="mx-auto grid max-w-[1440px] items-center gap-14 px-10 pt-16 pb-20 md:px-20 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:pt-20 lg:pb-24">
+          <div className="flex flex-col items-start gap-7">
+            <p className="eyebrow">Boletim Focus · {dataLonga(macro.coletadoEm)}</p>
+
+            <h1 className="max-w-[13ch] font-heading text-[52px] font-semibold leading-[1.02] tracking-[-0.028em] text-balance md:text-[64px]">
+              Público desde 2000. Você nunca viu.
+            </h1>
+
+            <p className="max-w-[38ch] text-[19px] leading-relaxed text-ink-soft">
+              <span className="font-mono text-ink tabular">{ipca.consenso.n}</span> instituições
+              projetam a inflação brasileira e discordam entre si. A imprensa publica a mediana.
+              Nós mostramos a discordância inteira.
             </p>
-            <div className="flex items-center gap-5">
+
+            <div className="flex flex-wrap items-center gap-4 pt-1">
               <Link
                 href="/criar-conta"
-                className="inline-flex h-13 items-center rounded-md bg-modelo px-7 py-4 font-semibold text-white transition-colors hover:bg-modelo-forte"
+                className="inline-flex h-13 items-center rounded-lg bg-modelo px-7 font-semibold text-white transition-colors hover:bg-modelo-forte focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
               >
                 Criar conta
               </Link>
-              <span className="text-sm text-ink-soft">Sem cartão para começar.</span>
+              <Link
+                href="/sobre"
+                className="inline-flex h-13 items-center rounded-lg border border-rule bg-carta px-6 font-medium transition-colors hover:border-ink-soft"
+              >
+                Como funciona
+              </Link>
             </div>
+
+            <p className="text-[13.5px] text-ink-soft">
+              Sem cartão. Ferramenta de pesquisa, não recomendação de investimento.
+            </p>
           </div>
-        </div>
+
+          {/*
+            O cartão branco existe porque o chão virou papel: agora branco
+            significa "isto flutua acima", e o gráfico é a coisa que deve
+            flutuar. No fundo branco antigo o gráfico não tinha onde pousar.
+          */}
+          <figure className="flex min-w-0 flex-col gap-4 rounded-xl border border-rule bg-carta p-6 shadow-[0_18px_48px_-24px_rgb(35_43_38/0.22)] md:p-8">
+            <figcaption className="flex flex-wrap items-baseline justify-between gap-3">
+              <span className="font-heading text-[19px] font-semibold">{ipca.nome}</span>
+              <span className="font-mono text-[12.5px] text-ink-soft tabular">
+                mediana {num(ipca.consenso.mediana)}% · desvio {num(ipca.consenso.dp)}
+              </span>
+            </figcaption>
+
+            <NuvemConsenso indicador={ipca} larguraViewBox={760} animado />
+
+            <div className="flex flex-wrap gap-x-7 gap-y-2 text-[13px] text-ink-soft">
+              <Chave cor="var(--consenso)">
+                uma instituição por ponto, {ipca.consenso.n} no total
+              </Chave>
+              <Chave cor="var(--modelo)">nosso modelo, com a faixa de 80%</Chave>
+            </div>
+          </figure>
         </section>
       </div>
 
-      {/* 02 · A NUVEM */}
+      {/* ═══ 2 · DE ONDE VEM ═════════════════════════════════════════════ */}
+      <FaixaFontes />
+
+      {/* ═══ 3 · O QUE VOCÊ VÊ ═══════════════════════════════════════════ */}
       <Bloco>
-        <div className="flex flex-col gap-6 pb-11 md:flex-row md:items-end md:justify-between">
-          <h2 className="max-w-[19ch] font-heading text-[46px] font-semibold leading-tight tracking-[-0.016em] text-balance">
-            Público desde 2000. Você nunca viu.
-          </h2>
-          <p className="eyebrow pb-2">Boletim Focus · {dataLonga(FOCUS_COLETADO_EM)}</p>
-        </div>
-
-        <NuvemConsenso indicador={ipca} />
-
-        <div className="grid gap-14 pt-9 md:grid-cols-3">
-          <Legenda cor="consenso">{ipca.consenso.n} instituições, uma por ponto</Legenda>
-          <Legenda cor="consenso">A mediana, o único número que te mostram</Legenda>
-          <Legenda cor="modelo">O nosso, com a faixa de 80%</Legenda>
-        </div>
-
-        <p className="mt-12 max-w-[32ch] font-heading text-[30px] font-medium leading-snug">
-          A chance de estourar o teto da meta é de{" "}
-          <span className="text-modelo">{probabilidade(ipca.modelo.pEvento)}</span> pelo nosso
-          modelo, e de{" "}
-          <span className="text-consenso">{probabilidade(ipca.consenso.pEvento)}</span> pela
-          dispersão do consenso.
-        </p>
-      </Bloco>
-
-      {/* 03 · A FONTE */}
-      <Bloco>
-        <h2 className="max-w-[24ch] pb-11 font-heading text-[46px] font-semibold leading-tight tracking-[-0.016em] text-balance">
-          Todo número aponta para o parágrafo que o sustenta.
+        <h2 className="revela max-w-[17ch] pb-11 font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
+          Três coisas que o resumo do mercado não te dá.
         </h2>
-        <figure className="max-w-[74ch] border-l-2 border-modelo py-2 pl-8">
-          <blockquote className="font-heading text-[25px] italic leading-snug">
-            “{citacao.trecho}”
-          </blockquote>
-          <figcaption className="mt-4">
-            <a
-              href={citacao.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-[15px] text-modelo hover:text-modelo-forte"
-            >
-              <IconeExterno />
-              Ata do Copom {citacao.ata} · parágrafo {citacao.paragrafo} · página {citacao.pagina}
-            </a>
-          </figcaption>
-        </figure>
-      </Bloco>
 
-      {/* 04 · ALINHAMENTO */}
-      <Bloco tom="claro">
-        <h2 className="max-w-[23ch] font-heading text-[52px] font-semibold leading-tight tracking-[-0.016em] text-balance">
-          Não ganhamos quando você compra. Nem quando você vende. Nem mais se você ganhar.
-        </h2>
-        <p className="mt-9 max-w-[52ch] text-lg leading-relaxed text-ink-soft">
-          Licença para plataformas e assinatura de valor fixo. É a lista inteira.
-        </p>
-        <div className="mt-15 grid gap-10 border-t border-rule pt-9 md:grid-cols-4">
+        <div className="grid gap-5 md:grid-cols-3">
           {[
-            "Comissão por ordem",
-            "Taxa sobre o seu ganho",
-            "Rebate de quem emite",
-            "Venda dos seus dados",
-          ].map((item) => (
-            <p key={item} className="flex items-center gap-3 text-[17px]">
-              <IconeX />
-              {item}
-            </p>
+            {
+              titulo: "A discordância inteira",
+              texto:
+                "Não a mediana. A distribuição, o desvio, os extremos e quantos responderam.",
+              numero: String(ipca.consenso.n),
+              rodape: "projeções nesta semana",
+            },
+            {
+              titulo: "A probabilidade, com limiar",
+              texto: `A chance de o IPCA fechar ${ipca.evento}, calculada, não estimada no olho.`,
+              numero: probabilidade(ipca.modelo.pEvento),
+              rodape: ipca.evento,
+            },
+            {
+              titulo: "A fonte de cada número",
+              texto:
+                "Nenhum dado exclusivo. Cada valor tem origem pública, com data, a um clique.",
+              numero: "0",
+              rodape: "fontes fechadas",
+            },
+          ].map((c, i) => (
+            <article
+              key={c.titulo}
+              className="revela flex flex-col gap-3 rounded-xl border border-rule bg-carta p-7"
+              style={{ ["--atraso" as string]: `${i * 90}ms` }}
+            >
+              <span className="font-heading text-[42px] font-semibold leading-none text-modelo">
+                {c.numero}
+              </span>
+              <span className="text-[12px] text-ink-soft">{c.rodape}</span>
+              <h3 className="pt-3 font-heading text-[19px] font-semibold leading-snug">
+                {c.titulo}
+              </h3>
+              <p className="text-[14.5px] leading-relaxed text-ink-soft">{c.texto}</p>
+            </article>
           ))}
         </div>
-        <p className="mt-6 text-[15px] text-ink-soft">
-          Recusados. Cada um alinha alguém que não é você.
-        </p>
       </Bloco>
 
-      {/* 05 · QUEM DECIDE */}
-      <Bloco tom="claro">
-        <div className="grid items-center gap-12 pb-14 md:grid-cols-[130px_1fr_minmax(0,520px)]">
-          <Canhoto acima="Escala" abaixo="auxiliar" />
-          <div className="flex flex-col gap-6">
-            <h2 className="max-w-[19ch] font-heading text-[46px] font-semibold leading-tight tracking-[-0.016em] text-balance">
-              Somos o auxiliar. Quem decide continua sendo você.
-            </h2>
-            <p className="max-w-[46ch] text-[17px] leading-relaxed text-ink-soft">
-              Nônio é a escala auxiliar do paquímetro. Encostada na régua principal, ela deixa
-              ler a fração que a régua sozinha não mostra. Não mede nada por conta própria, e
-              não substitui a régua: só torna visível o que já estava ali.
-            </p>
-          </div>
-          <EscalaNonio className="w-full" />
-        </div>
-        <div className="grid md:grid-cols-[1fr_1px_1fr]">
-          <div className="flex flex-col">
-            <p className="eyebrow pb-3.5 text-modelo">nós fazemos</p>
-            {[
-              "Lemos 280 atas do Copom e marcamos o trecho exato.",
-              "Medimos 24 anos de erro do consenso, por horizonte.",
-              "Publicamos a probabilidade e a calibração dela.",
-              "Guardamos a tese que você escreveu, com a data.",
-            ].map((t, i) => (
-              <p
-                key={t}
-                className={`py-5 pr-12 text-[19px] leading-snug ${i === 0 ? "border-t border-rule" : "border-t border-rule-soft"}`}
-              >
-                {t}
-              </p>
-            ))}
-          </div>
-          <div className="hidden bg-rule md:block" />
-          <div className="flex flex-col">
-            <p className="eyebrow pb-3.5">você decide</p>
-            {[
-              "Se a leitura vale para o seu caso.",
-              "Quanto peso dar a ele.",
-              `Se ${probabilidade(ipca.modelo.pEvento)} é alto para o seu dinheiro.`,
-              "Comprar, vender ou não fazer nada. Aqui não há botão.",
-            ].map((t, i) => (
-              <p
-                key={t}
-                className={`py-5 text-[19px] leading-snug md:pl-12 ${i === 0 ? "border-t border-rule" : "border-t border-rule-soft"}`}
-              >
-                {t}
-              </p>
-            ))}
-          </div>
-        </div>
-      </Bloco>
+      {/* ═══ 4 · PROVA ═══════════════════════════════════════════════════ */}
+      {h12 && (
+        <Bloco tom="claro">
+          <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="revela flex flex-col items-start gap-6">
+              <p className="eyebrow">Prova, não promessa</p>
 
-      {/* 06 · A PROVA — dado medido de verdade */}
-      {h12 && h6 && (
-        <Bloco>
-          <div className="grid items-center gap-12 md:grid-cols-[130px_340px_1fr]">
-            <Canhoto acima="Dado" abaixo="medido" />
-            <CurvaCalibracao horizonte={h12} />
-            <div className="flex flex-col gap-7">
-              <h2 className="max-w-[20ch] font-heading text-[46px] font-semibold leading-tight tracking-[-0.016em] text-balance">
+              <h2 className="max-w-[16ch] font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
                 O consenso erra, e dá para medir quanto.
               </h2>
-              <p className="max-w-[34ch] font-heading text-[26px] font-medium leading-snug">
-                A doze meses do fechamento, a mediana do Focus erra o IPCA em{" "}
-                <span className="tabular">{num(h12.consenso.mae)}</span> pontos percentuais, em
-                média. A seis meses, <span className="tabular">{num(h6.consenso.mae)}</span>.
+
+              <p className="max-w-[42ch] font-heading text-[25px] font-medium leading-snug">
+                A doze meses, a mediana do Focus erra o IPCA em{" "}
+                <span className="text-modelo tabular">{num(h12.consenso.mae)}</span> pontos
+                percentuais, em média.
               </p>
-              <p className="max-w-[48ch] text-[17px] leading-relaxed text-ink-soft">
-                {h12.mincer_zarnowitz.leitura}. São{" "}
-                <span className="tabular">{h12.n}</span> observações entre{" "}
-                {h12.periodo[0].slice(0, 4)} e {h12.periodo[1].slice(0, 4)}. O gráfico ao lado
-                mostra a outra metade do problema: nas vezes em que a dispersão do consenso
-                implicava cerca de 70% de chance, o evento aconteceu em nenhuma delas. Cada ponto
-                é uma faixa de probabilidade, e o tamanho dele é o número de observações.
+
+              {/*
+                Este parágrafo não pode sair por concisão. Sem ele, o número
+                acima parece o NOSSO acerto — e ele é o erro do consenso, medido
+                com dado real. É a única frase da página que existe para impedir
+                uma leitura boa demais.
+              */}
+              <p className="max-w-[46ch] text-[15px] leading-relaxed text-ink-soft">
+                {h12.n} observações entre {h12.periodo[0].slice(0, 4)} e{" "}
+                {h12.periodo[1].slice(0, 4)}. Isto mede o consenso, não a gente: o nosso modelo
+                ainda não publicou previsão, e chamar isto de acerto nosso seria mentira.
               </p>
-              <p className="max-w-[48ch] text-[15px] leading-relaxed text-ink-soft">
-                Quando o nosso modelo publicar a primeira previsão, o erro dele entra nesta mesma
-                tela, do lado do consenso, incluindo os anos em que perdermos.
-              </p>
-              <LinkSeta href="/entrar">Ver o histórico completo</LinkSeta>
+
+              <LinkSeta href="/sobre">Como medimos</LinkSeta>
             </div>
+
+            <figure className="revela flex min-w-0 flex-col gap-4 rounded-xl border border-rule bg-papel p-6">
+              <figcaption className="eyebrow">A probabilidade do consenso se confirma?</figcaption>
+              <CurvaCalibracao horizonte={h12} />
+              <p className="text-[13px] leading-relaxed text-ink-soft">
+                Horizontal, o que o consenso dizia. Vertical, o que aconteceu. Em cima da
+                diagonal seria perfeito.
+              </p>
+            </figure>
           </div>
         </Bloco>
       )}
 
-      {/* 07 · SEGURANÇA */}
-      <Bloco>
-        <h2 className="max-w-[19ch] pb-12 font-heading text-[46px] font-semibold leading-tight tracking-[-0.016em] text-balance">
-          Seu dinheiro nunca passa por aqui.
-        </h2>
-        <div className="grid gap-11 border-t border-rule pt-9 md:grid-cols-4">
-          {[
-            "Não somos corretora nem guardamos saldo.",
-            "Nenhuma ordem sai daqui.",
-            "Nunca pedimos senha de banco.",
-            "Toda fonte é pública e tem link.",
-          ].map((t) => (
-            <p key={t} className="text-[19px] leading-snug">
-              {t}
+      {/* ═══ 5 · ALINHAMENTO ═════════════════════════════════════════════ */}
+      <Bloco tom="salvia">
+        <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
+          <div className="revela flex flex-col items-start gap-6">
+            <h2 className="max-w-[18ch] font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
+              Não ganhamos nada quando você compra.
+            </h2>
+            <p className="max-w-[44ch] text-[17px] leading-relaxed">
+              Sem comissão de corretora, sem taxa por operação, sem repasse de gestora. A única
+              receita é a assinatura de quem usa, e é isso que mantém o incentivo do seu lado da
+              mesa.
             </p>
-          ))}
+            <LinkSeta href="/precos">Ver preço</LinkSeta>
+          </div>
+
+          {/*
+            A régua é o nome do produto: escala principal, escala auxiliar, e o
+            traço que coincide. Fica aqui, e não na dobra, porque é metáfora —
+            e metáfora ao lado do gráfico competiria com o dado.
+          */}
+          <figure className="revela flex flex-col gap-4 rounded-xl border border-rule/60 bg-carta p-7">
+            <EscalaNonio />
+            <figcaption className="text-[13px] leading-relaxed text-ink-soft">
+              Nônio é a escala auxiliar do paquímetro. Ela não mede sozinha: revela a fração que a
+              escala principal não mostra. Quem lê continua sendo você.
+            </figcaption>
+          </figure>
         </div>
       </Bloco>
 
-      {/* 08 · FECHO */}
+      {/* ═══ 6 · FECHO ═══════════════════════════════════════════════════ */}
       <Bloco tom="escuro">
-        <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
-          <h2 className="max-w-[18ch] font-heading text-[52px] font-semibold leading-tight tracking-[-0.016em] text-balance">
-            O número que mais nos expõe está logo acima.
+        <div className="revela flex flex-col items-start gap-8">
+          <h2 className="max-w-[15ch] font-heading text-[44px] font-semibold leading-[1.04] tracking-[-0.022em] text-balance md:text-[54px]">
+            A decisão é sua. Nosso trabalho é não esconder nada dela.
           </h2>
-          <div className="flex shrink-0 flex-col items-start gap-3.5">
-            <Link
-              href="/criar-conta"
-              className="inline-flex h-14 items-center rounded-md bg-white px-8 text-[17px] font-semibold text-tinta transition-opacity hover:opacity-90"
-            >
-              Criar conta
-            </Link>
-            <span className="max-w-[32ch] text-sm leading-normal text-tinta-suave">
-              Teste de 14 dias, sem cartão e sem CPF.
-            </span>
-          </div>
+          <Link
+            href="/criar-conta"
+            className="inline-flex h-14 items-center rounded-lg bg-carta px-8 font-semibold text-modelo-forte transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            Criar conta
+          </Link>
         </div>
       </Bloco>
 
@@ -272,56 +254,38 @@ export default async function Landing() {
 }
 
 /**
- * Faixa da landing. O tom de fundo alterna para a página não virar um lençol
- * branco de ponta a ponta — são neutros, nunca cor de marca, então nada aqui
- * compete com o significado de petróleo e ocre.
+ * Faixa da página.
+ *
+ * Quatro tons: papel (o chão), claro, sálvia e escuro. O ritmo alternado é o
+ * que impede a página de virar um rolo branco de ponta a ponta — a crítica
+ * original, e a mais fácil de resolver.
  */
 function Bloco({
   children,
-  tom = "branco",
+  tom = "papel",
 }: {
   children: React.ReactNode;
-  tom?: "branco" | "claro" | "escuro";
+  tom?: "papel" | "claro" | "salvia" | "escuro";
 }) {
   const fundo = {
-    branco: "",
-    claro: "bg-surface-3",
-    escuro: "bg-tinta text-white",
+    papel: "",
+    claro: "bg-carta border-y border-rule",
+    salvia: "bg-salvia-lavado",
+    escuro: "bg-modelo-forte text-white",
   }[tom];
 
   return (
-    <div className={fundo}>
-      <section className="mx-auto max-w-[1440px] px-10 py-38 md:px-40">{children}</section>
-    </div>
+    <section className={fundo}>
+      <div className="mx-auto max-w-[1440px] px-10 py-24 md:px-20 md:py-28">{children}</div>
+    </section>
   );
 }
 
-function Legenda({ cor, children }: { cor: "modelo" | "consenso"; children: React.ReactNode }) {
+function Chave({ cor, children }: { cor: string; children: React.ReactNode }) {
   return (
-    <p className="flex items-baseline gap-3 text-[17px]">
-      <span
-        className={`inline-block size-2 shrink-0 -translate-y-0.5 rounded-full ${cor === "modelo" ? "bg-modelo" : "bg-consenso"}`}
-      />
-      <span>{children}</span>
-    </p>
-  );
-}
-
-
-function IconeExterno() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth={1.4} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M5 2.5H2.5v9h9V9" />
-      <path d="M8 2.5h3.5V6" />
-      <path d="M11.5 2.5 6.5 7.5" />
-    </svg>
-  );
-}
-
-function IconeX() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--negativo)" strokeWidth={1.8} strokeLinecap="round" className="shrink-0" aria-hidden>
-      <path d="M5 5 15 15M15 5 5 15" />
-    </svg>
+    <span className="flex items-center gap-2">
+      <span className="inline-block size-2 shrink-0 rounded-full" style={{ background: cor }} />
+      {children}
+    </span>
   );
 }

@@ -20,6 +20,17 @@
  * Verde e vermelho ficam reservados a ganho e perda, e é por isso que a marca
  * não pode ser de nenhuma dessas famílias. Petróleo fica entre azul e verde sem
  * ser nenhum dos dois, então nunca é lido como "subiu".
+ *
+ * É por isso que a marca continua petróleo mesmo depois do pedido de "verde":
+ * uma linha de modelo em verde-folha, ao lado de uma coluna de variação em
+ * verde-ganho, faz o olho ler alta onde há previsão. Petróleo ficou mais
+ * profundo e menos elétrico; o verde que o pedido queria entrou como SÁLVIA,
+ * e sálvia é decoração — fundo, ilustração, faixa. Nunca marca de dado, nunca
+ * perto de um número.
+ *
+ * O fundo deixou de ser branco puro. Papel quente embaixo, branco reservado
+ * para o que flutua acima dele. Branco puro com um teal chapado é metade da
+ * razão de a tela parecer template.
  */
 @theme inline {
   --color-background: var(--background);
@@ -32,6 +43,10 @@
   --color-modelo: var(--modelo);
   --color-modelo-forte: var(--modelo-forte);
   --color-modelo-lavado: var(--modelo-lavado);
+  --color-salvia: var(--salvia);
+  --color-salvia-lavado: var(--salvia-lavado);
+  --color-papel: var(--papel);
+  --color-carta: var(--carta);
   --color-consenso: var(--consenso);
   --color-referencia: var(--referencia);
   --color-positivo: var(--positivo);
@@ -82,66 +97,75 @@
 }
 
 :root {
-  /* estrutura vem de régua e espaço, não de preenchimento: 70%+ de branco */
-  --background: #ffffff;
-  --foreground: #0e1616;
-
-  --ink: #0e1616;
-  --ink-soft: #55625f;
-  --rule: #dee5e5;
-  --rule-soft: #e8edeb;
-  --surface-2: #f7fafa;
   /*
-   * Faixas de fundo. Neutros com viés levíssimo de petróleo — cinza puro lê
-   * como descuido, e cor de marca aqui viraria decoração. É o único jeito de
-   * quebrar o branco sem quebrar a regra semântica.
+   * O chão é papel, não branco. Off-white quente com um fio de verde: dá
+   * profundidade sem faixa cinza, e faz o branco voltar a significar alguma
+   * coisa — agora branco é o que FLUTUA sobre o papel (cartão, janela, campo).
    */
-  --surface-3: #f1f5f4;
-  --tinta: #0e1616;
-  --tinta-suave: #98a8a5;
+  --papel: #f7f6f1;
+  --carta: #ffffff;
+  --background: var(--papel);
+  --foreground: #232b26;
 
-  --modelo: #0a6560;
-  --modelo-forte: #074c48;
-  --modelo-lavado: #f3f8f8;
-  /* ponta clara dos feixes da dobra: mesma família do petróleo, sem virar marca */
-  --feixe-claro: #3f9e97;
-  --consenso: #a8681a;
-  --referencia: #94a29e;
-  --positivo: #16704e;
-  --negativo: #a8342a;
-  --atencao: #9a6a12;
-  --atencao-borda: #eadfc4;
-  --atencao-fundo: #fdfaf3;
+  /* Tinta espresso-esverdeada. Preto puro sobre papel quente vibra na borda. */
+  --ink: #232b26;
+  --ink-soft: #5e6a62;
+  --rule: #ddd9cd;
+  --rule-soft: #e7e3d8;
+  --surface-2: #f1efe7;
+  --surface-3: #e9e6dc;
+  --tinta: #232b26;
+  --tinta-suave: #a0a79c;
+
+  /* Marca: petróleo mais fundo e menos elétrico que o anterior (#0a6560). */
+  --modelo: #14544b;
+  --modelo-forte: #0c3b34;
+  --modelo-lavado: #e9f0ed;
+  /*
+   * Sálvia: o único verde decorativo. Aparece em massa grande — faixa, fundo,
+   * ilustração. NUNCA em traço de gráfico, marcador, chip ou ao lado de
+   * número, senão vira "subiu" e contamina a leitura.
+   */
+  --salvia: #9dbaa7;
+  --salvia-lavado: #e3ece5;
+
+  --consenso: #ac6f22;
+  --referencia: #9aa39a;
+  --positivo: #1a6b4c;
+  --negativo: #a2382c;
+  --atencao: #8f6714;
+  --atencao-borda: #e4d6b7;
+  --atencao-fundo: #faf5e9;
 
   /* shadcn, mapeado para a nossa paleta */
   --card: #ffffff;
-  --card-foreground: #0e1616;
+  --card-foreground: #232b26;
   --popover: #ffffff;
-  --popover-foreground: #0e1616;
-  --primary: #0a6560;
+  --popover-foreground: #232b26;
+  --primary: #14544b;
   --primary-foreground: #ffffff;
-  --secondary: #f7fafa;
-  --secondary-foreground: #0e1616;
-  --muted: #f7fafa;
-  --muted-foreground: #55625f;
-  --accent: #f3f8f8;
-  --accent-foreground: #0a6560;
-  --destructive: #a8342a;
-  --border: #dee5e5;
-  --input: #dee5e5;
-  --ring: #0a6560;
+  --secondary: #f1efe7;
+  --secondary-foreground: #232b26;
+  --muted: #f1efe7;
+  --muted-foreground: #5e6a62;
+  --accent: #e9f0ed;
+  --accent-foreground: #14544b;
+  --destructive: #a2382c;
+  --border: #ddd9cd;
+  --input: #ddd9cd;
+  --ring: #14544b;
 
   /* raio: controle 6, painel 8, janela 10 — lg é a base */
   --radius: 0.5rem;
 
   --sidebar: #ffffff;
-  --sidebar-foreground: #0e1616;
-  --sidebar-primary: #0a6560;
+  --sidebar-foreground: #232b26;
+  --sidebar-primary: #14544b;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3f8f8;
-  --sidebar-accent-foreground: #0a6560;
-  --sidebar-border: #dee5e5;
-  --sidebar-ring: #0a6560;
+  --sidebar-accent: #e9f0ed;
+  --sidebar-accent-foreground: #14544b;
+  --sidebar-border: #ddd9cd;
+  --sidebar-ring: #14544b;
 }
 
 /*
@@ -149,8 +173,10 @@
  * tokens já existem, então ligar é troca de variável e não redesenho.
  */
 .dark {
-  --background: #0d1211;
-  --foreground: #e8edeb;
+  --papel: #0f1413;
+  --carta: #171f1d;
+  --background: var(--papel);
+  --foreground: #e8ede9;
 
   --ink: #e8edeb;
   --ink-soft: #94a29e;
@@ -164,7 +190,8 @@
   --modelo: #46bfb7;
   --modelo-forte: #6fd3cc;
   --modelo-lavado: #16313a;
-  --feixe-claro: #7fd6cf;
+  --salvia: #6d8f79;
+  --salvia-lavado: #1a2620;
   --consenso: #dda34a;
   --referencia: #74838a;
   --positivo: #4fb98a;
@@ -219,51 +246,111 @@
 }
 
 /*
- * Traço de carregamento. Percorre a régua e some, no ritmo do feixe da dobra —
- * é o mesmo gesto da marca, e não uma segunda linguagem de espera.
+ * ANIMAÇÃO
+ *
+ * Três regras, para movimento não virar ruído:
+ *
+ *   1. Nada nasce invisível esperando script. `.revela` usa scroll-driven
+ *      animation (`animation-timeline: view()`); onde o navegador não suporta,
+ *      a propriedade é ignorada e a animação roda uma vez no carregamento,
+ *      terminando visível. Nenhum estado deixa conteúdo apagado na tela.
+ *   2. O movimento explica o dado. A curva se DESENHA porque foi medida ponto
+ *      a ponto; os pontos SURGEM um a um porque são instituições respondendo.
+ *      Movimento que não diz nada sobre o conteúdo é enfeite.
+ *   3. `prefers-reduced-motion` desliga tudo e entrega o estado final.
+ */
+
+@keyframes revela {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes surge {
+  from { opacity: 0; transform: scale(0.4); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes desenha {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes respira {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 0.8; transform: scale(1.06); }
+}
+
+/*
+ * Traço de carregamento. Percorre a régua e some: é o gesto da própria marca,
+ * e não uma segunda linguagem de espera.
  */
 @keyframes carregando-corre {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(300%); }
 }
 
-@keyframes feixe-passa {
-  0% { stroke-dashoffset: 1.32; opacity: 0; }
-  12% { opacity: 0.26; }
-  68% { opacity: 0.26; }
-  100% { stroke-dashoffset: -0.32; opacity: 0; }
-}
-
 @layer components {
-  /*
-   * Feixe da dobra. `pathLength=1` no SVG normaliza a curva, então o mesmo
-   * dasharray serve para todas sem medir comprimento nenhum.
-   */
-  .feixe {
-    stroke-dasharray: 0.32 1;
-    animation-name: feixe-passa;
-    animation-iteration-count: infinite;
-    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    opacity: 0;
-  }
-
-  /* Movimento é enfeite: quem pediu para reduzir fica só com o leito estático. */
+    /* Movimento é enfeite: quem pediu para reduzir fica só com o leito estático. */
   /* O traço que corre enquanto a rota carrega. */
   .traco-carregando {
     animation: carregando-corre 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .feixe {
-      animation: none;
-      opacity: 0.12;
-      stroke-dasharray: none;
-    }
+  /*
+   * Entrada por rolagem. `--atraso` escalona irmãos sem JavaScript.
+   * O `both` garante que o estado final permaneça quando a animação acaba.
+   */
+  .revela {
+    animation: revela 0.75s cubic-bezier(0.22, 1, 0.36, 1) var(--atraso, 0s) both;
+    animation-timeline: view();
+    animation-range: entry 2% cover 24%;
+  }
 
+  /* Ponto do gráfico aparecendo: uma instituição respondendo a pesquisa. */
+  .surge {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: surge 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) var(--atraso, 0s) both;
+  }
+
+  /*
+   * Curva se desenhando. `--traco` é o comprimento do caminho; com
+   * `pathLength="1"` no SVG ele é sempre 1, e não é preciso medir nada.
+   */
+  .desenha {
+    stroke-dasharray: var(--traco, 1);
+    stroke-dashoffset: var(--traco, 1);
+    animation: desenha 1.6s cubic-bezier(0.33, 1, 0.68, 1) var(--atraso, 0.2s) forwards;
+  }
+
+  /* Halo ambiente atrás do herói. Sálvia, massa grande, nunca perto de número. */
+  .respira {
+    animation: respira 9s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
     /* Parado no meio da régua: ainda diz "ocupado", sem movimento. */
     .traco-carregando {
       animation: none;
       transform: translateX(100%);
+    }
+
+    /*
+     * Tudo já no estado final. Note que não basta `animation: none` no
+     * `.desenha`: sem zerar o dash a curva ficaria invisível para sempre,
+     * que é o pior resultado possível de uma preferência de acessibilidade.
+     */
+    .revela,
+    .surge,
+    .respira {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+
+    .desenha {
+      animation: none;
+      stroke-dasharray: none;
+      stroke-dashoffset: 0;
     }
   }
 
