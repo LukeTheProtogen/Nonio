@@ -29,14 +29,39 @@ import { mintApiAccessToken } from "./access-token";
 
 const BASE = process.env.NONIO_API_URL?.replace(/\/$/, "") ?? "";
 
-const RECURSOS_NO_BACKEND = new Set<"macro" | "acoes" | "historico" | "fontes">([
-  "acoes", // GET /acoes — lowvol spine via previews parquet + DuckDB
-  // "macro",     ← não existe no backend ainda
-  // "historico", ← não existe no backend ainda
-  // "fontes",    ← não existe no backend ainda
-]);
+type Recurso = "macro" | "acoes" | "historico" | "fontes";
 
-function noBackend(recurso: "macro" | "acoes" | "historico" | "fontes"): boolean {
+/**
+ * O que o backend serve, POR PADRÃO.
+ *
+ * `acoes` está ligado porque o nonio-api publica a lowvol spine. Macro,
+ * histórico e fontes ainda não existem lá.
+ */
+const PADRAO: Recurso[] = ["acoes"];
+
+/**
+ * Sobrescrita por ambiente: `NONIO_RECURSOS_BACKEND`.
+ *
+ * Existe porque "o backend serve X" depende da MÁQUINA, não do código. Quem tem
+ * o parquet ingerido quer /acoes vindo da API; quem não tem quer o mock, senão
+ * a tela fica vazia e o trabalho de front trava.
+ *
+ * Antes disso a única saída era comentar a linha e desfazer a integração de
+ * quem a ligou — e aí um dos dois lados sempre quebrava a cada pull.
+ *
+ *   NONIO_RECURSOS_BACKEND=acoes,macro   liga os dois
+ *   NONIO_RECURSOS_BACKEND=              desliga tudo, cai no mock
+ *   variável ausente                     usa o padrão acima
+ */
+const RECURSOS_NO_BACKEND = new Set<Recurso>(
+  process.env.NONIO_RECURSOS_BACKEND === undefined
+    ? PADRAO
+    : (process.env.NONIO_RECURSOS_BACKEND.split(",")
+        .map((r) => r.trim())
+        .filter(Boolean) as Recurso[]),
+);
+
+function noBackend(recurso: Recurso): boolean {
   return BASE.length > 0 && RECURSOS_NO_BACKEND.has(recurso);
 }
 
