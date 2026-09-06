@@ -82,7 +82,30 @@ export default async function Acoes({ searchParams }: PageProps<"/acoes">) {
           </p>
         )}
 
-        <TabelaAcoes acoes={acoes} lente={lente} cdi12m={cdi12m} selecionado={papel ?? undefined} />
+        {/*
+          Estado vazio explícito.
+          
+          Sem ele a tela mostrava cabeçalho de tabela, legenda e NADA no meio,
+          o que lê como defeito de carregamento. Vazio é um resultado legítimo
+          aqui — o universo vem do pipeline, e enquanto ele não publicar não há
+          papel nenhum. A tela diz isso em vez de deixar o silêncio explicar.
+        */}
+        {acoes.length === 0 ? (
+          <div className="flex flex-col items-start gap-3 rounded-lg border border-rule bg-surface-2 px-6 py-8">
+            <p className="t-cartao">Nenhum papel no universo ainda</p>
+            <p className="t-rotulo max-w-[54ch] text-ink-soft">
+              O universo é publicado pelo pipeline, e ele ainda não rodou nesta instância. As
+              telas de macro e histórico não dependem disto e continuam com dado real.
+            </p>
+          </div>
+        ) : (
+          <TabelaAcoes
+            acoes={acoes}
+            lente={lente}
+            cdi12m={cdi12m}
+            selecionado={papel ?? undefined}
+          />
+        )}
 
         <footer className="mt-auto flex shrink-0 flex-col justify-between gap-2 border-t border-rule py-3.5 text-xs text-ink-soft md:flex-row md:gap-8">
           <span>{DISCLAIMER_MEDIO}</span>

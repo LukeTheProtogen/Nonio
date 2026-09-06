@@ -1,6 +1,7 @@
 import { SignJWT } from "jose";
 import { createClient } from "@/lib/supabase/server";
 import { supabaseConfigured } from "@/lib/supabase/env";
+import { authLocalLigada, sessaoLocal } from "@/lib/auth-local";
 
 const ISSUER = "nonio-web";
 const AUDIENCE = "nonio-api";
@@ -11,6 +12,26 @@ const AUTH_SECRET_FRACO = "CHANGE-ME-dev-only-use-openssl-rand-hex-32";
  * Pattern A: browser → Next → API (Bearer).
  */
 export async function mintApiAccessToken(): Promise<string | null> {
+  /*
+    Modo local de desenvolvimento.
+
+    Sem isto, `mintApiAccessToken` devolvia null sem Supabase, e todo recurso
+    ligado ao backend estourava 401 — foi o que quebrou /acoes assim que o
+    `RECURSOS_NO_BACKEND` passou a incluir "acoes".
+
+    O token é assinado com o MESMO segredo e o MESMO formato do caminho real, e
+    não com um atalho paralelo: assim o modo local exercita a rota de verdade,
+    front manda Bearer e a API valida, que é justamente o que precisa ser
+    testado. A diferença é só de onde vem a identidade.
+
+    A trava é a de `auth-local`: fora de produção E a variável ligada.
+  */
+  if (authLocalLigada()) {
+    const sessao = await sessaoLocal();
+    if (!sessao) return null;
+    return assinar(`local:${sessao.email}`, sessao.email, sessao.nome);
+  }
+
   if (!supabaseConfigured()) return null;
 
   const supabase = await createClient();

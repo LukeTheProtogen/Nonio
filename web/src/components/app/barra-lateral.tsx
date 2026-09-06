@@ -199,7 +199,17 @@ function ChaveDemo({ ligado }: { ligado: boolean }) {
 }
 
 function ItemNav({ rota, ativa }: { rota: Rota; ativa: boolean }) {
-  const base = "flex h-9 items-center gap-2.5 border-l-2 px-4.5 text-sm font-medium";
+  /*
+    No celular a faixa é horizontal e o espaço é o que é: a 390px, quatro itens
+    com o respiro do desktop somam mais que a largura da tela e "Fontes" ficava
+    cortado. Menos respiro e ícone menor abaixo de `lg` fazem os quatro caberem.
+
+    A borda também troca de lado: na coluna ela marca o item à esquerda; na
+    faixa horizontal, embaixo. Borda lateral numa fileira não indica nada.
+  */
+  const base =
+    "flex h-9 shrink-0 items-center gap-2 border-b-2 px-2.5 text-[13.5px] font-medium " +
+    "lg:gap-2.5 lg:border-b-0 lg:border-l-2 lg:px-4.5 lg:text-sm";
 
   if (!rota.pronta) {
     return (
@@ -237,7 +247,7 @@ const traco = {
   strokeWidth: 1.6,
   strokeLinecap: "round" as const,
   strokeLinejoin: "round" as const,
-  className: "shrink-0",
+  className: "size-4 shrink-0 lg:size-5",
   "aria-hidden": true,
 };
 
