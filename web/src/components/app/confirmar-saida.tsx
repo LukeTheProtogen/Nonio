@@ -41,7 +41,14 @@ export function ConfirmarSaida({
         onClick={() => dialogo.current?.showModal()}
         className={
           className ??
-          "rounded-sm px-1.5 py-1 text-[11px] text-ink-soft transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+          /*
+            O aviso de hover era só uma troca de cinza por preto, em 11px.
+            Nesse tamanho a diferença some, e quem passa o mouse não recebe
+            confirmação nenhuma de que aquilo é clicável — o que faz a pessoa
+            duvidar do clique quando a tela demora um instante para responder.
+            Fundo, borda e cursor: três sinais em vez de um quase invisível.
+          */
+          "cursor-pointer rounded-md border border-transparent px-2.5 py-1.5 text-[11.5px] font-medium text-ink-soft transition-colors hover:border-rule hover:bg-surface-3 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
         }
       >
         {children}
