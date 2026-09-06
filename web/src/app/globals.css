@@ -274,6 +274,28 @@
   to { stroke-dashoffset: 0; }
 }
 
+/*
+ * A régua deslizando até o traço coincidir.
+ *
+ * É o gesto da marca, e estava parado: o nônio SÓ funciona deslizando, então
+ * uma régua imóvel não explica o nome. Vai e volta, devagar, porque medir é
+ * procurar a coincidência e não acertá-la de primeira.
+ */
+@keyframes desliza {
+  0%, 8%    { transform: translateX(-6%); }
+  46%, 62%  { transform: none; }
+  100%      { transform: translateX(-6%); }
+}
+
+/*
+ * Imagem do produto entrando com a rolagem. Escala mínima (1.04 para 1): o
+ * suficiente para a página ter vida, longe do zoom de apresentação corporativa.
+ */
+@keyframes aproxima {
+  from { opacity: 0; transform: scale(1.04) translateY(16px); }
+  to   { opacity: 1; transform: none; }
+}
+
 @keyframes respira {
   0%, 100% { opacity: 0.5; transform: scale(1); }
   50%      { opacity: 0.8; transform: scale(1.06); }
@@ -327,6 +349,17 @@
     animation: respira 9s ease-in-out infinite;
   }
 
+  /* Só a escala auxiliar do paquímetro se move. A principal é a referência. */
+  .desliza {
+    animation: desliza 7s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+  }
+
+  .aproxima {
+    animation: aproxima 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-timeline: view();
+    animation-range: entry 4% cover 30%;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     /* Parado no meio da régua: ainda diz "ocupado", sem movimento. */
     .traco-carregando {
@@ -341,7 +374,9 @@
      */
     .revela,
     .surge,
-    .respira {
+    .respira,
+    .desliza,
+    .aproxima {
       animation: none;
       opacity: 1;
       transform: none;

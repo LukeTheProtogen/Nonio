@@ -7,6 +7,7 @@ import { LinkSeta } from "@/components/marketing/marca";
 import { Cabecalho, Rodape } from "@/components/marketing/moldura-publica";
 import { FaixaFontes } from "@/components/marketing/faixa-fontes";
 import { Halo } from "@/components/marketing/halo";
+import { Vitrine } from "@/components/marketing/vitrine";
 import { obterMacro } from "@/lib/api/servico";
 import { porHorizonte, geradoEm as backtestGeradoEm } from "@/lib/backtest";
 import { dataLonga, num, probabilidade } from "@/lib/formato";
@@ -33,9 +34,10 @@ export const metadata: Metadata = {
  *   1 o que é isto?       herói, com o gráfico
  *   2 de onde vem?        faixa de fontes
  *   3 o que eu vejo?      três cartões
- *   4 posso acreditar?    prova medida
- *   5 vocês ganham como?  alinhamento
- *   6 e agora?            fecho
+ *   4 como é de verdade?  o produto, em captura real
+ *   5 posso acreditar?    prova medida
+ *   6 vocês ganham como?  alinhamento
+ *   7 e agora?            fecho
  */
 export default async function Landing() {
   const [sessao, macro] = await Promise.all([sessaoAtual(), obterMacro()]);
@@ -159,9 +161,17 @@ export default async function Landing() {
         </div>
       </Bloco>
 
-      {/* ═══ 4 · PROVA ═══════════════════════════════════════════════════ */}
+      {/* ═══ 4 · O PRODUTO ═══════════════════════════════════════════════ */}
+      <Bloco tom="claro">
+        <h2 className="revela max-w-[16ch] pb-14 font-heading text-[40px] font-semibold leading-[1.08] tracking-[-0.02em] text-balance md:text-[46px]">
+          É assim que fica na sua tela.
+        </h2>
+        <Vitrine />
+      </Bloco>
+
+      {/* ═══ 5 · PROVA ═══════════════════════════════════════════════════ */}
       {h12 && (
-        <Bloco tom="claro">
+        <Bloco>
           <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_380px]">
             <div className="revela flex flex-col items-start gap-6">
               <p className="eyebrow">Prova, não promessa</p>
@@ -191,7 +201,7 @@ export default async function Landing() {
               <LinkSeta href="/sobre">Como medimos</LinkSeta>
             </div>
 
-            <figure className="revela flex min-w-0 flex-col gap-4 rounded-xl border border-rule bg-papel p-6">
+            <figure className="revela flex min-w-0 flex-col gap-4 rounded-xl border border-rule bg-carta p-6">
               <figcaption className="eyebrow">A probabilidade do consenso se confirma?</figcaption>
               <CurvaCalibracao horizonte={h12} />
               <p className="text-[13px] leading-relaxed text-ink-soft">
@@ -203,7 +213,7 @@ export default async function Landing() {
         </Bloco>
       )}
 
-      {/* ═══ 5 · ALINHAMENTO ═════════════════════════════════════════════ */}
+      {/* ═══ 6 · ALINHAMENTO ═════════════════════════════════════════════ */}
       <Bloco tom="salvia">
         <div className="grid items-center gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,520px)]">
           <div className="revela flex flex-col items-start gap-6">
@@ -233,7 +243,7 @@ export default async function Landing() {
         </div>
       </Bloco>
 
-      {/* ═══ 6 · FECHO ═══════════════════════════════════════════════════ */}
+      {/* ═══ 7 · FECHO ═══════════════════════════════════════════════════ */}
       <Bloco tom="escuro">
         <div className="revela flex flex-col items-start gap-8">
           <h2 className="max-w-[15ch] font-heading text-[44px] font-semibold leading-[1.04] tracking-[-0.022em] text-balance md:text-[54px]">
