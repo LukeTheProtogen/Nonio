@@ -261,7 +261,7 @@
  */
 
 @keyframes revela {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(64px) scale(0.985); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -292,7 +292,7 @@
  * suficiente para a página ter vida, longe do zoom de apresentação corporativa.
  */
 @keyframes aproxima {
-  from { opacity: 0; transform: scale(1.04) translateY(16px); }
+  from { opacity: 0; transform: scale(1.07) translateY(56px); }
   to   { opacity: 1; transform: none; }
 }
 
@@ -308,9 +308,9 @@
  */
 @keyframes percorre {
   0%        { stroke-dashoffset: 1;     opacity: 0; }
-  6%        {                           opacity: 0.9; }
-  38%       {                           opacity: 0.9; }
-  46%, 100% { stroke-dashoffset: -0.09; opacity: 0; }
+  5%        {                           opacity: 1; }
+  52%       {                           opacity: 1; }
+  62%, 100% { stroke-dashoffset: -0.16; opacity: 0; }
 }
 
 @keyframes respira {
@@ -335,13 +335,26 @@
   }
 
   /*
-   * Entrada por rolagem. `--atraso` escalona irmãos sem JavaScript.
-   * O `both` garante que o estado final permaneça quando a animação acaba.
+   * Entrada por rolagem, AMARRADA à posição da barra e não ao relógio.
+   *
+   * Com `animation-timeline: view()` o progresso é a posição do elemento na
+   * janela, não o tempo. Isso é o que faz a coisa voltar sozinha ao rolar para
+   * cima: não é "aparece e some", é o elemento indo e voltando da posição onde
+   * deveria estar. Rolagem lenta move devagar, rolagem rápida move rápido.
+   *
+   * A faixa antes era `entry 2% cover 24%` e terminava cedo demais: quando o
+   * elemento chegava ao olho a animação já tinha acabado, e não sobrava
+   * movimento nenhum para perceber. Agora ela atravessa quase meia tela.
+   *
+   * `linear` de propósito: a curva de aceleração aqui é a da própria mão de
+   * quem rola. Uma segunda curva por cima briga com ela e dá sensação de
+   * arrasto.
    */
   .revela {
-    animation: revela 0.75s cubic-bezier(0.22, 1, 0.36, 1) var(--atraso, 0s) both;
+    animation: revela 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--atraso, 0s) both;
     animation-timeline: view();
-    animation-range: entry 2% cover 24%;
+    animation-range: entry 0% cover 42%;
+    animation-timing-function: linear;
   }
 
   /* Ponto do gráfico aparecendo: uma instituição respondendo a pesquisa. */
@@ -361,6 +374,34 @@
     animation: desenha 1.6s cubic-bezier(0.33, 1, 0.68, 1) var(--atraso, 0.2s) forwards;
   }
 
+  /*
+   * As mesmas duas animações, porém amarradas à ROLAGEM.
+   *
+   * Existem separadas porque `view()` não serve para o herói: um elemento que
+   * já está inteiro na tela ao carregar tem progresso 100%, então a curva do
+   * herói nasceria pronta e ninguém veria nada. Acima da dobra a animação é do
+   * relógio; abaixo dela é da barra de rolagem.
+   *
+   * O escalonamento aqui NÃO é `animation-delay` — atraso é tempo, e não existe
+   * tempo numa linha do tempo de rolagem. É `--inicio` deslocando o começo da
+   * faixa de cada elemento, o que também torna tudo reversível ao subir.
+   */
+  .desenha-rolagem {
+    stroke-dasharray: var(--traco, 1);
+    stroke-dashoffset: var(--traco, 1);
+    animation: desenha 1s linear both;
+    animation-timeline: view();
+    animation-range: entry var(--inicio, 8%) cover 38%;
+  }
+
+  .surge-rolagem {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: surge 0.5s linear both;
+    animation-timeline: view();
+    animation-range: entry var(--inicio, 12%) cover 44%;
+  }
+
   /* Halo ambiente atrás do herói. Sálvia, massa grande, nunca perto de número. */
   .respira {
     animation: respira 9s ease-in-out infinite;
@@ -371,8 +412,8 @@
    * de atraso). Os dois ao mesmo tempo brigariam pela mesma linha.
    */
   .percorre {
-    stroke-dasharray: 0.09 1;
-    animation: percorre 7s ease-in-out 2s infinite;
+    stroke-dasharray: 0.16 1;
+    animation: percorre 4.5s ease-in-out 2s infinite;
   }
 
   /* Só a escala auxiliar do paquímetro se move. A principal é a referência. */
@@ -383,7 +424,8 @@
   .aproxima {
     animation: aproxima 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-timeline: view();
-    animation-range: entry 4% cover 30%;
+    animation-range: entry 0% cover 46%;
+    animation-timing-function: linear;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -400,6 +442,7 @@
      */
     .revela,
     .surge,
+    .surge-rolagem,
     .respira,
     .desliza,
     .aproxima {
@@ -417,7 +460,8 @@
       display: none;
     }
 
-    .desenha {
+    .desenha,
+    .desenha-rolagem {
       animation: none;
       stroke-dasharray: none;
       stroke-dashoffset: 0;

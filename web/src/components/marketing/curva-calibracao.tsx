@@ -13,13 +13,22 @@ import { confiabilidadeUtil, type Horizonte } from "@/lib/backtest";
  *
  * A curva é a do CONSENSO, com dado medido. A nossa ainda não existe, e a
  * legenda da tela precisa dizer isso.
+ *
+ * Com `animado`, a diagonal se desenha e os pontos entram um a um, da esquerda
+ * para a direita — na ordem das faixas de probabilidade. A ordem importa: é a
+ * mesma em que se lê o gráfico, e ver o ponto de 60% a 80% cair no chão DEPOIS
+ * dos outros é o que faz o achado aparecer, em vez de estar lá desde sempre.
+ * No painel `/historico` fica desligado: lá é ferramenta de consulta.
  */
 export function CurvaCalibracao({
   horizonte,
   lado = 300,
+  animado = false,
 }: {
   horizonte: Horizonte;
   lado?: number;
+  /** Só na landing. Ver o comentário do topo. */
+  animado?: boolean;
 }) {
   const faixas = confiabilidadeUtil(horizonte);
   const m = 44;
@@ -37,12 +46,31 @@ export function CurvaCalibracao({
       role="img"
       aria-label="Diagrama de confiabilidade do consenso: probabilidade implícita contra frequência observada."
     >
-      <line x1={m} y1={fim} x2={fim} y2={m} stroke="var(--referencia)" strokeDasharray="4 6" />
+      {/*
+        A diagonal se desenha primeiro: é a régua contra a qual tudo é lido, e
+        precisa existir antes de os pontos aparecerem ao lado dela.
+      */}
+      <line
+        x1={m}
+        y1={fim}
+        x2={fim}
+        y2={m}
+        stroke="var(--referencia)"
+        strokeDasharray={animado ? undefined : "4 6"}
+        pathLength={animado ? 1 : undefined}
+        className={animado ? "desenha-rolagem" : undefined}
+      />
       <line x1={m} y1={fim} x2={fim} y2={fim} stroke="var(--rule)" />
       <line x1={m} y1={m} x2={m} y2={fim} stroke="var(--rule)" />
 
-      {faixas.map((f) => (
-        <g key={f.faixa}>
+      {faixas.map((f, i) => (
+        <g
+          key={f.faixa}
+          className={animado ? "surge-rolagem" : undefined}
+          /* Cada ponto começa um pouco depois do anterior, medido em avanço da
+             rolagem e não em milissegundos. Subir desfaz na ordem inversa. */
+          style={animado ? { ["--inicio" as string]: `${16 + i * 7}%` } : undefined}
+        >
           {/* barra de erro: a incerteza da própria medição, não some daqui */}
           <line
             x1={emX(f.dissemos)}
