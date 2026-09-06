@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Nônio">
+  <title>Nônio</title>
+  <!--
+    Favicon avulso, 32×32, para quem precisar do arquivo solto. O que o site usa
+    é `src/app/icon.svg`, que o Next serve sozinho.
+
+    Sem fundo: em aba clara e escura um quadrado de cor fixa recorta feio nas
+    duas. O glifo em dois tons se vira nos dois casos.
+  -->
+  <g transform="translate(16 16) scale(0.3) translate(-50 -50)">
+    <path d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z" fill="#14544b" />
+    <path d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z" fill="#9dbaa7" />
+  </g>
+</svg>

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Marca } from "@/components/marketing/marca";
 import { sair, type Sessao } from "@/lib/sessao";
 import { alternarDemo } from "@/lib/demo-acoes";
 import { dataCurta, hora } from "@/lib/formato";
@@ -57,8 +58,11 @@ export function BarraLateral({
     */
     <aside className="flex w-58 shrink-0 flex-col overflow-y-auto border-r border-rule py-5.5">
       <div className="flex flex-col gap-0.5 px-5 pb-4.5">
-        <Link href="/macro" className="font-heading text-[21px] font-semibold tracking-tight">
-          Nônio
+        <Link href="/macro" className="flex items-center gap-2.5">
+          {/* Sem caixa aqui: ao lado do nome, um bloco de cor sólida competiria
+              com o próprio nome em vez de assiná-lo. */}
+          <Marca tamanho={22} caixa={false} />
+          <span className="font-heading text-[21px] font-semibold tracking-tight">Nônio</span>
         </Link>
         <span className="eyebrow">pesquisa · probabilidade</span>
       </div>

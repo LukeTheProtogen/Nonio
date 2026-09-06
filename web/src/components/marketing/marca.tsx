@@ -5,34 +5,56 @@
  * auxiliar embaixo, deslocada, com o traço que coincide mais alto. Num quadrado
  * de 36px sobra só o gesto, que é exatamente o que uma marca precisa ser.
  */
-export function Marca({ tamanho = 36 }: { tamanho?: number }) {
+/**
+ * O glifo da marca.
+ *
+ * Uma folha e a MESMA folha girada 180 graus em torno do centro. A construção
+ * é a ideia do produto em geometria: duas escalas idênticas, deslocadas uma da
+ * outra, e a leitura nasce de onde elas se encontram. É o paquímetro, sem
+ * desenhar um paquímetro.
+ *
+ * Os dois lobos são o mesmo caminho de propósito — muda um, muda o outro, e a
+ * simetria nunca sai do lugar por descuido.
+ *
+ * `caixa` liga o quadrado arredondado. Ligado no cabeçalho, onde a marca
+ * precisa de presença; desligado onde ela é assinatura ao lado de texto, e um
+ * bloco de cor sólida pesaria demais.
+ */
+export function Marca({ tamanho = 36, caixa = true }: { tamanho?: number; caixa?: boolean }) {
+  const glifo = (
+    <svg
+      width={caixa ? tamanho * 0.7 : tamanho}
+      height={caixa ? tamanho * 0.7 : tamanho}
+      viewBox="0 0 100 100"
+      aria-hidden
+    >
+      <path
+        d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z"
+        fill="currentColor"
+      />
+      <path
+        d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z"
+        fill="currentColor"
+        opacity={0.62}
+      />
+    </svg>
+  );
+
+  if (!caixa) {
+    return (
+      <span className="inline-flex shrink-0 text-modelo" aria-hidden>
+        {glifo}
+      </span>
+    );
+  }
+
   return (
     <span
-      className="inline-flex shrink-0 items-center justify-center rounded-lg bg-modelo"
+      className="inline-flex shrink-0 items-center justify-center rounded-lg bg-modelo-forte text-white"
       style={{ width: tamanho, height: tamanho }}
       aria-hidden
     >
-      <svg width={tamanho * 0.62} height={tamanho * 0.62} viewBox="0 0 24 24" fill="none">
-        {/* régua principal */}
-        <path d="M3 9h18" stroke="white" strokeOpacity={0.55} strokeWidth={1.4} strokeLinecap="round" />
-        {[3, 7.5, 12, 16.5, 21].map((x) => (
-          <path
-            key={`r${x}`}
-            d={`M${x} 9V5.6`}
-            stroke="white"
-            strokeOpacity={0.55}
-            strokeWidth={1.4}
-            strokeLinecap="round"
-          />
-        ))}
-        {/* escala auxiliar, deslocada */}
-        <path d="M6 15h15" stroke="white" strokeWidth={1.4} strokeLinecap="round" />
-        {[6, 10, 14, 18].map((x) => (
-          <path key={`n${x}`} d={`M${x} 15v3`} stroke="white" strokeWidth={1.4} strokeLinecap="round" />
-        ))}
-        {/* o traço que coincide */}
-        <path d="M14 15v4.6" stroke="white" strokeWidth={2} strokeLinecap="round" />
-      </svg>
+      {glifo}
     </span>
   );
 }
