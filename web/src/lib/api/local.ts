@@ -70,6 +70,7 @@ export function macro() {
           min: i.consenso.min,
           max: i.consenso.max,
           n: i.consenso.n,
+          quantis: i.consenso.quantis ?? null,
           pEvento: i.consenso.pEvento,
         },
         modelo: i.modelo,

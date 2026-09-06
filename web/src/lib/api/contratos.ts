@@ -70,6 +70,21 @@ const zDistribuicao = z.object({
   max: z.number().nullable(),
   /** Quantas instituições responderam. Sem isto a nuvem não se reconstrói. */
   n: z.number().int().positive().nullable(),
+  /**
+   * Quantis do próprio consenso, calculados pelo pipeline.
+   *
+   * São do CONSENSO, não nossos — é a faixa onde as instituições se concentram,
+   * e a distinção precisa aparecer em todo rótulo que os use. Enquanto não
+   * existir modelo macro, é a única faixa honesta que a tela pode desenhar.
+   */
+  quantis: z
+    .object({
+      q05: z.number(),
+      q25: z.number(),
+      q75: z.number(),
+      q95: z.number(),
+    })
+    .nullable(),
 });
 
 export const zIndicador = z.object({

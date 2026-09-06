@@ -324,6 +324,28 @@
  * cotação subindo, que é justamente o vocabulário de corretora que este
  * produto não usa.
  */
+/*
+ * Área revelada da esquerda para a direita.
+ *
+ * A curva do consenso é medida, então pode se desenhar como qualquer outro
+ * dado. Antes só a linha do MODELO se desenhava; com o modelo macro nulo a
+ * dobra perdeu a animação inteira e o gráfico passou a nascer pronto.
+ *
+ * Recorte e não opacidade: a área aparecendo por transparência parece um
+ * fade genérico; varrendo da esquerda para a direita ela se CONSTRÓI, que é o
+ * que uma distribuição sendo lida faz.
+ */
+@keyframes revela-area {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* Linha vertical crescendo do eixo para cima. */
+@keyframes cresce {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
 @keyframes flutua {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(var(--altura, -7px)); }
@@ -445,6 +467,20 @@
     animation: percorre 4.5s ease-in-out 2s infinite;
   }
 
+  .revela-area {
+    animation: revela-area 1.5s cubic-bezier(0.33, 1, 0.68, 1) 0.15s both;
+  }
+
+  /*
+   * `transform-origin: bottom` no SVG exige `fill-box`, senão a origem é o
+   * canto do SVG inteiro e a linha cresce do lugar errado.
+   */
+  .cresce {
+    transform-box: fill-box;
+    transform-origin: bottom;
+    animation: cresce 0.7s cubic-bezier(0.34, 1.2, 0.64, 1) var(--atraso, 1s) both;
+  }
+
   .flutua {
     transform-box: fill-box;
     animation: flutua var(--periodo, 6s) ease-in-out var(--atraso, 0s) infinite;
@@ -486,7 +522,9 @@
     .desliza,
     .flutua,
     .varre,
-    .aproxima {
+    .aproxima,
+    .revela-area,
+    .cresce {
       animation: none;
       opacity: 1;
       transform: none;

@@ -130,9 +130,17 @@ export default async function Landing() {
               {ipca.modelo ? (
                 <Chave cor="var(--modelo)">nosso modelo, com a faixa de 80%</Chave>
               ) : (
-                <Chave cor="var(--referencia)">
-                  modelo próprio para macro ainda não existe
-                </Chave>
+                <>
+                  {ipca.consenso.quantis && (
+                    <Chave cor="var(--consenso)">
+                      metade delas entre {num(ipca.consenso.quantis.q25)}% e{" "}
+                      {num(ipca.consenso.quantis.q75)}%
+                    </Chave>
+                  )}
+                  <Chave cor="var(--referencia)">
+                    modelo próprio para macro ainda não existe
+                  </Chave>
+                </>
               )}
             </div>
           </figure>
