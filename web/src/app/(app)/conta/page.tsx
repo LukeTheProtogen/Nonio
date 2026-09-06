@@ -164,7 +164,7 @@ export default async function Conta() {
 
           <div className="flex flex-wrap items-center justify-between gap-5 border-t border-rule pt-7">
             {/* Mesmo diálogo da barra lateral: uma pergunta só, um lugar só. */}
-            <ConfirmarSaida className="inline-flex h-11 items-center rounded-md border border-rule px-5 text-[14.5px] font-medium transition-colors hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo">
+            <ConfirmarSaida className="inline-flex h-11 cursor-pointer items-center rounded-md border border-rule px-5 text-[14.5px] font-medium transition-colors hover:border-ink-soft hover:bg-surface-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo">
               Sair desta sessão
             </ConfirmarSaida>
 

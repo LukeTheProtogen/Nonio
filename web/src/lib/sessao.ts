@@ -1,11 +1,13 @@
 "use server";
 
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { destinoSeguro } from "@/lib/destino";
 import { emailPlausivel, senhaValida } from "@/lib/senha";
 import { supabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
+
+const COOKIE_OAUTH_NEXT = "nonio_oauth_next";
 
 /**
  * Sessão = Supabase Auth (e-mail/senha ou Google).
@@ -87,12 +89,22 @@ export async function entrarComGoogle(form: FormData): Promise<void> {
     redirect("/entrar?erro=oauth");
   }
 
-  const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+  const origin = (await headers()).get("origin") ?? "http://127.0.0.1:3000";
+  // `next` vai em cookie: redirectTo com ?next= NÃO está na allowlist do
+  // Supabase (exact match) e cai no site_url → /?code=... sem trocar sessão.
+  const jar = await cookies();
+  jar.set(COOKIE_OAUTH_NEXT, de, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 600,
+  });
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/auth/callback?next=${encodeURIComponent(de)}`,
+      redirectTo: `${origin}/auth/callback`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
@@ -174,14 +186,21 @@ export async function criarConta(
     };
   }
 
-  const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+  const origin = (await headers()).get("origin") ?? "http://127.0.0.1:3000";
+  const jar = await cookies();
+  jar.set(COOKIE_OAUTH_NEXT, de, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24,
+  });
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password: senha,
     options: {
       data: { name: nome, auth_via: "password" },
-      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(de)}`,
+      emailRedirectTo: `${origin}/auth/callback`,
     },
   });
 
@@ -216,11 +235,18 @@ export async function pedirRecuperacao(
   if (!emailPlausivel(email)) return { erro: "Esse e-mail não parece válido." };
 
   if (supabaseConfigured()) {
-    const origin = (await headers()).get("origin") ?? "http://localhost:3000";
+    const origin = (await headers()).get("origin") ?? "http://127.0.0.1:3000";
+    const jar = await cookies();
+    jar.set(COOKIE_OAUTH_NEXT, "/redefinir-senha", {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60,
+    });
     const supabase = await createClient();
     await supabase.auth
       .resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/callback?next=${encodeURIComponent("/redefinir-senha")}`,
+        redirectTo: `${origin}/auth/callback`,
       })
       .catch(() => undefined);
   }

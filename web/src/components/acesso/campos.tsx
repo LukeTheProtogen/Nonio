@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { entrada } from "./estilos";
 import { REGRAS, forca } from "@/lib/senha";
 
@@ -40,6 +40,8 @@ export function CampoTexto({
   maxLength,
   inputMode,
   pattern,
+  value,
+  onChange,
 }: {
   nome: string;
   tipo?: string;
@@ -51,6 +53,8 @@ export function CampoTexto({
   maxLength?: number;
   inputMode?: "numeric" | "text" | "email" | "tel";
   pattern?: string;
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
     <input
@@ -63,6 +67,8 @@ export function CampoTexto({
       inputMode={inputMode}
       pattern={pattern}
       required
+      value={value}
+      onChange={onChange}
       className={entrada(erro)}
     />
   );
@@ -82,6 +88,8 @@ export function CampoSenha({
   comRegras = true,
   autoComplete = "new-password",
   aoLado,
+  /** Muda o valor para zerar a senha (ex.: depois de erro no formulário). */
+  resetKey = 0,
 }: {
   nome?: string;
   rotulo?: string;
@@ -89,10 +97,15 @@ export function CampoSenha({
   comRegras?: boolean;
   autoComplete?: string;
   aoLado?: React.ReactNode;
+  resetKey?: number;
 }) {
   const [valor, setValor] = useState("");
   const [visivel, setVisivel] = useState(false);
   const nivel = forca(valor);
+
+  useEffect(() => {
+    if (resetKey > 0) setValor("");
+  }, [resetKey]);
 
   return (
     <div className="flex flex-col gap-2">

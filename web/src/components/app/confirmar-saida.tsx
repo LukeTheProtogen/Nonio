@@ -41,7 +41,7 @@ export function ConfirmarSaida({
         onClick={() => dialogo.current?.showModal()}
         className={
           className ??
-          "rounded-sm px-1.5 py-1 text-[11px] text-ink-soft transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+          "cursor-pointer rounded-sm px-1.5 py-1 text-[11px] text-ink-soft transition-colors hover:bg-surface-3 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
         }
       >
         {children}
@@ -66,7 +66,7 @@ export function ConfirmarSaida({
               type="button"
               onClick={() => dialogo.current?.close()}
               aria-label="Fechar"
-              className="-mt-1 -mr-1.5 flex size-8 shrink-0 items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-surface-3 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+              className="-mt-1 -mr-1.5 flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-ink-soft transition-colors hover:bg-surface-3 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
             >
               <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.7} strokeLinecap="round" aria-hidden>
                 <path d="M3.5 3.5l9 9M12.5 3.5l-9 9" />
@@ -87,7 +87,7 @@ export function ConfirmarSaida({
               type="button"
               autoFocus
               onClick={() => dialogo.current?.close()}
-              className="inline-flex h-10 items-center rounded-md border border-rule px-5 text-[14px] font-medium transition-colors hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+              className="inline-flex h-10 cursor-pointer items-center rounded-md border border-rule px-5 text-[14px] font-medium transition-colors hover:border-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
             >
               Não
             </button>
@@ -100,7 +100,7 @@ export function ConfirmarSaida({
             <form action={sair}>
               <button
                 type="submit"
-                className="inline-flex h-10 items-center rounded-md bg-modelo px-5 text-[14px] font-semibold text-white transition-colors hover:bg-modelo-forte focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
+                className="inline-flex h-10 cursor-pointer items-center rounded-md bg-modelo px-5 text-[14px] font-semibold text-white transition-colors hover:bg-modelo-forte focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-modelo"
               >
                 Sim, sair
               </button>

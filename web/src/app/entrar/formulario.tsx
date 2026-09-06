@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { pedirCodigo, type ResultadoEntrada } from "@/lib/sessao";
 import { botaoPrimario, entrada } from "@/components/acesso/estilos";
 
@@ -9,7 +9,14 @@ const inicial: ResultadoEntrada = undefined;
 
 export function FormularioEntrar({ de }: { de: string }) {
   const [estado, acao, pendente] = useActionState(pedirCodigo, inicial);
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
   const comErro = Boolean(estado?.erro);
+
+  // Depois da tentativa, o e-mail fica; a senha some (erro ou formulário resetado).
+  useEffect(() => {
+    if (estado?.erro) setSenha("");
+  }, [estado]);
 
   return (
     <form action={acao} className="flex flex-col gap-5.5">
@@ -20,6 +27,8 @@ export function FormularioEntrar({ de }: { de: string }) {
           type="email"
           autoComplete="email"
           required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="voce@empresa.com.br"
           className={entrada(comErro)}
         />
@@ -39,6 +48,8 @@ export function FormularioEntrar({ de }: { de: string }) {
           type="password"
           autoComplete="current-password"
           required
+          value={senha}
+          onChange={(e) => setSenha(e.target.value)}
           placeholder="••••••••••••"
           className={entrada(comErro)}
         />

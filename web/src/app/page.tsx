@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { NuvemConsenso } from "@/components/marketing/nuvem-consenso";
 import { CurvaCalibracao } from "@/components/marketing/curva-calibracao";
 import { EscalaNonio } from "@/components/marketing/escala-nonio";
@@ -40,7 +41,15 @@ export const metadata: Metadata = {
  *   6 vocês ganham como?  alinhamento
  *   7 e agora?            fecho
  */
-export default async function Landing() {
+export default async function Landing({ searchParams }: PageProps<"/">) {
+  const params = await searchParams;
+  const code = typeof params.code === "string" ? params.code : "";
+  // Supabase às vezes devolve o code no site_url (/) se o redirectTo falhou
+  // a allowlist — encaminha para o handler que troca o code por sessão.
+  if (code) {
+    redirect(`/auth/callback?code=${encodeURIComponent(code)}`);
+  }
+
   const [sessao, macro] = await Promise.all([sessaoAtual(), obterMacro()]);
 
   const ipca = macro.indicadores[0]!;
