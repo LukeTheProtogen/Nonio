@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
 /**
@@ -14,6 +16,18 @@ import { ImageResponse } from "next/og";
 export const alt = "Nônio — pesquisa e probabilidade sobre dados públicos";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+/*
+  A marca vem do DISCO, embutida como data URI, e não de uma URL.
+
+  O `ImageResponse` roda no servidor e buscaria a imagem pela rede. Numa
+  geração de cartão isso significa depender do próprio site estar de pé e
+  respondendo — e quando falha, o cartão sai sem a marca no WhatsApp e ninguém
+  percebe. É o mesmo motivo de não buscar fonte externa aqui.
+*/
+const MARCA = `data:image/png;base64,${readFileSync(
+  join(process.cwd(), "public/marca/nonio-caixa.png"),
+).toString("base64")}`;
 
 const PETROLEO = "#0a6560";
 const TINTA = "#0e1616";
@@ -36,23 +50,8 @@ export default async function Imagem() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <div
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 12,
-              background: PETROLEO,
-              display: "flex",
-              alignItems: "flex-end",
-              justifyContent: "center",
-              gap: 5,
-              paddingBottom: 14,
-            }}
-          >
-            {[16, 24, 16, 24, 16].map((h, i) => (
-              <div key={i} style={{ width: 2, height: h, background: "#ffffff" }} />
-            ))}
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={MARCA} width={52} height={52} alt="" />
           <span style={{ fontSize: 34, fontWeight: 600, color: TINTA, letterSpacing: -0.5 }}>
             Nônio
           </span>
