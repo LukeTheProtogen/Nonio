@@ -1,61 +1,50 @@
+import Image from "next/image";
+
 /**
- * Marca do Nônio: as duas escalas do paquímetro, reduzidas ao mínimo.
+ * A marca do Nônio.
  *
- * Mesma ideia da figura grande da landing — régua principal em cima, escala
- * auxiliar embaixo, deslocada, com o traço que coincide mais alto. Num quadrado
- * de 36px sobra só o gesto, que é exatamente o que uma marca precisa ser.
- */
-/**
- * O glifo da marca.
+ * Duas artes, e a escolha entre elas é o que a prop `caixa` decide:
  *
- * Uma folha e a MESMA folha girada 180 graus em torno do centro. A construção
- * é a ideia do produto em geometria: duas escalas idênticas, deslocadas uma da
- * outra, e a leitura nasce de onde elas se encontram. É o paquímetro, sem
- * desenhar um paquímetro.
+ *   · `caixa` LIGADA  → a versão em ladrilho, com o quadrado verde e a sombra
+ *     já na arte. É a do cabeçalho da landing, onde a marca precisa de
+ *     presença e enfrenta uma página inteira competindo por atenção.
+ *   · `caixa` DESLIGADA → só as duas folhas, fundo transparente. É a de todo o
+ *     resto: barra do produto e telas de acesso, onde a marca assina ao lado
+ *     do nome e um bloco de cor sólida pesaria demais.
  *
- * Os dois lobos são o mesmo caminho de propósito — muda um, muda o outro, e a
- * simetria nunca sai do lugar por descuido.
+ * ═══ POR QUE PNG, E NÃO SVG ═══
  *
- * `caixa` liga o quadrado arredondado. Ligado no cabeçalho, onde a marca
- * precisa de presença; desligado onde ela é assinatura ao lado de texto, e um
- * bloco de cor sólida pesaria demais.
+ * A versão anterior era SVG com `fill="currentColor"`, e por isso a marca
+ * trocava de cor sozinha conforme o fundo. Estas duas têm gradiente e sombra
+ * assados na arte, então NÃO se recolorem: o que está no arquivo é o que
+ * aparece. Refazê-las em vetor exigiria o arquivo de origem, e traçar por cima
+ * do raster daria uma aproximação, não a marca.
+ *
+ * Consequência prática, para quem for usar em fundo novo: a folha da versão
+ * sem caixa é verde-sálvia e vive bem em off-white e em verde escuro, mas some
+ * em fundo claro de baixo contraste. Nesses lugares é a versão em ladrilho que
+ * resolve, não uma recoloração — que não existe mais.
+ *
+ * `sizes` fixo no dobro do lado pedido: a marca nunca passa de 60px na tela, e
+ * sem isso o Next serviria o arquivo de 512 para um quadrado de 22.
  */
 export function Marca({ tamanho = 36, caixa = true }: { tamanho?: number; caixa?: boolean }) {
-  const glifo = (
-    <svg
-      width={caixa ? tamanho * 0.7 : tamanho}
-      height={caixa ? tamanho * 0.7 : tamanho}
-      viewBox="0 0 100 100"
-      aria-hidden
-    >
-      <path
-        d="M47 8 C33 25 21 38 21 55 C21 72 32 82 47 84 Z"
-        fill="currentColor"
-      />
-      <path
-        d="M53 92 C67 75 79 62 79 45 C79 28 68 18 53 16 Z"
-        fill="currentColor"
-        opacity={0.62}
-      />
-    </svg>
-  );
-
-  if (!caixa) {
-    return (
-      <span className="inline-flex shrink-0 text-modelo" aria-hidden>
-        {glifo}
-      </span>
-    );
-  }
+  const arte = caixa ? "/marca/nonio-caixa.png" : "/marca/nonio.png";
 
   return (
-    <span
-      className="inline-flex shrink-0 items-center justify-center rounded-lg bg-modelo-forte text-white"
-      style={{ width: tamanho, height: tamanho }}
+    <Image
+      src={arte}
+      alt=""
       aria-hidden
-    >
-      {glifo}
-    </span>
+      width={tamanho}
+      height={tamanho}
+      /* `priority`: a marca está sempre na primeira dobra, nas três molduras
+         que usam este componente. Carregar preguiçoso aqui só entrega um
+         buraco no cabeçalho no primeiro quadro. */
+      priority
+      className="inline-block shrink-0 select-none"
+      style={{ width: tamanho, height: tamanho }}
+    />
   );
 }
 
