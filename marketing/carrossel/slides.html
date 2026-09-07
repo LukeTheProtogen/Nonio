@@ -24,8 +24,27 @@
   .regua .linha{position:absolute;inset:0;background:var(--referencia);opacity:.55}
   .regua i{position:absolute;top:0;width:1px;background:var(--referencia);opacity:.45}
 
-  .slide > div, .slide > p, .slide > section{position:relative;z-index:2}
-  .regua{z-index:1}
+  /* O `:not()` não é enfeite de seletor.
+
+     Sem ele, `.slide > div` (0,1,1) ganhava de `.marca` e `.regua` (0,1,0) e
+     trocava o `position:absolute` das duas por `relative`. Em posição relativa
+     o deslocamento passa a contar a partir de onde o elemento CAIRIA no fluxo,
+     não da borda do slide, e no slide 2 os dois quebraram:
+
+       · a régua desceu 48px, saindo do y=1012 dos outros dois e cortando a
+         legenda do rodapé com os traços;
+       · a marca, com `bottom:88px` virando deslocamento relativo, subiu 88px
+         acima do topo e sumiu do quadro.
+
+     Ninguém compartilha o carrossel inteiro: printa o slide do número que
+     surpreendeu. Um slide sem a marca é um print sem dono. */
+  .slide > div:not(.regua):not(.marca), .slide > p, .slide > section{position:relative;z-index:2}
+  .marca{z-index:2}
+  /* Mesmo plano do conteúdo, e última no DOM: é assim que a régua passa
+     POR CIMA da foto do slide 1. Com z-index menor ela sumia atrás dela,
+     e sem a régua atravessando os três o corte deixa de ler como uma tela
+     só. */
+  .regua{z-index:2}
 
   .etiqueta{
     font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500;
