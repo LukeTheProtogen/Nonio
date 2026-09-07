@@ -8,6 +8,8 @@ import { INDICADORES, FOCUS_COLETADO_EM, BASE_CALCULO } from "@/lib/macro";
 import { ACOES, CDI_12M } from "@/mock/acoes";
 import { serieDe, fatosDe, metricasDaSerie } from "@/mock/serie";
 import type { Meta } from "./contratos";
+import acoesJson from "@/data/acoes.json";
+import copomJson from "@/data/copom.json";
 
 /**
  * Montagem local das respostas, no formato exato do contrato.
@@ -116,51 +118,62 @@ function fonteCotacao(demo: boolean): string {
  * uma parte é real seria o pior dos dois mundos: a tela pararia de avisar
  * justamente sobre as colunas inventadas.
  */
+/**
+ * REAL. Vem de `data/acoes.json`, capturado do próprio FastAPI por
+ * `scripts/publicar-api.sh` — mesmo contrato, mesmos números.
+ *
+ * Por que arquivo e não servidor: /acoes lê parquet e devolve JSON; nada é
+ * calculado por requisição. O modelo é retreinado no pipeline, não a cada
+ * visita. Um servidor no meio custaria hospedagem e adicionaria um ponto de
+ * falha — e na camada gratuita ele hiberna justamente quando ninguém acessa
+ * há quinze minutos, que é o estado normal antes de uma apresentação.
+ *
+ * A cotação continua ao vivo: ela é a única coisa aqui que muda no dia.
+ */
 export async function acoes() {
   const demo = await emDemo();
-  const porPrevisao = new Map(todasPrevisoes().map((p) => [p.ticker, p]));
-  // Universo: mock base + qualquer ticker publicado no spine que ainda não está no mock.
-  const basePorTicker = new Map(ACOES.map((a) => [a.ticker, a]));
-  for (const p of todasPrevisoes()) {
-    if (!basePorTicker.has(p.ticker)) {
-      basePorTicker.set(p.ticker, {
-        ticker: p.ticker,
-        nome: p.ticker,
-        setor: "—",
-        cotacaoLivre: false,
-        retorno12m: 0,
-        acimaDoCdi: 0,
-        vol12m: 30,
-        beta: 1,
-        sensJuros100bp: 0,
-        sensDolar1pct: 0,
-        sensBrent10pct: 0,
-        fatos30d: 0,
-      });
-    }
-  }
-  const universo = [...basePorTicker.values()].sort((a, b) => {
-    const pa = porPrevisao.get(a.ticker)?.probabilidade ?? -1;
-    const pb = porPrevisao.get(b.ticker)?.probabilidade ?? -1;
-    return pb - pa;
-  });
-  const lista = await cotacoes(universo.map((a) => a.ticker), demo);
+  const publicado = acoesJson as unknown as {
+    dados: { acoes: Array<Record<string, unknown>>; cdi12m: number };
+    meta: { geradoEm: string; mock: boolean };
+  };
+
+  const lista = await cotacoes(
+    publicado.dados.acoes.map((a) => String(a.ticker)),
+    demo,
+  );
   const porTicker = new Map(lista.map((c) => [c.ticker, c]));
 
   return {
     dados: {
-      acoes: universo.map((a) => montarAcao(a, porTicker.get(a.ticker))),
-      cdi12m: CDI_12M,
+      acoes: publicado.dados.acoes.map((a) => {
+        const c = porTicker.get(String(a.ticker));
+        return {
+          ...a,
+          // Sobrepõe só o que envelhece em horas.
+          preco: c?.preco ?? a.preco ?? null,
+          variacaoDiaPct: c?.variacaoPct ?? a.variacaoDiaPct ?? null,
+        };
+      }),
+      cdi12m: publicado.dados.cdi12m,
       limitadoSemToken: demo ? false : !temToken(),
     },
     meta: meta({
-      geradoEm: previsoesGeradasEm,
+      geradoEm: publicado.meta.geradoEm,
       fontes: [fonteCotacao(demo), "pipeline nonio.train (lowvol-spine)"],
-      mock: true,
+      // Preserva o que o backend declarou: parte dos campos ainda é estimada.
+      mock: publicado.meta.mock,
     }),
   };
 }
 
+/**
+ * Reuniões do Copom, capturadas do backend. 260 registros, com a extração das
+ * atas por LLM (decisão, tom, resumo) onde ela existe.
+ */
+export function copom() {
+  const d = copomJson as unknown as { items: Array<Record<string, unknown>> };
+  return d.items ?? [];
+}
 
 export async function acao(ticker: string) {
   const demo = await emDemo();
