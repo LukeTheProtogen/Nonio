@@ -209,8 +209,11 @@ export async function obterCopom(): Promise<CopomReuniao[]> {
     );
     return reduzir(page.items);
   } catch (erro) {
+    // Mesma política do envelopeAcoes: sem JWT (BFF anônimo, ?demo=1, página
+    // pública) cai no arquivo publicado em vez de devolver lista vazia. Antes
+    // daqui saía [] e a linha da Selic sumia da tela sem explicação.
     if (erro instanceof ErroApi && (erro.status === 401 || erro.status === 404)) {
-      return [];
+      return reduzir(zCopomMeetingOut.array().parse(local.copom()));
     }
     throw erro;
   }
