@@ -1,110 +1,107 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { Cartao, COR, TAMANHO, fontes, marca } from "@/lib/og/cartao";
 
 /**
- * Imagem de compartilhamento.
+ * Cartão de link da landing, e o padrão de todas as rotas públicas.
  *
- * Vale para todas as rotas por herança de segmento: um cartão só, com a marca e
- * a tese. Cartão por rota vem quando cada rota tiver o que dizer de próprio —
- * até lá, seis variações do mesmo texto é manutenção sem retorno.
+ * Vale por herança de segmento: /sobre, /precos, /termos e as demais caem aqui
+ * enquanto não tiverem o que dizer de próprio. Cartão por rota só se paga
+ * quando a rota tem número próprio — seis variações do mesmo texto é
+ * manutenção sem retorno.
  *
- * Sem fonte externa de propósito. Buscar Zilla Slab aqui adiciona uma chamada
- * de rede na geração da imagem, e quando ela falha o cartão sai quebrado no
- * WhatsApp sem ninguém perceber. A fonte do sistema não quebra.
+ * ESTÁTICO, ao contrário dos de /acoes, /macro e /historico. Nada aqui depende
+ * de dado do dia, então o arquivo é gerado uma vez no build.
+ *
+ * A versão anterior desenhava tudo à mão neste arquivo, com fonte de sistema e
+ * uma marca que não existe mais. O molde compartilhado resolveu as duas coisas:
+ * a fonte é a do produto, e a marca é uma só para os quatro cartões.
  */
 export const alt = "Nônio — pesquisa e probabilidade sobre dados públicos";
-export const size = { width: 1200, height: 630 };
+export const size = TAMANHO;
 export const contentType = "image/png";
-
-/*
-  A marca vem do DISCO, embutida como data URI, e não de uma URL.
-
-  O `ImageResponse` roda no servidor e buscaria a imagem pela rede. Numa
-  geração de cartão isso significa depender do próprio site estar de pé e
-  respondendo — e quando falha, o cartão sai sem a marca no WhatsApp e ninguém
-  percebe. É o mesmo motivo de não buscar fonte externa aqui.
-*/
-const MARCA = `data:image/png;base64,${readFileSync(
-  join(process.cwd(), "public/marca/nonio-caixa.png"),
-).toString("base64")}`;
-
-const PETROLEO = "#0a6560";
-const TINTA = "#0e1616";
-const SUAVE = "#55625f";
-const REGUA = "#dee5e5";
 
 export default async function Imagem() {
   return new ImageResponse(
     (
+      <Cartao
+        etiqueta="Pesquisa · Probabilidade"
+        titulo="A decisão é sua."
+        apoio="Nosso trabalho é não esconder nada dela."
+        figura={<Nuvem />}
+        rodape="Banco Central · CVM · IBGE · Tesouro · B3"
+        marcaSrc={await marca()}
+      />
+    ),
+    { ...TAMANHO, fonts: await fontes() },
+  );
+}
+
+/**
+ * A discordância, desenhada.
+ *
+ * Cada ponto é uma instituição projetando; o traço é a mediana que sai na
+ * imprensa. O desenho existe para mostrar o que a mediana esconde, então os
+ * pontos precisam MESMO se espalhar — uma nuvem apertada contaria a história
+ * errada.
+ *
+ * Semente fixa, e não `Math.random()`: o cartão é regerado a cada build, e uma
+ * nuvem diferente a cada vez faria o mesmo link parecer outro produto. É
+ * ilustração de um formato, não amostra de um dado — por isso não leva número,
+ * nem eixo, nem legenda que sugira leitura de valor.
+ */
+function Nuvem() {
+  const rnd = prng(20260907);
+  const LARGURA = 1080;
+  const ALTURA = 128;
+
+  const pontos = Array.from({ length: 132 }, () => ({
+    x: 0.5 + normal(rnd) * 0.135,
+    y: 0.5 + normal(rnd) * 0.26,
+    r: 3 + rnd() * 4.5,
+  })).filter((p) => p.x > 0.02 && p.x < 0.98);
+
+  return (
+    <div style={{ display: "flex", position: "relative", width: "100%", height: ALTURA }}>
+      {pontos.map((p, i) => (
+        <div
+          key={i}
+          style={{
+            position: "absolute",
+            left: p.x * LARGURA,
+            top: Math.max(0, Math.min(ALTURA - p.r * 2, p.y * ALTURA)),
+            width: p.r * 2,
+            height: p.r * 2,
+            borderRadius: p.r,
+            background: COR.consenso,
+            opacity: 0.42,
+          }}
+        />
+      ))}
+
+      {/* a mediana: o único número que costuma sair na imprensa */}
       <div
         style={{
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#ffffff",
-          padding: "72px 80px",
-          fontFamily: "sans-serif",
+          position: "absolute",
+          left: LARGURA / 2,
+          top: 0,
+          width: 2,
+          height: ALTURA,
+          background: COR.modelo,
         }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={MARCA} width={52} height={52} alt="" />
-          <span style={{ fontSize: 34, fontWeight: 600, color: TINTA, letterSpacing: -0.5 }}>
-            Nônio
-          </span>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-          <span
-            style={{
-              fontSize: 82,
-              fontWeight: 600,
-              color: TINTA,
-              letterSpacing: -2.4,
-              lineHeight: 1.02,
-            }}
-          >
-            A decisão é sua.
-          </span>
-          <span style={{ fontSize: 34, color: PETROLEO, letterSpacing: -0.6 }}>
-            Nosso trabalho é não esconder nada dela.
-          </span>
-        </div>
-
-        {/* A régua de baixo é o nônio: escala principal, escala auxiliar, um traço que coincide. */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
-          <div style={{ display: "flex", alignItems: "flex-end", gap: 0, height: 34 }}>
-            {Array.from({ length: 41 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  width: 2,
-                  marginRight: 24,
-                  height: i % 5 === 0 ? 34 : 18,
-                  background: i === 15 ? PETROLEO : REGUA,
-                }}
-              />
-            ))}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: 23,
-              color: SUAVE,
-              borderTop: `1px solid ${REGUA}`,
-              paddingTop: 26,
-            }}
-          >
-            <span>Banco Central · CVM · IBGE · Tesouro · B3</span>
-            <span>Não é recomendação de investimento</span>
-          </div>
-        </div>
-      </div>
-    ),
-    size,
+      />
+    </div>
   );
+}
+
+/* Gerador com semente, para a nuvem sair igual em todo build. */
+function prng(s: number) {
+  return () => {
+    s = (s * 1103515245 + 12345) % 2147483648;
+    return s / 2147483648;
+  };
+}
+
+function normal(r: () => number) {
+  const u = Math.max(r(), 1e-9);
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r());
 }
