@@ -43,3 +43,4 @@ marketing/carrossel/textura-papel.png
 
 # Suporte local para conferir telas a 390px. Não vai para produção.
 web/public/dev-mobile.html
+.env*
