@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-09-13T13:48:31+00:00",
+  "geradoEm": "2026-09-14T15:51:35+00:00",
   "modeloVersao": "baseline-lognormal-v0",
   "toleranciaPp": 2.0,
   "previsoes": [
@@ -7,21 +7,21 @@
       "ticker": "PETR4",
       "probabilidade": 0.4494,
       "horizonte_meses": 12,
-      "preco_referencia": 49.0,
-      "vol_anual": 0.2543,
+      "preco_referencia": 49.11,
+      "vol_anual": 0.2541,
       "limiar_recalculo": 0.013,
-      "calculado_em": "2026-09-13T13:48:31+00:00",
+      "calculado_em": "2026-09-14T15:51:35+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     },
     {
       "ticker": "VALE3",
-      "probabilidade": 0.4475,
+      "probabilidade": 0.4473,
       "horizonte_meses": 12,
-      "preco_referencia": 78.2,
-      "vol_anual": 0.2639,
+      "preco_referencia": 75.95,
+      "vol_anual": 0.2647,
       "limiar_recalculo": 0.0135,
-      "calculado_em": "2026-09-13T13:48:31+00:00",
+      "calculado_em": "2026-09-14T15:51:35+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     },
@@ -29,10 +29,10 @@
       "ticker": "ITUB4",
       "probabilidade": 0.4536,
       "horizonte_meses": 12,
-      "preco_referencia": 42.73,
-      "vol_anual": 0.233,
+      "preco_referencia": 42.23,
+      "vol_anual": 0.2331,
       "limiar_recalculo": 0.0119,
-      "calculado_em": "2026-09-13T13:48:31+00:00",
+      "calculado_em": "2026-09-14T15:51:35+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     },
@@ -40,10 +40,10 @@
       "ticker": "MGLU3",
       "probabilidade": 0.3761,
       "horizonte_meses": 12,
-      "preco_referencia": 5.76,
-      "vol_anual": 0.6313,
+      "preco_referencia": 5.65,
+      "vol_anual": 0.6314,
       "limiar_recalculo": 0.0341,
-      "calculado_em": "2026-09-13T13:48:31+00:00",
+      "calculado_em": "2026-09-14T15:51:35+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     }
