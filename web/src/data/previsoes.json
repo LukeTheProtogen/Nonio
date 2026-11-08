@@ -1,5 +1,5 @@
 {
-  "geradoEm": "2026-11-07T15:32:40+00:00",
+  "geradoEm": "2026-11-08T15:53:37+00:00",
   "modeloVersao": "baseline-lognormal-v0",
   "toleranciaPp": 2.0,
   "previsoes": [
@@ -10,18 +10,18 @@
       "preco_referencia": 45.3,
       "vol_anual": 0.2807,
       "limiar_recalculo": 0.0144,
-      "calculado_em": "2026-11-07T15:32:40+00:00",
+      "calculado_em": "2026-11-08T15:53:37+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     },
     {
       "ticker": "VALE3",
-      "probabilidade": 0.447,
+      "probabilidade": 0.4474,
       "horizonte_meses": 12,
       "preco_referencia": 64.04,
-      "vol_anual": 0.2664,
-      "limiar_recalculo": 0.0136,
-      "calculado_em": "2026-11-07T15:32:40+00:00",
+      "vol_anual": 0.2645,
+      "limiar_recalculo": 0.0135,
+      "calculado_em": "2026-11-08T15:53:37+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     },
@@ -30,20 +30,20 @@
       "probabilidade": 0.4463,
       "horizonte_meses": 12,
       "preco_referencia": 40.53,
-      "vol_anual": 0.2701,
+      "vol_anual": 0.2702,
       "limiar_recalculo": 0.0138,
-      "calculado_em": "2026-11-07T15:32:40+00:00",
+      "calculado_em": "2026-11-08T15:53:37+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     },
     {
       "ticker": "MGLU3",
-      "probabilidade": 0.3216,
+      "probabilidade": 0.3215,
       "horizonte_meses": 12,
       "preco_referencia": 5.61,
-      "vol_anual": 0.9265,
-      "limiar_recalculo": 0.0538,
-      "calculado_em": "2026-11-07T15:32:40+00:00",
+      "vol_anual": 0.9272,
+      "limiar_recalculo": 0.0539,
+      "calculado_em": "2026-11-08T15:53:37+00:00",
       "modelo_versao": "baseline-lognormal-v0",
       "gatilho": "agendado"
     }
