@@ -4,11 +4,20 @@ version = "0.1.0"
 description = "API FastAPI do Nônio: stocks, previews e serviços"
 requires-python = ">=3.13"
 dependencies = [
-    "duckdb>=1.5.5",
-    "duckdb-sqlalchemy>=1.5.5",
+    # Só o que /health, /acoes e /copom exigem. O bundle da Vercel tem teto de
+    # 500 MB e inclui tudo que estiver no projeto — cada linha aqui pesa.
     "fastapi>=0.115.0",
     "polars>=1.44.1",
     "pydantic-settings>=2.8.0",
+    "pyjwt>=2.10.0",
+]
+
+[project.optional-dependencies]
+# Necessário para rodar `app.main` (router stocks, DuckDB) e o servidor local.
+# Instale com: uv sync --extra local
+local = [
+    "duckdb>=1.5.5",
+    "duckdb-sqlalchemy>=1.5.5",
     "pyarrow>=25.0.1",
     "sqlalchemy>=2.0.40",
     "uvicorn[standard]>=0.34.0",
@@ -22,3 +31,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[tool.vercel]
+# Sem isto a Vercel autodetecta `app/main.py` (nome de entrypoint
+# reconhecido) e sobe a versão com lifespan, que quebra no filesystem
+# somente-leitura.
+entrypoint = "app.vercel:app"

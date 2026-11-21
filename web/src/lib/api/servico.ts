@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import {
   zMacro,
+  zCopomMeetingOut,
   zAcoes,
   zAcaoDetalhe,
   zCopomPage,
@@ -165,38 +166,54 @@ export async function obterAcao(ticker: string): Promise<AcaoDetalhe | null> {
   return env?.dados ?? null;
 }
 
+/**
+ * Reduz o formato do backend (snake_case, 14 campos) ao que a tela usa.
+ * Descarta reunião sem data em nenhum dos três campos — sem data ela não tem
+ * onde ser plotada.
+ */
+function reduzir(itens: z.infer<typeof zCopomMeetingOut>[]): CopomReuniao[] {
+  return itens
+    .map((r) => {
+      const data =
+        r.data_referencia ??
+        r.data_publicacao ??
+        r.datas_reuniao?.match(/\d{4}-\d{2}-\d{2}/)?.[0] ??
+        null;
+      if (!data) return null;
+      return {
+        nro: r.nro_reuniao,
+        data,
+        pdfUrl: r.pdf_url ?? null,
+        decisao: r.decisao ?? null,
+        selic: r.selic_meta_aa ?? null,
+        delta: r.delta_pp ?? null,
+        tom: r.tom_politica ?? null,
+        resumo: r.resumo ?? null,
+      } satisfies CopomReuniao;
+    })
+    .filter((r): r is CopomReuniao => r !== null)
+    .sort((a, b) => (a.data < b.data ? -1 : 1));
+}
+
 export async function obterCopom(): Promise<CopomReuniao[]> {
-  if (!noBackend("copom")) return [];
+  // Sem backend, serve o arquivo publicado por scripts/publicar-api.sh.
+  // Antes devolvia [] e a linha da Selic sumia da tela sem explicação.
+  if (!noBackend("copom")) {
+    return reduzir(zCopomMeetingOut.array().parse(local.copom()));
+  }
   try {
     const page = await doBackend(
       "/copom?page_size=100&with_features_only=true",
       zCopomPage,
       CACHE.copom,
     );
-    return page.items
-      .map((r) => {
-        const data =
-          r.data_referencia ??
-          r.data_publicacao ??
-          r.datas_reuniao?.match(/\d{4}-\d{2}-\d{2}/)?.[0] ??
-          null;
-        if (!data) return null;
-        return {
-          nro: r.nro_reuniao,
-          data,
-          pdfUrl: r.pdf_url ?? null,
-          decisao: r.decisao ?? null,
-          selic: r.selic_meta_aa ?? null,
-          delta: r.delta_pp ?? null,
-          tom: r.tom_politica ?? null,
-          resumo: r.resumo ?? null,
-        } satisfies CopomReuniao;
-      })
-      .filter((r): r is CopomReuniao => r !== null)
-      .sort((a, b) => (a.data < b.data ? -1 : 1));
+    return reduzir(page.items);
   } catch (erro) {
+    // Mesma política do envelopeAcoes: sem JWT (BFF anônimo, ?demo=1, página
+    // pública) cai no arquivo publicado em vez de devolver lista vazia. Antes
+    // daqui saía [] e a linha da Selic sumia da tela sem explicação.
     if (erro instanceof ErroApi && (erro.status === 401 || erro.status === 404)) {
-      return [];
+      return reduzir(zCopomMeetingOut.array().parse(local.copom()));
     }
     throw erro;
   }
